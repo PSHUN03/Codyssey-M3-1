@@ -1,0 +1,7 @@
+# 운영체제가 달라도 저장소에는 LF로 저장한다 (Windows·macOS 팀원 혼용)
+* text=auto eol=lf
+*.pdf binary
+*.pptx binary
+*.png binary
+*.jpg binary
+*.ttf binary

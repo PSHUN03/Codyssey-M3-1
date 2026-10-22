@@ -1,0 +1,36 @@
+# 비밀값 — 절대 커밋하지 않는다
+.env
+.env.*
+!.env.example
+
+# 발표 자료 중간 산출물
+docs/presentation/_draft.pptx
+
+# 로컬 데이터베이스
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# 에디터·OS·로컬 도구 설정
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 실명·연락처가 들어간 제출용 파일 — 공개 저장소에 올리지 않는다
+private/
+
+# 이관용 이전 MVP 소스 묶음 (docs/migration.md) — 디스코드로만 주고받는다
+*.zip
+*.bundle
+/\[붙임4\]_*PENTA.hwpx
+/\[붙임4\]_*PENTA.pdf

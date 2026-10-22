@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      # MVP 이관 기간(docs/migration.md)에는 tests 폴더나 평가 스크립트가 아직 없는 단계가 있다
+      - name: Test (모의 AI 모드, API 키 불필요)
+        run: |
+          if [ ! -d tests ]; then echo "tests 폴더가 아직 없어 건너뜁니다"; exit 0; fi
+          pytest -q || { code=$?; [ "$code" -eq 5 ] && exit 0; exit "$code"; }
+      - name: AI 품질 평가 (검색·가드레일)
+        if: hashFiles('eval/run_eval.py') != ''
+        run: python eval/run_eval.py
