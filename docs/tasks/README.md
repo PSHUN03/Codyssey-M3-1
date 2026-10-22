@@ -19,24 +19,27 @@ MVP(필수 기능)는 구현되어 있습니다. 여기 있는 이슈는 **팀�
 
 ## GitHub에 이슈 한 번에 만들기
 
-[GitHub CLI](https://cli.github.com/)로 로그인해 두면 토큰을 따로 만들 필요가 없습니다.
+저장소 관리자가 한 번 실행합니다. GitHub CLI 없이 개인 토큰으로 동작하며, 토큰은 실행할 때 화면에 보이지 않게 입력받고 어디에도 저장하지 않습니다.
+
+1. GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token
+   - Repository access: Only select repositories → `Codyssey-M3-1`
+   - Permissions: Administration(Read and write), Issues(Read and write)
+2. 아래 명령을 실행하고, 토큰을 묻으면 붙여 넣습니다.
 
 ```bash
-# 0) 처음 한 번: GitHub CLI 설치와 로그인 (저장소 관리자)
-winget install --id GitHub.cli -e
-gh auth login
+# 할 일만 미리 보기 (토큰 불필요)
+python scripts/setup_github.py --repo PSHUN03/Codyssey-M3-1 --dry-run
 
-# 1) 무엇이 만들어질지 미리 보기
-python scripts/create_github_issues.py
+# main 보호 규칙 적용, 팀원 초대, 라벨·이슈 등록. 같은 제목의 이슈는 다시 만들지 않습니다
+python scripts/setup_github.py --repo PSHUN03/Codyssey-M3-1
 
-# 2) 실제로 만들기. 같은 제목의 이슈가 이미 있으면 건너뜁니다
-python scripts/create_github_issues.py --repo PSHUN03/Codyssey-M3-1 --apply
-
-# 3) 팀원이 초대를 수락한 뒤, 각 파일의 "담당:"대로 담당자 지정
-python scripts/create_github_issues.py --repo PSHUN03/Codyssey-M3-1 --assign
+# 팀원이 초대를 수락한 뒤, "담당:"대로 담당자 지정
+python scripts/setup_github.py --repo PSHUN03/Codyssey-M3-1 --assign
 ```
 
-GitHub CLI 대신 개인 토큰을 쓰려면 Issues 쓰기 권한으로 발급해 `GITHUB_TOKEN` 환경변수로만 넘깁니다. 만든 뒤에는 GitHub Projects 칸반에 추가하세요.
+3. 다 쓴 토큰은 같은 설정 화면에서 삭제합니다.
+
+이슈만 다시 만들 때는 `scripts/create_github_issues.py`를 씁니다 (GitHub CLI 로그인 또는 `GITHUB_TOKEN` 환경변수). 만든 뒤에는 GitHub Projects 칸반에 추가하세요.
 
 ## 이슈 작성 형식
 
