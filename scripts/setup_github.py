@@ -11,6 +11,7 @@ GitHub CLI 없이 개인 토큰으로 동작한다. 토큰은 실행할 때 화�
 사용법:
     python scripts/setup_github.py --repo PSHUN03/Codyssey-M3-1 --dry-run   # 할 일만 보여 줌 (토큰 불필요)
     python scripts/setup_github.py --repo PSHUN03/Codyssey-M3-1             # 보호 규칙 + 초대 + 이슈
+    python scripts/setup_github.py --repo PSHUN03/Codyssey-M3-1 --token-dialog   # 터미널에 붙여넣기가 안 되면
     python scripts/setup_github.py --repo PSHUN03/Codyssey-M3-1 --assign    # 초대 수락 후 담당자 지정
 """
 
@@ -69,12 +70,28 @@ def invite(gh: GitHub, members: list[str]) -> None:
         print(f"초대 @{member}: {result}")
 
 
-def read_token() -> None:
+def dialog_token() -> str:
+    """별도 입력 창으로 받는다. 일부 터미널은 getpass에 붙여넣기가 전달되지 않는다."""
+    import tkinter
+    from tkinter import simpledialog
+
+    root = tkinter.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    token = simpledialog.askstring("GitHub 토큰", "토큰을 붙여 넣고 확인을 누르세요.", show="*", parent=root)
+    root.destroy()
+    return token or ""
+
+
+def read_token(use_dialog: bool) -> None:
     if os.getenv("GITHUB_TOKEN"):
         return
-    if not sys.stdin.isatty():
+    if use_dialog:
+        token = dialog_token().strip()
+    elif not sys.stdin.isatty():
         sys.exit("GITHUB_TOKEN 환경변수가 없고 토큰을 입력받을 터미널도 아닙니다.")
-    token = getpass.getpass("GitHub 토큰을 붙여 넣고 Enter (화면에 보이지 않습니다): ").strip()
+    else:
+        token = getpass.getpass("GitHub 토큰을 붙여 넣고 Enter (화면에 보이지 않습니다): ").strip()
     if not token:
         sys.exit("토큰이 비어 있습니다.")
     os.environ["GITHUB_TOKEN"] = token  # 이 프로세스 안에서만 쓴다
@@ -85,6 +102,8 @@ def main() -> None:
     parser.add_argument("--repo", required=True, help="owner/name 형식의 저장소")
     parser.add_argument("--dry-run", action="store_true", help="할 일만 보여 주고 GitHub에는 아무것도 하지 않는다")
     parser.add_argument("--assign", action="store_true", help="초대를 수락한 팀원을 이슈 담당자로 지정한다")
+    parser.add_argument("--token-dialog", action="store_true",
+                        help="토큰을 터미널 대신 별도 입력 창으로 받는다 (터미널에 붙여넣기가 안 될 때)")
     args = parser.parse_args()
 
     owner = args.repo.split("/")[0]
@@ -99,7 +118,7 @@ def main() -> None:
             print(f"이슈: {len(issues)}개, 라벨: {len({lb for i in issues for lb in i['labels']})}개")
         return
 
-    read_token()
+    read_token(args.token_dialog)
     gh = GitHub(args.repo)
     status, data = gh.call("GET", f"repos/{args.repo}")
     if status != 200:
