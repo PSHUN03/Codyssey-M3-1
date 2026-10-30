@@ -40,6 +40,7 @@ class Settings:
     refusal_fallback: bool
     daily_chat_limit: int
     internal_api_key: str | None
+    feedback_webhook_url: str | None = None
 
     @property
     def is_mock(self) -> bool:
@@ -75,4 +76,5 @@ def get_settings() -> Settings:
         refusal_fallback=(os.getenv("REFUSAL_FALLBACK") or "true").lower() != "false",
         daily_chat_limit=_int("DAILY_CHAT_LIMIT", 50),
         internal_api_key=os.getenv("INTERNAL_API_KEY") or None,
+        feedback_webhook_url=os.getenv("FEEDBACK_WEBHOOK_URL") or None,
     )
