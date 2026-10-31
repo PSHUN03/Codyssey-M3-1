@@ -1,0 +1,12 @@
+{"id": "q01", "question": "청년미래적금 가입 조건이 뭐야?", "expected_policy": "youth-future-savings", "must_include": ["19", "34"]}
+{"id": "q02", "question": "정부가 적금에 돈을 보태주는 상품 있어?", "expected_policy": "youth-future-savings", "must_include": ["기여금"]}
+{"id": "q03", "question": "청년도약계좌 지금 새로 가입할 수 있어?", "expected_policy": "youth-leap-account", "must_include": ["종료"]}
+{"id": "q04", "question": "도약계좌랑 미래적금 같이 들 수 있어?", "expected_policy": "youth-future-savings", "must_include": ["중복"]}
+{"id": "q05", "question": "월세 지원 받을 수 있어?", "expected_policy": "youth-rent-support", "must_include": ["20만"]}
+{"id": "q06", "question": "월세 지원은 언제 신청해?", "expected_policy": "youth-rent-support", "must_include": ["5월"]}
+{"id": "q07", "question": "내 집 마련하려면 어떤 청약통장이 좋아?", "expected_policy": "housing-dream-account", "must_include": ["4.5"]}
+{"id": "q08", "question": "중소기업 다니면 세금 깎아준다던데 진짜야?", "expected_policy": "sme-youth-tax-cut", "must_include": ["90%"]}
+{"id": "q09", "question": "소득세 감면 신청은 어떻게 해?", "expected_policy": "sme-youth-tax-cut", "must_include": ["신청서"]}
+{"id": "q10", "question": "연말정산 때 돈 돌려받는 방법", "expected_policy": "pension-tax-credit", "must_include": ["세액공제"]}
+{"id": "q11", "question": "IRP 넣으면 얼마나 돌려받아?", "expected_policy": "pension-tax-credit", "must_include": ["16.5%"]}
+{"id": "q12", "question": "저소득 청년이 저축하면 정부가 30만 원씩 더 주는 거", "expected_policy": "youth-tomorrow-savings", "must_include": ["30만"]}
