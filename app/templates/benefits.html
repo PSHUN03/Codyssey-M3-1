@@ -14,7 +14,7 @@
   {% for status, items in groups.items() if items %}
   <section class="benefit-group">
     <h2 class="group-title"><span class="status status-{{ {'eligible': 'ok', 'check': 'warn', 'closed': 'muted', 'ineligible': 'bad'}[status] }}">{{ labels[status] }}</span><span class="group-count">{{ items | length }}</span></h2>
-    <ul class="card row-list row-list-card">
+    <ul class="benefit-list">
       {% for m in items %}
       <li><a class="row-link" href="/benefits/{{ m.policy_id }}">
         <span class="row-main">

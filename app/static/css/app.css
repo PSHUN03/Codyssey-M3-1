@@ -395,6 +395,8 @@ body.no-nav .toast { bottom: 24px; }
 .alloc-name { color: var(--ink); }
 .alloc-amt { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .alloc-pct { text-align: right; font-size: 14px; color: var(--mute); font-variant-numeric: tabular-nums; }
+.plan-savings { background: var(--lime-pale); border: 1px solid var(--hairline); }
+.plan-savings .big-num { color: var(--ink-deep); }
 
 .facts { display: grid; gap: 0 32px; margin: 0; }
 .facts > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--hairline); }
@@ -415,6 +417,9 @@ body.no-nav .toast { bottom: 24px; }
 
 /* ---------------------------------------------------------------- 혜택 */
 .benefit-groups { display: flex; flex-direction: column; gap: 32px; }
+.benefit-list { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.benefit-list > li { padding: 0 20px; border: 1px solid var(--hairline); border-radius: var(--r-xl); background: var(--surface); }
+.benefit-list .row-link { min-height: 96px; padding: 16px 0; }
 .group-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 16px; }
 .group-title .status { margin: 0; font-size: 16px; }
 .group-count { font-size: 14px; font-weight: 600; color: var(--mute); }
