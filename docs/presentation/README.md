@@ -7,6 +7,7 @@
 | `screens/` | 앱 화면 캡처 5장 (모의 AI 모드, 예시 계정 '지우'와 진단 화면) |
 | `capture_screens.py` | 휴대폰 화면 캡처 (750×1624, headless Chrome, Playwright 필요) |
 | `build_deck.py`, `finalize_deck.ps1` | 초안 생성 스크립트 (구조를 크게 바꿀 때만 사용) |
+| [예상질문.md](예상질문.md) | 질의응답 예상 질문 10개, 답변 초안과 답변자 |
 
 ## 구성 (발표 10분 + 질의응답 10분)
 
