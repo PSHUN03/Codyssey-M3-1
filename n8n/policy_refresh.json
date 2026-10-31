@@ -1,0 +1,119 @@
+{
+  "name": "사다리 정책 자동 갱신",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "99003aec-b6d1-40cf-b345-e2f071ce69bb",
+      "name": "예약",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SADARI_BASE_URL + '/internal/policies/ingest' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "c37f0f8c-a919-4799-b79c-9c6147f25320",
+      "name": "정책 갱신",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        250,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => i.json.added + i.json.updated > 0);"
+      },
+      "id": "ce12cf1e-88ed-47cb-9a4b-e593d1dc9bcc",
+      "name": "변경 있을 때만",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {content: '정책 데이터 변경: 신규 ' + $json.added + ', 변경 ' + $json.updated} }}",
+        "options": {}
+      },
+      "id": "3184733c-3d79-40ac-8349-4d5bb657c202",
+      "name": "디스코드 변경 알림",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        750,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "예약": {
+      "main": [
+        [
+          {
+            "node": "정책 갱신",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "정책 갱신": {
+      "main": [
+        [
+          {
+            "node": "변경 있을 때만",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "변경 있을 때만": {
+      "main": [
+        [
+          {
+            "node": "디스코드 변경 알림",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Seoul",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
+  },
+  "pinData": {}
+}
