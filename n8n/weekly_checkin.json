@@ -1,0 +1,207 @@
+{
+  "name": "사다리 주간 체크인",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 20 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "241637e1-e88b-4137-aab6-395861029991",
+      "name": "예약",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SADARI_BASE_URL + '/internal/reports/weekly' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "8b4e1942-9aa6-41ac-8ae4-4eafbaa5fb28",
+      "name": "리포트 준비",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        250,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first().json.reports.map(r => ({json:r, pairedItem:{item:0}}));"
+      },
+      "id": "cb43a16f-cdb1-44eb-adbe-c28211c2027f",
+      "name": "대상 분리",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SADARI_BASE_URL + '/internal/reports/' + $json.report_id + '/claim' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "407aa0a8-1548-45ea-b5c6-1d78063a9db2",
+      "name": "발송 선점",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        750,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().flatMap((item,index) => item.json.report ? [{json:item.json.report, pairedItem:{item:index}}] : []);"
+      },
+      "id": "67f5fe6c-c14b-45ba-aa9e-f897e921adf8",
+      "name": "허가된 리포트",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "ee563db1-e599-42b3-b666-9116a215eb50",
+      "name": "이메일 발송",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1250,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SADARI_BASE_URL + '/internal/reports/' + $('허가된 리포트').item.json.report_id + '/complete' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {claim_token: $('허가된 리포트').item.json.claim_token} }}"
+      },
+      "id": "d17f8170-1a19-469d-9101-8cf03cded73e",
+      "name": "발송 완료",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1500,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "예약": {
+      "main": [
+        [
+          {
+            "node": "리포트 준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "리포트 준비": {
+      "main": [
+        [
+          {
+            "node": "대상 분리",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "대상 분리": {
+      "main": [
+        [
+          {
+            "node": "발송 선점",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "발송 선점": {
+      "main": [
+        [
+          {
+            "node": "허가된 리포트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "허가된 리포트": {
+      "main": [
+        [
+          {
+            "node": "이메일 발송",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "이메일 발송": {
+      "main": [
+        [
+          {
+            "node": "발송 완료",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Seoul",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
+  },
+  "pinData": {}
+}

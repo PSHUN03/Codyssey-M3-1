@@ -1,0 +1,240 @@
+--- a/app/main.py
++++ b/app/main.py
+@@ -12,8 +12,8 @@
+ 
+ from app.config import BASE_DIR, get_settings
+ from app.db import init_engine
+-from app.deps import ConsentRequired, LoginRequired, OnboardingRequired
+-from app.routers import api, auth, coach, internal, onboarding, pages, public
++from app.deps import ConsentRequired, LoginRequired, OnboardingRequired, require_onboarded
++from app.routers import api, auth, coach, data, internal, onboarding, pages, public
+ from app.web import render
+ 
+ STATIC_DIR = BASE_DIR / "static"
+@@ -54,6 +54,7 @@
+     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+     for module in (auth, pages, onboarding, public, coach, api, internal):
+         app.include_router(module.router)
++    app.include_router(data.create_router(require_onboarded))
+ 
+     @app.get("/health")
+     def health():
+--- a/app/routers/pages.py
++++ b/app/routers/pages.py
+@@ -48,7 +48,8 @@
+     matches = [m for m in _matches(user) if m.status in ("eligible", "check")][:3]
+     commitment = next((m for m in reversed(user.memories) if m.kind == "commitment"), None)
+     plan = planner.latest_plan(user)
+-    return render(request, "home.html", user=user, plan=plan, matches=matches, commitment=commitment,
++    weekly = max(user.weekly_reports, key=lambda r: r.week, default=None)
++    return render(request, "home.html", user=user, plan=plan, matches=matches, commitment=commitment, weekly=weekly,
+                   goal=user.goals[-1] if user.goals else None, segment=planner.plan_segment(plan, user.profile))
+ 
+ 
+--- a/app/templates/home.html
++++ b/app/templates/home.html
+@@ -3,6 +3,13 @@
+ {% extends "base.html" %}
+ {% block title %}홈{% endblock %}
+ {% block content %}
++{% if weekly %}
++<section class="card" aria-labelledby="weekly-title">
++  <h2 class="card-title" id="weekly-title">이번 주 리포트</h2>
++  <p class="muted">{{ weekly.week }} 주간</p>
++  {% for line in weekly.body.split('\n') %}<p>{{ line }}</p>{% endfor %}
++</section>
++{% endif %}
+ <div class="page-head">
+   <h1 class="page-title">{{ user.nickname }}님의 이번 달</h1>
+ </div>
+--- a/app/services/agent/tools.py
++++ b/app/services/agent/tools.py
+@@ -174,7 +174,7 @@
+ 
+ def get_policy_detail(args: dict, ctx: ToolContext) -> dict:
+     ids = {p["id"] for p in repository.all_policies()}
+-    policy_id = _str(args, "policy_id", 60, ids)
++    policy_id = _str(args, "policy_id", 100, ids)
+     policy = repository.get_policy(policy_id)
+     ctx.add_source(policy)
+     data = {k: policy[k] for k in ("name", "agency", "summary", "benefit", "eligibility_text",
+@@ -209,6 +209,23 @@
+     }
+ 
+ 
++def compare_savings_products(args: dict, ctx: ToolContext) -> dict:
++    from app.services.savings_products import ProductAPIError
++    from app.services.savings_products import compare_savings_products as compare
++
++    months = _int(args, "term_months", 1, 120)
++    product = _str(args, "product_type", 20, {"savings", "deposit"}, required=False) or "savings"
++    try:
++        result = compare(months, product)
++    except ProductAPIError as exc:
++        raise ToolError(str(exc)) from None
++    source = {"url": "https://finlife.fss.or.kr/", "name": "금감원 금융상품한눈에",
++              "as_of": result["fetched_on"]}
++    if not any(s["url"] == source["url"] for s in ctx.sources):
++        ctx.sources.append(source)
++    return result
++
++
+ _REGISTRY: dict[str, Callable[[dict, ToolContext], dict]] = {
+     "get_my_finances": get_my_finances,
+     "simulate_savings": simulate_savings,
+@@ -217,6 +234,7 @@
+     "get_policy_detail": get_policy_detail,
+     "save_memory": save_memory,
+     "set_goal": set_goal,
++    "compare_savings_products": compare_savings_products,
+ }
+ 
+ TOOL_LABELS = {
+@@ -227,6 +245,7 @@
+     "get_policy_detail": "정책 상세를 확인하고 있어요",
+     "save_memory": "기억해두고 있어요",
+     "set_goal": "목표를 저장하고 있어요",
++    "compare_savings_products": "공시된 예·적금 정보를 비교하고 있어요",
+ }
+ 
+ 
+@@ -296,7 +315,7 @@
+         "description": "특정 정책의 상세 정보(혜택·자격·신청 방법·기간·주의사항)와 사용자 자격 판정을 조회합니다.",
+         "input_schema": {
+             "type": "object",
+-            "properties": {"policy_id": {"type": "string", "enum": _POLICY_IDS}},
++            "properties": {"policy_id": {"type": "string"}},
+             "required": ["policy_id"],
+             "additionalProperties": False,
+         },
+@@ -330,5 +349,14 @@
+     },
+ ]
+ 
++TOOL_SPECS.append({
++    "name": "compare_savings_products",
++    "description": "금감원 은행 예·적금 공시를 기본금리 순으로 최대 5개 비교합니다. 가입 권유가 아닌 정보입니다.",
++    "input_schema": {"type": "object", "properties": {
++        "term_months": {"type": "integer", "minimum": 1, "maximum": 120},
++        "product_type": {"type": "string", "enum": ["savings", "deposit"]}},
++        "required": ["term_months"], "additionalProperties": False},
++})
++
+ for _spec in TOOL_SPECS:
+     _spec["eager_input_streaming"] = True
+--- a/app/services/agent/prompts.py
++++ b/app/services/agent/prompts.py
+@@ -20,6 +20,7 @@
+ 5. 사용자가 약속("배달은 주 2회만"), 선호("원금 보장이 좋아요"), 중요한 변화("3월에 이사 가요")를 말하면 save_memory로 기록하세요. 새 목표를 정하면 set_goal을 쓰세요.
+ 6. 주민등록번호·계좌번호·비밀번호 같은 개인정보는 절대 요구하지 마세요.
+ 7. 재무·금융과 관계없는 요청에는 짧게 양해를 구하고 재무 질문으로 안내하세요.
++8. 예·적금 금리 질문은 compare_savings_products 도구로 확인하세요. 상품 순위를 '추천'이라 부르거나 가입을 권하지 마세요. 기본금리와 최고 우대금리를 구분하고 기준일 및 '정보 제공 목적이며 가입 권유가 아닙니다'를 표시하세요. 조회 실패 시 금리를 추측하지 마세요.
+ 
+ ## 답변 형식과 말투
+ - 담백한 존댓말로, 결론과 숫자를 먼저 말하세요. 대부분 2~5문장이면 충분합니다.
+--- a/tests/test_app_flow.py
++++ b/tests/test_app_flow.py
+@@ -97,7 +97,9 @@
+     res = client.post("/demo", follow_redirects=False)
+     assert res.headers["location"] == "/home"
+     home = client.get("/home").text
+-    assert "지우(데모)" in home and "청년미래적금" in home
++    assert "지우(데모)" in home and "혜택" in home
++    # 모집이 끝난 상품은 홈의 신청 가능한 혜택에 강제로 노출하지 않는다.
++    assert "청년미래적금" in client.get("/benefits").text
+     events = chat(client, "청년미래적금에 월 30만 원 넣으면 얼마 받아?")
+     assert "만기" in answer_text(events)
+ 
+--- /dev/null
++++ b/tests/test_data_weekly.py
+@@ -0,0 +1,90 @@
++from datetime import UTC, datetime, timedelta
++
++import pytest
++from sqlalchemy import select
++
++from app.db import new_session
++from app.models import Consent, User, WeeklyReport
++from app.services import weekly_reports
++from tests.conftest import agree, onboard, signup
++
++HEADERS = {"X-Internal-Key": "test-internal-key"}
++
++
++@pytest.fixture(autouse=True)
++def isolated_database(monkeypatch, tmp_path):
++    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'weekly.db'}")
++
++
++def create_member(client):
++    signup(client, "fictional@example.test")
++    agree(client)
++    onboard(client)
++    with new_session() as db:
++        user = db.scalar(select(User).where(User.email == "fictional@example.test"))
++        db.add(Consent(user_id=user.id, kind="weekly_email", agreed=True, version="test"))
++        db.commit()
++        return user.id
++
++
++def test_auth_and_api_key_fail_closed(client):
++    assert client.post("/internal/reports/weekly").status_code == 401
++    assert client.post("/internal/policies/ingest").status_code == 401
++    assert client.get("/api/reports/weekly").status_code == 401
++    assert client.post("/api/transactions/preview", files={"file": ("x.csv", b"test")}).status_code == 401
++
++
++def test_weekly_idempotency_claim_ack_and_deletion(client):
++    create_member(client)
++    first = client.post("/internal/reports/weekly", headers=HEADERS).json()
++    again = client.post("/internal/reports/weekly", headers=HEADERS).json()
++    assert first == again and len(first["reports"]) == 1
++    report_id = first["reports"][0]["report_id"]
++    claimed = client.post(f"/internal/reports/{report_id}/claim", headers=HEADERS).json()["report"]
++    assert claimed["email"] == "fictional@example.test"
++    assert "확인할 수 없어요" in claimed["body"]
++    assert client.post(f"/internal/reports/{report_id}/claim", headers=HEADERS).json()["report"] is None
++    assert client.post(f"/internal/reports/{report_id}/complete", headers=HEADERS,
++                       json={"claim_token": "wrong-token-that-is-long-enough"}).status_code == 409
++    assert client.post(f"/internal/reports/{report_id}/complete", headers=HEADERS,
++                       json={"claim_token": claimed["claim_token"]}).status_code == 200
++    assert client.get("/api/reports/weekly").json()["report"]
++    client.delete("/api/account")
++    with new_session() as db:
++        assert db.get(WeeklyReport, report_id) is None
++
++
++def test_withdrawn_consent_cancels_claim(client):
++    uid = create_member(client)
++    report_id = client.post("/internal/reports/weekly", headers=HEADERS).json()["reports"][0]["report_id"]
++    with new_session() as db:
++        db.add(Consent(user_id=uid, kind="weekly_email", agreed=False, version="test"))
++        db.commit()
++    assert client.post(f"/internal/reports/{report_id}/claim", headers=HEADERS).json()["report"] is None
++
++
++def test_opt_out_gets_home_card_and_stale_users_skipped(client):
++    uid = create_member(client)
++    with new_session() as db:
++        user = db.get(User, uid)
++        db.add(Consent(user_id=uid, kind="weekly_email", agreed=False, version="test"))
++        db.commit()
++        assert weekly_reports.prepare_reports(db) == []
++        assert db.scalar(select(WeeklyReport).where(WeeklyReport.user_id == uid)).status == "home"
++        user.profile.updated_at = datetime.now(UTC) - timedelta(days=40)
++        db.commit()
++        assert weekly_reports.generate_reports(db) == []
++
++
++def test_demo_users_not_sent_reports(client):
++    client.post("/demo")
++    assert client.post("/internal/reports/weekly", headers=HEADERS).json() == {"reports": []}
++
++
++def test_preview_route_and_missing_product_key(client, monkeypatch):
++    create_member(client)
++    content = "거래일,적요,출금액\n2026-10-01,커피,5000".encode()
++    result = client.post("/api/transactions/preview", files={"file": ("fake.csv", content)})
++    assert result.status_code == 200 and result.json()["transactions"][0]["amount"] == -5000
++    monkeypatch.delenv("FSS_API_KEY", raising=False)
++    assert client.get("/api/products/compare").status_code == 503

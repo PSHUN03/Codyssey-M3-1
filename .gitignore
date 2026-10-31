@@ -34,3 +34,6 @@ private/
 *.bundle
 /\[붙임4\]_*PENTA.hwpx
 /\[붙임4\]_*PENTA.pdf
+
+# 외부 API 캐시 (공시·정책 자료, 실행 시 생성)
+app/data/cache/
