@@ -1,0 +1,110 @@
+{% set page = "settings" %}{% set nav = profile and profile.onboarding_done %}
+{% extends "base.html" %}
+{% block title %}내 정보{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">내 정보</h1>
+</div>
+
+<div class="grid">
+  {% if profile and profile.onboarding_done %}
+  <form class="card span-7" id="profile-form" novalidate>
+    <div class="card-head">
+      <h2 class="card-title">재무 정보</h2>
+      <a class="link-more" href="/onboarding?redo=1">진단 다시 하기</a>
+    </div>
+    {% macro money(name, label, value, unit="만 원", optional=false) -%}
+    <label class="field">
+      <span class="field-label">{{ label }}</span>
+      <span class="money-input"><input name="{{ name }}" inputmode="numeric" autocomplete="off" data-manwon
+        value="{{ '' if value is none else (value // 10000) }}" {% if optional %}placeholder="모름"{% endif %}><span class="unit">{{ unit }}</span></span>
+    </label>
+    {%- endmacro %}
+    <div class="form-grid">
+      <label class="field">
+        <span class="field-label">만 나이</span>
+        <span class="money-input"><input name="age" inputmode="numeric" autocomplete="off" value="{{ profile.age or '' }}"><span class="unit">세</span></span>
+      </label>
+      <label class="field">
+        <span class="field-label">지역</span>
+        <select name="region">
+          <option value="">선택 안 함</option>
+          {% for r in regions %}<option {% if profile.region == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">일하는 형태</span>
+        <select name="employment_type">{% for v in ["정규직","계약직","프리랜서","아르바이트","자영업","취업준비"] %}<option {% if profile.employment_type == v %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
+      </label>
+      <label class="field">
+        <span class="field-label">회사 규모</span>
+        <select name="company_size"><option value="">해당 없음</option>{% for v in ["중소기업","중견기업","대기업","공공기관"] %}<option {% if profile.company_size == v %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
+      </label>
+      {{ money("monthly_income", "월 실수령액", profile.monthly_income or 0) }}
+      {{ money("annual_income", "세전 연봉", profile.annual_income, optional=true) }}
+      <label class="field">
+        <span class="field-label">사는 곳</span>
+        <select name="housing_type">{% for v, l in [("부모님","부모님 집"),("월세","월세"),("전세","전세"),("자가","내 집"),("기타","기숙사·기타")] %}<option value="{{ v }}" {% if profile.housing_type == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+      </label>
+      {{ money("rent", "월세", profile.rent or 0) }}
+      {{ money("fixed_costs", "고정비", profile.fixed_costs or 0) }}
+      {{ money("savings", "모아둔 돈", profile.savings or 0) }}
+      {{ money("saving_monthly", "매달 저축", profile.saving_monthly or 0) }}
+      {{ money("debt_total", "남은 대출", profile.debt_total or 0) }}
+      {{ money("debt_monthly", "월 상환액", profile.debt_monthly or 0) }}
+    </div>
+    <button class="btn btn-primary btn-block form-submit" type="submit">저장하고 다시 계산하기</button>
+  </form>
+  {% endif %}
+
+  <div class="{{ 'span-5' if profile and profile.onboarding_done else 'span-12' }} stack">
+    <section class="card">
+      <h2 class="card-title">코치가 기억하는 내용</h2>
+      <p class="card-sub">다음 대화에서 참고해요. 원하지 않으면 지워 주세요.</p>
+      <ul class="row-list" id="memory-list">
+        {% for m in memories %}
+        <li class="memory-row" data-memory-id="{{ m.id }}">
+          <span class="row-main"><span class="row-sub">{{ memory_kinds[m.kind] }}</span><strong>{{ m.content }}</strong></span>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="delete-memory">지우기</button>
+        </li>
+        {% else %}
+        <li class="empty">아직 기억한 내용이 없어요.</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">동의 내역</h2>
+        <a class="link-more" href="/consent">바꾸기</a>
+      </div>
+      <dl class="kv kv-compact">
+        {% for kind, label in consent_labels.items() %}
+        <dt>{{ label | replace(" (선택)", "") }}</dt><dd>{{ '동의' if consents.get(kind) else '안 함' }}</dd>
+        {% endfor %}
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">계정</h2>
+      <div class="account-actions">
+        <form method="post" action="/logout"><button class="btn btn-secondary btn-block" type="submit">로그아웃</button></form>
+        <button class="btn btn-danger btn-block" type="button" data-action="delete-account">탈퇴하기</button>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block dialogs %}
+<dialog class="modal" id="delete-dialog" aria-labelledby="delete-title">
+  <form method="dialog" class="modal-body">
+    <h2 id="delete-title">탈퇴할까요?</h2>
+    <p>프로필, 플랜, 코치 대화, 기억한 내용이 모두 바로 지워지고 되돌릴 수 없어요.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" value="cancel">취소</button>
+      <button class="btn btn-danger-solid" value="delete">탈퇴하기</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

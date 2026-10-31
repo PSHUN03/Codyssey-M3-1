@@ -1,0 +1,141 @@
+{% set page = "landing" %}
+{% extends "base.html" %}
+{% block head_title %}사다리 | 첫 월급 재무 코치{% endblock %}
+{% block header_end %}
+<a class="header-link" href="/login">로그인</a>
+<a class="btn btn-primary btn-sm" href="/signup">시작하기</a>
+{% endblock %}
+
+{% block main %}
+<main id="main">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">사회초년생을 위한 재무 코치</p>
+        <h1 class="display">월급 나누는 법,<br>5분이면 됩니다</h1>
+        <p class="lead">비상금은 얼마나 모을지, 저축은 얼마나 할지, 받을 수 있는 청년 혜택은 무엇인지.
+          내 월급으로 계산해 드리고, 계획을 지킬 수 있게 계속 챙깁니다.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="/signup">무료로 시작하기</a>
+          <form method="post" action="/demo"><button class="btn btn-secondary btn-lg" type="submit">예시 계정으로 둘러보기</button></form>
+        </div>
+        <p class="hero-note">계좌 연결은 필요 없어요. 숫자 몇 개만 알려주시면 됩니다.</p>
+      </div>
+
+      <div class="card calc" aria-labelledby="calc-title">
+        <h2 class="calc-title" id="calc-title">내 월급으로 바로 계산해 보기</h2>
+        <form class="calc-form" id="calc-form" novalidate>
+          <label class="field">
+            <span class="field-label">한 달에 받는 돈 (실수령액)</span>
+            <span class="money-input"><input name="monthly_income" inputmode="numeric" autocomplete="off" value="245" aria-describedby="calc-unit"><span class="unit" id="calc-unit">만 원</span></span>
+          </label>
+          <div class="seg" role="radiogroup" aria-label="사는 곳">
+            <label><input type="radio" name="living" value="alone" checked><span>혼자 살아요</span></label>
+            <label><input type="radio" name="living" value="parents"><span>부모님과 살아요</span></label>
+          </div>
+          <div class="calc-row" id="calc-row">
+            <label class="field" id="calc-rent">
+              <span class="field-label">월세</span>
+              <span class="money-input"><input name="rent" inputmode="numeric" autocomplete="off" value="50"><span class="unit">만 원</span></span>
+            </label>
+            <label class="field">
+              <span class="field-label">통신비·교통비 등</span>
+              <span class="money-input"><input name="fixed_costs" inputmode="numeric" autocomplete="off" value="35"><span class="unit">만 원</span></span>
+            </label>
+          </div>
+        </form>
+        <div class="calc-result" aria-live="polite">
+          <p class="calc-label">매달 저축할 수 있는 돈</p>
+          <p class="calc-amount" id="calc-amount">&nbsp;</p>
+          <div class="stack-bar" id="calc-bar" role="img" aria-label="월급 배분"></div>
+          <ul class="legend" id="calc-legend"></ul>
+          <p class="calc-extra" id="calc-extra"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-white">
+    <div class="wrap">
+      <h2 class="section-title">돈 관리, 이 순서대로 합니다</h2>
+      <div class="feature-grid">
+        <article class="feature">
+          <div class="feature-demo" aria-hidden="true">
+            <div class="mini-bar"><span class="k-fixed" style="flex:100"></span><span class="k-living" style="flex:80"></span><span class="k-saving" style="flex:65"></span></div>
+            <dl class="mini-rows">
+              <div><dt>꼭 나가는 돈</dt><dd>100만 원</dd></div>
+              <div><dt>생활비</dt><dd>80만 원</dd></div>
+              <div><dt>저축</dt><dd>65만 원</dd></div>
+            </dl>
+          </div>
+          <h3>월급부터 나눕니다</h3>
+          <p>꼭 나가는 돈을 빼고 남는 돈을 생활비와 저축으로 나눠요. 비상금이 모자라면 비상금부터 채웁니다.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-demo" aria-hidden="true">
+            <div class="mini-item"><strong>청년월세 지원</strong><span>월 20만 원, 최대 24개월</span></div>
+            <div class="mini-item"><strong>청년미래적금</strong><span>월 30만 원씩 3년, 기여금 약 130만 원</span></div>
+            <div class="mini-item"><strong>중소기업 취업 청년 소득세 감면</strong><span>소득세 90% 감면</span></div>
+          </div>
+          <h3>받을 수 있는 혜택을 찾습니다</h3>
+          <p>나이, 소득, 사는 곳으로 자격을 따져 보고 예상 금액과 신청 방법을 출처와 함께 알려 드려요.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-demo feature-demo-chat" aria-hidden="true">
+            <p class="mini-q">이번 달 30만 원 더 써도 될까요?</p>
+            <p class="mini-a">생활비 예산 안이면 괜찮아요. 그게 어렵다면 이번 달 목표 저축이 46만 원에서 16만 원으로 줄어요.</p>
+          </div>
+          <h3>흔들릴 때 물어보세요</h3>
+          <p>코치가 내 플랜을 보고 답합니다. 지키기로 한 약속은 기억해 두었다가 다음에 다시 물어봐요.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band-dark">
+    <div class="wrap band-grid">
+      <p class="band-stat">40배</p>
+      <div>
+        <h2>같은 청년인데, 자산 차이는 40배입니다</h2>
+        <p>청년층 순자산 상위 20%와 하위 20%의 차이예요(국회입법조사처, 2026년 7월).
+          차이는 첫 월급을 어떻게 나누고, 어떤 혜택을 챙기고, 그 계획을 얼마나 오래 지키느냐에서 벌어지기 시작합니다.</p>
+        <ul class="band-facts">
+          <li><strong>39.3%</strong>청년정책을 쓰지 않은 이유로 "찾는 방법을 몰라서"를 꼽았어요</li>
+          <li><strong>15.9%</strong>청년도약계좌 중도해지율이에요. 1년 전보다 두 배 가까이 늘었어요</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap faq-grid">
+      <h2 class="section-title">자주 묻는 질문</h2>
+      <div class="faq">
+        <details>
+          <summary>계좌나 카드를 연결해야 하나요?</summary>
+          <p>아니요. 월급, 월세, 고정비처럼 숫자 몇 개만 직접 적으면 됩니다. 계좌번호나 주민등록번호는 받지 않고, 대화 중에 적어도 자동으로 가립니다.</p>
+        </details>
+        <details>
+          <summary>금액 계산도 AI가 하나요?</summary>
+          <p>금액은 정해진 규칙에 따라 코드가 계산합니다. AI는 계산 결과를 설명하고 질문에 답하는 일만 맡아요. 같은 정보를 넣으면 늘 같은 숫자가 나옵니다.</p>
+        </details>
+        <details>
+          <summary>주식이나 코인도 추천해 주나요?</summary>
+          <p>하지 않습니다. 특정 종목을 사거나 팔라는 조언은 등록된 투자자문업자만 할 수 있어요. 사다리는 비상금, 저축, 청년 혜택처럼 먼저 챙길 것에 집중합니다.</p>
+        </details>
+        <details>
+          <summary>정책 정보는 믿을 수 있나요?</summary>
+          <p>정부와 공공기관 안내문을 기준으로 정리하고, 화면마다 출처와 기준일을 적어 둡니다. 정책은 자주 바뀌니 신청 전에는 공식 공고를 한 번 더 확인해 주세요.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="band-cta">
+    <div class="wrap cta-row">
+      <h2>첫 월급이 들어오기 전에<br>나눌 곳부터 정해 두세요</h2>
+      <a class="btn btn-dark btn-lg" href="/signup">무료로 시작하기</a>
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% import "_macros.html" as ui %}
+{% set page = "home" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}홈{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">{{ user.nickname }}님의 이번 달</h1>
+</div>
+
+{% if plan %}
+{% set s = plan.summary %}
+{% set fixed = plan.allocations | selectattr("kind", "equalto", "fixed") | sum(attribute="amount") %}
+{% set living = plan.allocations | selectattr("kind", "equalto", "living") | sum(attribute="amount") %}
+{% set emergency = plan.allocations | selectattr("key", "equalto", "emergency") | sum(attribute="amount") %}
+{% set goal = s.goal %}
+<div class="grid">
+  <section class="card span-7">
+    <p class="label">이번 달 저축</p>
+    <p class="big-num">{{ s.total_saving | won }}</p>
+    <p class="muted-line">월급 {{ s.monthly_income | won }}의 {{ (s.savings_rate * 100) | round | int }}%</p>
+    {% if segment %}<p class="segment-line">진단 결과 <a href="/plan"><b>{{ segment.code }} {{ segment.name }}</b></a></p>{% endif %}
+    {{ ui.stack_bar([("fixed", fixed, "꼭 나가는 돈"), ("living", living, "생활비"), ("saving", s.total_saving, "저축")]) }}
+    <ul class="legend">
+      <li><span class="dot k-fixed"></span>꼭 나가는 돈<span class="amt">{{ fixed | won }}</span></li>
+      <li><span class="dot k-living"></span>생활비<span class="amt">{{ living | won }}</span></li>
+      <li><span class="dot k-saving"></span>저축<span class="amt">{{ s.total_saving | won }}</span></li>
+    </ul>
+    <a class="btn btn-secondary btn-sm card-action" href="/plan">배분 자세히 보기</a>
+  </section>
+
+  <div class="span-5 stack stack-fill">
+  <section class="card">
+    <h2 class="card-title">목표</h2>
+    {% if goal %}
+    <p class="goal-name">{{ user.profile.goal_text }}</p>
+    <dl class="kv">
+      <dt>필요한 저축</dt><dd>월 {{ goal.monthly_needed | won }}</dd>
+      <dt>지금 계획</dt><dd>월 {{ goal.monthly_planned | won }}</dd>
+    </dl>
+    {% set pace = [goal.monthly_planned / goal.monthly_needed, 1] | min if goal.monthly_needed else 1 %}
+    <div class="goal-progress">
+      <div class="progress" role="progressbar" aria-label="필요한 저축 대비 지금 계획" aria-valuenow="{{ (pace * 100) | round | int }}" aria-valuemin="0" aria-valuemax="100">
+        <span style="width:{{ (pace * 100) | round(1) }}%"></span>
+      </div>
+    </div>
+    {% if goal.feasible %}
+    <p class="status status-ok">{{ goal.target_months }}개월 안에 모을 수 있어요</p>
+    {% elif goal.months_needed %}
+    <p class="status status-warn">이 속도면 {{ goal.months_needed }}개월 걸려요</p>
+    {% else %}
+    <p class="status status-warn">지금은 목표에 쓸 돈이 없어요</p>
+    {% endif %}
+    {% else %}
+    <p class="empty">아직 정한 목표가 없어요. 코치와 이야기하면서 정해도 돼요.</p>
+    <a class="btn btn-secondary btn-sm card-action" href="/coach">코치와 목표 정하기</a>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">비상금</h2>
+    {% set have = user.profile.savings or 0 %}
+    {% if s.emergency_target %}
+    <p class="ratio-line"><strong>{{ have | won }}</strong> / {{ s.emergency_target | won }}</p>
+    <div class="progress" role="progressbar" aria-label="비상금 모은 정도"
+         aria-valuenow="{{ [have, s.emergency_target] | min }}" aria-valuemin="0" aria-valuemax="{{ s.emergency_target }}">
+      <span style="width:{{ ([have / s.emergency_target, 1] | min * 100) | round(1) }}%"></span>
+    </div>
+    {% if s.emergency_gap %}
+    <p class="muted-line">{{ s.emergency_gap | won }}이 모자라요. 매달 {{ emergency | won }}씩 먼저 채우고 있어요.</p>
+    {% else %}
+    <p class="status status-ok">생활비 3개월치를 모아 뒀어요</p>
+    {% endif %}
+    {% else %}
+    <p class="empty">고정 지출을 줄이고 나면 비상금 목표를 계산해 드릴게요.</p>
+    {% endif %}
+  </section>
+  </div>
+
+  <section class="card span-7">
+    <div class="card-head">
+      <h2 class="card-title">챙길 수 있는 혜택</h2>
+      <a class="link-more" href="/benefits">전체 보기</a>
+    </div>
+    {% if matches %}
+    <ul class="row-list">
+      {% for m in matches %}
+      <li><a class="row-link" href="/benefits/{{ m.policy_id }}">
+        <span class="row-main"><strong>{{ m.name }}</strong>
+          <span class="row-sub">{{ m.estimate.label if m.estimate else m.status_label }}</span></span>
+        {{ ui.icon("chevron-right") }}
+      </a></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">지금 조건으로 받을 수 있는 혜택을 찾지 못했어요. 정보가 바뀌면 내 정보에서 고쳐 주세요.</p>
+    {% endif %}
+  </section>
+
+  <section class="card span-5 card-ink">
+    {% if commitment %}
+    <p class="label">지난번에 정한 약속</p>
+    <p class="promise">{{ commitment.content }}</p>
+    {% else %}
+    <p class="label">월급날 하나만 해 둔다면</p>
+    <p class="promise">저축 통장으로 가는 자동이체를 월급날 다음 날로 맞춰 두세요.</p>
+    {% endif %}
+    <a class="btn btn-primary" href="/coach">코치와 이야기하기</a>
+  </section>
+</div>
+{% else %}
+<section class="card">
+  <p>아직 플랜이 없어요.</p>
+  <button class="btn btn-primary" data-action="regenerate">플랜 만들기</button>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% set page = "error" %}
+{% extends "base.html" %}
+{% block title %}{{ "페이지 없음" if code == 404 else "오류" }}{% endblock %}
+{% block content %}
+<div class="narrow error-page">
+  <p class="error-code">{{ code }}</p>
+  <h1 class="page-title">{{ "없는 페이지예요" if code == 404 else "문제가 생겼어요" }}</h1>
+  <p class="page-sub">{{ "주소를 한 번 더 확인해 주세요." if code == 404 else "잠시 후 다시 시도해 주세요." }}</p>
+  <a class="btn btn-primary" href="/">처음으로</a>
+</div>
+{% endblock %}

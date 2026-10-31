@@ -1,0 +1,21 @@
+{% import "_macros.html" as ui %}
+{% set page = "onboarding" %}{% set body_class = "page-focus" %}
+{% extends "base.html" %}
+{% block title %}재무 진단{% endblock %}
+{% block header_end %}
+{% if user.profile and user.profile.onboarding_done %}<a class="header-link" href="/home">나가기</a>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="ob">
+  <div class="ob-top">
+    <button class="icon-btn" id="ob-back" type="button" aria-label="이전 질문">{{ ui.icon("arrow-left") }}</button>
+    <div class="ob-progress" aria-hidden="true"><span id="ob-bar"></span></div>
+    <span class="ob-count" id="ob-count"></span>
+  </div>
+  <section class="card ob-card" id="ob-card" tabindex="-1" aria-live="polite">
+    <p class="ob-loading">질문을 불러오고 있어요</p>
+    <noscript><p>이 화면은 자바스크립트가 켜져 있어야 동작해요.</p></noscript>
+  </section>
+  <p class="ob-foot">입력한 정보는 플랜 계산과 혜택 확인에만 써요. 언제든 내 정보에서 고칠 수 있어요.</p>
+</div>
+{% endblock %}

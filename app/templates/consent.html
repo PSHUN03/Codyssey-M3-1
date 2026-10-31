@@ -1,0 +1,46 @@
+{% set page = "consent" %}
+{% extends "base.html" %}
+{% block title %}약관 동의{% endblock %}
+{% block content %}
+<div class="narrow">
+  <h1 class="page-title">시작하기 전에</h1>
+  <p class="page-sub">재무 진단과 코칭에 쓰는 정보와 처리 방식이에요.</p>
+
+  {% if error %}<p class="note note-error" role="alert">{{ error }}</p>{% endif %}
+
+  <section class="card">
+    <h2 class="card-title">받는 정보</h2>
+    <dl class="info-list">
+      <div><dt>재무 진단</dt><dd>나이, 일하는 형태, 소득, 고정비, 대출, 모아둔 돈, 지역, 목표</dd></div>
+      <div><dt>코치 대화</dt><dd>대화 내용과 답변 평가</dd></div>
+      <div><dt>받지 않는 정보</dt><dd>실명, 주민등록번호, 계좌·카드번호. 대화에 적혀도 자동으로 가려요.</dd></div>
+    </dl>
+    <p class="card-foot">AI 답변을 만들 때 대화 내용이 Anthropic(미국)의 Claude API로 전송될 수 있어요.
+      전송된 데이터는 모델 학습에 쓰이지 않고, 탈퇴하면 사다리에 저장된 정보는 바로 지워집니다.
+      자세한 내용은 <a class="link" href="/privacy" target="_blank">개인정보처리방침</a>과
+      <a class="link" href="/terms" target="_blank">이용약관</a>에 있어요.</p>
+  </section>
+
+  <form method="post" action="/consent" class="card form-card" id="consent-form">
+    <label class="check-all">
+      <input type="checkbox" id="consent-all">
+      <span>모두 동의해요</span>
+    </label>
+    <div class="check-list">
+      {% for kind, label in required.items() %}
+      <label class="check-row">
+        <input type="checkbox" name="{{ kind }}" data-consent {% if status.get(kind) %}checked{% endif %}>
+        <span><span class="req">필수</span> {{ label }}</span>
+      </label>
+      {% endfor %}
+      {% for kind, label in optional.items() %}
+      <label class="check-row">
+        <input type="checkbox" name="{{ kind }}" data-consent {% if status.get(kind) %}checked{% endif %}>
+        <span><span class="opt">선택</span> {{ label | replace(" (선택)", "") }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">동의하고 계속하기</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{# 로고와 아이콘. 로고: 위로 갈수록 길어지는 가로대 세 칸, 맨 위 칸이 다음 목표 #}
+{% macro logo_mark(size=28, variant="ink") -%}
+<svg class="logo-mark" width="{{ size }}" height="{{ size }}" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+  {%- if variant == "lime" %}
+  <rect width="40" height="40" rx="11" fill="#9fe870"/>
+  <rect x="10" y="26" width="10" height="5" rx="2.5" fill="#163300"/>
+  <rect x="10" y="17.5" width="15" height="5" rx="2.5" fill="#163300"/>
+  <rect x="10" y="9" width="20" height="5" rx="2.5" fill="#163300"/>
+  {%- else %}
+  <rect width="40" height="40" rx="11" fill="#0e0f0c"/>
+  <rect x="10" y="26" width="10" height="5" rx="2.5" fill="#e8ebe6"/>
+  <rect x="10" y="17.5" width="15" height="5" rx="2.5" fill="#e8ebe6"/>
+  <rect x="10" y="9" width="20" height="5" rx="2.5" fill="#9fe870"/>
+  {%- endif %}
+</svg>
+{%- endmacro %}
+
+{% macro icon(name, size=20) -%}
+<svg class="icon" width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+  {%- if name == "home" %}<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>
+  {%- elif name == "plan" %}<rect x="4" y="11" width="4" height="9" rx="1"/><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="16" y="8" width="4" height="12" rx="1"/>
+  {%- elif name == "gift" %}<path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+  {%- elif name == "chat" %}<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l.9-4.6A8 8 0 1 1 21 12z"/>
+  {%- elif name == "user" %}<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>
+  {%- elif name == "chevron-right" %}<path d="m9 6 6 6-6 6"/>
+  {%- elif name == "arrow-left" %}<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
+  {%- elif name == "arrow-up" %}<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>
+  {%- elif name == "check" %}<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.5"/>
+  {%- elif name == "x" %}<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/>
+  {%- elif name == "question" %}<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4"/><path d="M12 17h.01"/>
+  {%- elif name == "external" %}<path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>
+  {%- endif %}
+</svg>
+{%- endmacro %}
+
+{# 월급 배분 막대. groups: [(kind, amount, label)] #}
+{% macro stack_bar(items, label="월급 배분") -%}
+<div class="stack-bar" role="img" aria-label="{{ label }}">
+  {%- for kind, amount, name in items if amount > 0 %}<span class="k-{{ kind }}" style="flex:{{ amount }}" title="{{ name }}"></span>{% endfor -%}
+</div>
+{%- endmacro %}

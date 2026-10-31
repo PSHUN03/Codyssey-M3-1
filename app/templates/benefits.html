@@ -1,0 +1,34 @@
+{% import "_macros.html" as ui %}
+{% set page = "benefits" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}청년 혜택{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">청년 혜택</h1>
+    <p class="page-sub">내 정보로 자격을 따져 봤어요. 가구 소득처럼 사다리가 모르는 조건은 따로 확인이 필요해요.</p>
+  </div>
+</div>
+
+<div class="benefit-groups">
+  {% for status, items in groups.items() if items %}
+  <section class="benefit-group">
+    <h2 class="group-title"><span class="status status-{{ {'eligible': 'ok', 'check': 'warn', 'closed': 'muted', 'ineligible': 'bad'}[status] }}">{{ labels[status] }}</span><span class="group-count">{{ items | length }}</span></h2>
+    <ul class="card row-list row-list-card">
+      {% for m in items %}
+      <li><a class="row-link" href="/benefits/{{ m.policy_id }}">
+        <span class="row-main">
+          <strong>{{ m.name }}</strong>
+          {% if m.estimate %}<span class="row-sub">{{ m.estimate.label }}</span>{% endif %}
+          {% if m.failed %}<span class="row-sub">맞지 않는 조건: {{ m.failed | map(attribute="label") | join(", ") }}</span>{% endif %}
+        </span>
+        {{ ui.icon("chevron-right") }}
+      </a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+</div>
+
+<p class="source-line">{{ meta.as_of }} 기준. 신청 전에는 공식 공고를 한 번 더 확인해 주세요.</p>
+{% endblock %}
