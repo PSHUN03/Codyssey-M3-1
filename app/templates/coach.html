@@ -10,7 +10,7 @@
       {%- if settings.is_mock %} 지금은 API 키 없이 정해진 규칙으로 답하는 모의 모드라 답할 수 있는 질문이 적어요.{% endif %}</p>
   </div>
 
-  <div class="chat" id="chat">
+  <div class="chat" id="chat" role="log" aria-live="polite" aria-label="코치 대화">
     {% if not messages %}
     <div class="msg bot"><div class="body">{{ user.nickname }}님 플랜을 보고 답해 드려요. 월급, 저축, 청년 혜택 중 궁금한 걸 물어보세요.</div></div>
     {% endif %}
