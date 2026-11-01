@@ -661,6 +661,14 @@ body.no-nav .toast { bottom: 24px; }
   55% { opacity: 1; transform: translateY(-3px); border-color: #b69aee; box-shadow: 0 0 0 2px rgba(109, 75, 228, .12), 0 12px 28px rgba(67, 43, 145, .08); }
   100% { opacity: 1; transform: none; border-color: var(--hairline); box-shadow: none; }
 }
+@keyframes feature-content-rise {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes feature-segment-grow {
+  from { opacity: 0; transform: scaleX(.55); }
+  to { opacity: 1; transform: scaleX(1); }
+}
 @keyframes landing-stat-emphasis {
   0% { opacity: 0; transform: translateY(16px) scale(.88); text-shadow: none; }
   65% { opacity: 1; transform: scale(1.035); text-shadow: 0 0 30px rgba(213, 200, 247, .4); }
@@ -674,14 +682,22 @@ body.no-nav .toast { bottom: 24px; }
   }
   .landing-motion [data-landing-reveal="bar"] { transform-origin: center bottom; }
   .landing-motion [data-landing-reveal="bar"].is-revealed { animation-name: landing-bar-grow; }
-  /* Reveal each card and all its contents as one unit. */
-  .landing-motion [data-landing-reveal="feature"].is-revealed { animation-name: landing-feature-enter; }
+  /* Start the inner sweep with the card, finishing it before the next card begins. */
+  .landing-motion [data-landing-reveal="feature"] { --feature-reveal-delay: var(--landing-delay, 0ms); }
+  .landing-motion [data-landing-reveal="feature"].is-revealed { animation-name: landing-feature-enter; animation-delay: var(--feature-reveal-delay); }
+  .landing-motion .feature [data-feature-step="1"] { --feature-step-delay: 35ms; }
+  .landing-motion .feature [data-feature-step="2"] { --feature-step-delay: 70ms; }
+  .landing-motion .feature.is-revealed [data-feature-step] {
+    animation: feature-content-rise 180ms cubic-bezier(.2, .7, .3, 1) calc(var(--feature-reveal-delay) + var(--feature-step-delay, 0ms)) both;
+  }
+  .landing-motion .feature.is-revealed .mini-bar [data-feature-step] { animation-name: feature-segment-grow; transform-origin: left center; }
   .landing-motion [data-landing-reveal="stat"].is-revealed { animation-name: landing-stat-emphasis; }
   .landing-motion [data-landing-reveal][data-landing-instant] { opacity: 1; transform: none; animation: none; }
+  .landing-motion .feature[data-landing-instant] [data-feature-step] { opacity: 1; transform: none; animation: none; }
 }
 @media (max-width: 899px) and (prefers-reduced-motion: no-preference) {
   /* Stacked cards enter as each card reaches the mobile viewport. */
-  .landing-motion [data-landing-reveal="feature"].is-revealed { animation-delay: 120ms; }
+  .landing-motion [data-landing-reveal="feature"] { --feature-reveal-delay: 120ms; }
 }
  @media (max-width: 599px) {
    .hero-copy { max-width: 440px; margin: 0 auto; padding: 28px 24px; border: 1px solid var(--hairline); border-radius: 32px; background: var(--surface); }
