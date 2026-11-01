@@ -195,6 +195,21 @@ body.has-nav { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
   body.has-nav { padding-bottom: 0; }
 }
 
+/* PC 코치 바로가기. 모바일은 기존 하단 코치 메뉴를 사용한다. */
+.coach-shortcut { display: none; }
+@media (min-width: 900px) {
+  .coach-shortcut {
+    position: fixed; right: 24px; bottom: 24px; z-index: 25;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 56px; max-width: calc(100% - 48px); padding: 14px 20px;
+    border-radius: var(--r-pill); background: var(--lime); color: #fff;
+    box-shadow: 0 8px 24px rgba(67, 43, 145, .18);
+    font-size: 15px; font-weight: 700; line-height: 1.4; text-decoration: none;
+  }
+  .coach-shortcut:hover { background: var(--lime-active); }
+  .coach-shortcut:focus-visible { outline-offset: 4px; }
+}
+
 /* ---------------------------------------------------------------- 푸터 */
 .site-footer { margin-top: auto; background: var(--ink); color: rgba(255, 255, 255, 0.64); padding: 48px 0; font-size: 14px; }
 .footer-row { display: flex; flex-direction: column; gap: 24px; }
