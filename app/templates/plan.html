@@ -19,54 +19,83 @@
 </section>
 {% else %}
 {% set goal = plan.summary.goal %}
+{% set fixed_total = plan.allocations | selectattr("kind", "equalto", "fixed") | sum(attribute="amount") %}
+{% set living_total = plan.allocations | selectattr("kind", "equalto", "living") | sum(attribute="amount") %}
+{% set emergency_total = plan.allocations | selectattr("key", "equalto", "emergency") | sum(attribute="amount") %}
+{% set goal_total = plan.allocations | selectattr("key", "equalto", "goal") | sum(attribute="amount") %}
+{% set unallocated_total = plan.summary.monthly_income - (plan.allocations | sum(attribute="amount")) %}
 <div class="grid plan-dashboard">
-  <section class="card span-7 plan-savings">
+  <section class="card span-5 plan-savings">
     <div class="plan-savings-total">
-    <p class="label">매달 저축</p>
-    <p class="big-num">{{ plan.summary.total_saving | won }}</p>
-    <p class="muted-line">월급 {{ plan.summary.monthly_income | won }}에서 고정 지출과 생활비를 뺀 금액</p>
+      <p class="label">이번 달 저축</p>
+      <p class="big-num">{{ plan.summary.total_saving | won }}</p>
+      <p class="muted-line">월급 {{ plan.summary.monthly_income | won }}의 {{ (plan.summary.savings_rate * 100) | round | int }}%</p>
     </div>
-    <div class="stack-bar" role="img" aria-label="월급 배분">
-      {% for a in plan.allocations if a.amount > 0 %}<span class="k-{{ 'emergency' if a.key == 'emergency' else a.kind }}" style="flex:{{ a.amount }}" title="{{ a.label }}"></span>{% endfor %}
+    {% if goal %}
+    <div class="goal-mini">
+      <p class="label">나의 저축 목표</p>
+      <strong>{{ user.profile.goal_text }}</strong>
+      <span>매달 {{ goal.monthly_planned | won }} · {{ goal.target_months }}개월 목표</span>
     </div>
-    <ul class="alloc">
-      {% for a in plan.allocations %}
-      <li>
-        <span class="dot k-{{ 'emergency' if a.key == 'emergency' else a.kind }}"></span>
-        <span class="alloc-name">{{ a.label }}</span>
-        <span class="alloc-amt">{{ a.amount | won }}</span>
-        <span class="alloc-pct">{{ (a.ratio * 100) | round | int }}%</span>
-      </li>
-      {% endfor %}
-    </ul>
-    <p class="card-foot">금액은 AI가 아니라 계산 엔진이 정해진 규칙({{ plan.rule_version }})으로 냅니다.</p>
+    {% endif %}
+    <a class="btn btn-primary btn-block card-action" href="/benefits">청년 혜택 살펴보기 {{ ui.icon("arrow-right", 16) }}</a>
+    <a class="plan-edit-link" href="/settings">입력한 정보 수정하기</a>
   </section>
 
-  <section class="card span-5 plan-explanation">
+  <section class="card span-7 plan-breakdown">
+    <div class="card-head plan-breakdown-head">
+      <h2 class="card-title">이번 달 월급 나누기</h2>
+      <span class="card-sub">입력값 기준 · 만 원</span>
+    </div>
+    <p class="plan-income">한 달 수입 <strong>{{ plan.summary.monthly_income | won }}</strong></p>
+    <div class="stack-bar" role="img" aria-label="월급 배분">
+      {% if fixed_total %}<span class="k-fixed" style="flex:{{ fixed_total }}" title="고정비·상환"></span>{% endif %}
+      {% if living_total %}<span class="k-living" style="flex:{{ living_total }}" title="생활비"></span>{% endif %}
+      {% if emergency_total %}<span class="k-emergency" style="flex:{{ emergency_total }}" title="비상금"></span>{% endif %}
+      {% if goal_total %}<span class="k-saving" style="flex:{{ goal_total }}" title="목표 저축"></span>{% endif %}
+      {% if unallocated_total > 0 %}<span class="k-unallocated" style="flex:{{ unallocated_total }}" title="남은 금액"></span>{% endif %}
+    </div>
+    <ul class="alloc plan-alloc">
+      {% if fixed_total %}<li><span class="dot k-fixed"></span><span class="alloc-name">고정비·상환</span><span class="alloc-amt">{{ fixed_total | won }}</span><span class="alloc-pct">{{ ((fixed_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if living_total %}<li><span class="dot k-living"></span><span class="alloc-name">생활비</span><span class="alloc-amt">{{ living_total | won }}</span><span class="alloc-pct">{{ ((living_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if emergency_total %}<li><span class="dot k-emergency"></span><span class="alloc-name">비상금</span><span class="alloc-amt">{{ emergency_total | won }}</span><span class="alloc-pct">{{ ((emergency_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if goal_total %}<li><span class="dot k-saving"></span><span class="alloc-name">목표 저축</span><span class="alloc-amt">{{ goal_total | won }}</span><span class="alloc-pct">{{ ((goal_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if unallocated_total > 0 %}<li><span class="dot k-unallocated"></span><span class="alloc-name">남은 금액</span><span class="alloc-amt">{{ unallocated_total | won }}</span><span class="alloc-pct">{{ ((unallocated_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+    </ul>
+    <p class="card-foot">금액은 AI가 아니라 계산 엔진이 정해진 규칙({{ plan.rule_version }})으로 계산해요.</p>
+  </section>
+
+  <section class="card span-5 plan-goal">
+    {% if goal %}
+    <p class="label">나의 저축 목표</p>
+    <h2 class="goal-name">{{ user.profile.goal_text }}</h2>
+    <p class="goal-target">{{ goal.target_months }}개월 동안 {{ (goal.monthly_planned * goal.target_months) | won }} 모으기</p>
+    <dl class="kv">
+      <dt>목표 기간</dt><dd>{{ goal.target_months }}개월</dd>
+      <dt>필요한 저축</dt><dd>월 {{ goal.monthly_needed | won }}</dd>
+      <dt>지금 계획</dt><dd>월 {{ goal.monthly_planned | won }}</dd>
+    </dl>
+    {% if goal.feasible %}
+    <p class="status status-ok">계획대로면 기간 안에 모을 수 있어요</p>
+    {% else %}
+    <p class="note note-warn">현재 계획으로는 목표 기간보다 더 걸릴 수 있어요. 생활비나 기간을 코치와 조정할 수 있어요.</p>
+    <a class="btn btn-secondary btn-sm card-action" href="/coach?q={{ '목표를 현실적으로 조정하고 싶어요' | urlencode }}">코치와 조정하기</a>
+    {% endif %}
+    {% else %}
+    <p class="label">나의 저축 목표</p>
+    <h2 class="card-title">목표를 정해 볼까요?</h2>
+    <p class="page-sub">진단 정보를 수정하면 목표에 맞는 저축 계획을 계산할 수 있어요.</p>
+    <a class="btn btn-secondary btn-sm card-action" href="/settings">내 정보 수정하기</a>
+    {% endif %}
+  </section>
+
+  <section class="card span-7 plan-explanation">
     <div class="card-head">
       <h2 class="card-title">이렇게 나눈 이유</h2>
       {% if plan.explanation_by_ai %}<span class="ai-label">AI 설명</span>{% endif %}
     </div>
     <p class="prose">{{ plan.explanation | md }}</p>
   </section>
-
-  {% if goal %}
-  <section class="card span-5 plan-goal">
-    <h2 class="card-title">목표까지</h2>
-    <p class="goal-name">{{ user.profile.goal_text }}</p>
-    <dl class="kv">
-      <dt>필요한 저축</dt><dd>월 {{ goal.monthly_needed | won }}</dd>
-      <dt>지금 계획</dt><dd>월 {{ goal.monthly_planned | won }}</dd>
-      <dt>걸리는 기간</dt><dd>{{ (goal.months_needed ~ "개월") if goal.months_needed else "계산 불가" }} / 목표 {{ goal.target_months }}개월</dd>
-    </dl>
-    {% if goal.feasible %}
-    <p class="status status-ok">계획대로면 기간 안에 모을 수 있어요</p>
-    {% else %}
-    <p class="note note-warn">지금 계획으로는 기간이 모자라요. 기간을 늘리거나 생활비를 줄이는 방법을 코치와 같이 찾아보세요.</p>
-    <a class="btn btn-secondary btn-sm card-action" href="/coach?q={{ '목표를 현실적으로 조정하고 싶어요' | urlencode }}">코치와 조정하기</a>
-    {% endif %}
-  </section>
-  {% endif %}
 
   {% if segment %}
   <section class="card span-12 segment" aria-labelledby="segment-name">
