@@ -5,8 +5,9 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <h1 class="page-title">월급 배분</h1>
-    {% if plan %}<p class="page-sub">한 달 {{ plan.summary.monthly_income | won }} 기준</p>{% endif %}
+    <p class="kicker">내 돈 관리 계획</p>
+    <h1 class="page-title">목표 저축을<br class="plan-title-break"> 시작할 수 있어요.</h1>
+    {% if plan %}<p class="page-sub">입력한 금액으로 살펴본 결과예요.</p>{% endif %}
   </div>
   {% if plan %}<button class="btn btn-ghost btn-sm" data-action="regenerate">다시 계산</button>{% endif %}
 </div>
@@ -18,7 +19,7 @@
 </section>
 {% else %}
 {% set goal = plan.summary.goal %}
-<div class="grid">
+<div class="grid plan-dashboard">
   {% if segment %}
   <section class="card span-12 segment" aria-labelledby="segment-name">
     <p class="label">진단 결과</p>
@@ -38,8 +39,11 @@
   {% endif %}
 
   <section class="card span-7 plan-savings">
+    <div class="plan-savings-total">
     <p class="label">매달 저축</p>
     <p class="big-num">{{ plan.summary.total_saving | won }}</p>
+    <p class="muted-line">월급 {{ plan.summary.monthly_income | won }}에서 고정 지출과 생활비를 뺀 금액</p>
+    </div>
     <div class="stack-bar" role="img" aria-label="월급 배분">
       {% for a in plan.allocations if a.amount > 0 %}<span class="k-{{ 'emergency' if a.key == 'emergency' else a.kind }}" style="flex:{{ a.amount }}" title="{{ a.label }}"></span>{% endfor %}
     </div>
@@ -56,7 +60,7 @@
     <p class="card-foot">금액은 AI가 아니라 계산 엔진이 정해진 규칙({{ plan.rule_version }})으로 냅니다.</p>
   </section>
 
-  <section class="card span-5">
+  <section class="card span-5 plan-explanation">
     <div class="card-head">
       <h2 class="card-title">이렇게 나눈 이유</h2>
       {% if plan.explanation_by_ai %}<span class="ai-label">AI 설명</span>{% endif %}
@@ -65,7 +69,7 @@
   </section>
 
   {% if goal %}
-  <section class="card span-5">
+  <section class="card span-5 plan-goal">
     <h2 class="card-title">목표까지</h2>
     <p class="goal-name">{{ user.profile.goal_text }}</p>
     <dl class="kv">
