@@ -5,12 +5,14 @@
 {% block content %}
 <div class="page-head">
   <div>
+    <p class="kicker">나에게 맞는 지원을 찾아요</p>
     <h1 class="page-title">청년 혜택</h1>
     <p class="page-sub">내 정보로 자격을 따져 봤어요. 가구 소득처럼 사다리가 모르는 조건은 따로 확인이 필요해요.</p>
   </div>
 </div>
 
-<div class="benefit-groups">
+<p class="benefit-notice">신청 전 자격 조건을 확인해 주세요</p>
+<div class="benefit-groups benefit-dashboard">
   {% for status, items in groups.items() if items %}
   <section class="benefit-group">
     <h2 class="group-title"><span class="status status-{{ {'eligible': 'ok', 'check': 'warn', 'closed': 'muted', 'ineligible': 'bad'}[status] }}">{{ labels[status] }}</span><span class="group-count">{{ items | length }}</span></h2>
