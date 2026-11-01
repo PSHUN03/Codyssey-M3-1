@@ -4,7 +4,11 @@
 {% block title %}홈{% endblock %}
 {% block content %}
 <div class="page-head">
-  <h1 class="page-title">{{ user.nickname }}님의 이번 달</h1>
+  <div>
+    <p class="kicker">이번 달도 차근차근</p>
+    <h1 class="page-title">{{ user.nickname }}님의 <span class="home-title-topic">돈 흐름</span></h1>
+  </div>
+  <a class="btn btn-secondary btn-sm" href="/plan">내 계획 보기</a>
 </div>
 
 {% if plan %}
@@ -13,11 +17,16 @@
 {% set living = plan.allocations | selectattr("kind", "equalto", "living") | sum(attribute="amount") %}
 {% set emergency = plan.allocations | selectattr("key", "equalto", "emergency") | sum(attribute="amount") %}
 {% set goal = s.goal %}
-<div class="grid">
-  <section class="card span-7">
+<div class="grid home-dashboard">
+  <section class="card span-7 home-savings">
+    <div class="home-savings-head">
+      <div>
     <p class="label">이번 달 저축</p>
     <p class="big-num">{{ s.total_saving | won }}</p>
     <p class="muted-line">월급 {{ s.monthly_income | won }}의 {{ (s.savings_rate * 100) | round | int }}%</p>
+      </div>
+      <span class="home-spark" aria-hidden="true">↗</span>
+    </div>
     {% if segment %}<p class="segment-line">진단 결과 <a href="/plan"><b>{{ segment.code }} {{ segment.name }}</b></a></p>{% endif %}
     {{ ui.stack_bar([("fixed", fixed, "꼭 나가는 돈"), ("living", living, "생활비"), ("saving", s.total_saving, "저축")]) }}
     <ul class="legend">
@@ -25,11 +34,11 @@
       <li><span class="dot k-living"></span>생활비<span class="amt">{{ living | won }}</span></li>
       <li><span class="dot k-saving"></span>저축<span class="amt">{{ s.total_saving | won }}</span></li>
     </ul>
-    <a class="btn btn-secondary btn-sm card-action" href="/plan">배분 자세히 보기</a>
+    <a class="btn btn-primary btn-sm card-action" href="/plan">배분 자세히 보기 {{ ui.icon("arrow-right", 16) }}</a>
   </section>
 
-  <div class="span-5 stack stack-fill">
-  <section class="card">
+  <div class="span-5 stack stack-fill home-side">
+  <section class="card home-goal">
     <h2 class="card-title">목표</h2>
     {% if goal %}
     <p class="goal-name">{{ user.profile.goal_text }}</p>

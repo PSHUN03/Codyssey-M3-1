@@ -1,3 +1,4 @@
+{% import "_macros.html" as ui %}
 {% set page = "landing" %}
 {% extends "base.html" %}
 {% block head_title %}사다리 | 첫 월급 재무 코치{% endblock %}
@@ -7,22 +8,43 @@
 {% endblock %}
 
 {% block main %}
-<main id="main">
+<main id="main" tabindex="-1">
   <section class="hero">
-    <div class="wrap hero-grid">
-      <div class="hero-copy">
-        <p class="eyebrow">사회초년생을 위한 재무 코치</p>
-        <h1 class="display">월급 나누는 법,<br>5분이면 됩니다</h1>
-        <p class="lead">비상금은 얼마나 모을지, 저축은 얼마나 할지, 받을 수 있는 청년 혜택은 무엇인지.
-          내 월급으로 계산해 드리고, 계획을 지킬 수 있게 계속 챙깁니다.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary btn-lg" href="/signup">무료로 시작하기</a>
-          <form method="post" action="/demo"><button class="btn btn-secondary btn-lg" type="submit">예시 계정으로 둘러보기</button></form>
+    <div class="wrap">
+      <div class="hero-shell">
+        <div class="hero-copy">
+          <p class="eyebrow" data-landing-reveal>첫 월급부터, 내 페이스로</p>
+          <h1 class="display"><span class="hero-title-line" data-landing-reveal data-landing-duration="450">돈 관리의 첫 칸,</span><span class="hero-title-line" data-landing-reveal data-landing-delay="450" data-landing-duration="450">함께 올라가요.</span></h1>
+          <p class="lead" data-landing-reveal data-landing-delay="900" data-landing-duration="500">막막했던 저축부터 놓치기 쉬운 혜택까지.<br>나에게 맞는 시작을 찾아드릴게요.</p>
         </div>
-        <p class="hero-note">계좌 연결은 필요 없어요. 숫자 몇 개만 알려주시면 됩니다.</p>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-orbit" data-landing-reveal data-landing-delay="1300"></div>
+          <div class="art-bars"><i data-landing-reveal="bar" data-landing-delay="1450" data-landing-duration="550"></i><i data-landing-reveal="bar" data-landing-delay="1630" data-landing-duration="550"></i><i data-landing-reveal="bar" data-landing-delay="1810" data-landing-duration="550"></i></div>
+          <div class="art-note art-note-small" data-landing-reveal data-landing-delay="1450"><span class="art-spark">{{ ui.icon("sprout", 20) }}</span><span><b>작은 시작이 쌓이면</b><small>내 목표에 한 걸음 더 가까이</small></span></div>
+          <div class="art-note art-note-goal" data-landing-reveal data-landing-delay="2010"><span class="art-flag">{{ ui.icon("flag", 20) }}</span><span><small>나의 첫 목표</small><b>600만 원 모으기</b><small>매달 50만 원씩, 12개월 동안</small></span></div>
+        </div>
+        <ul class="hero-points">
+          <li data-landing-reveal data-landing-delay="2400" data-landing-duration="450">내 수입과 지출을 한눈에</li>
+          <li data-landing-reveal data-landing-delay="2600" data-landing-duration="450">내 목표에 맞는 저축 계획</li>
+          <li data-landing-reveal data-landing-delay="2800" data-landing-duration="450">나에게 필요한 청년 혜택</li>
+        </ul>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="/signup" data-landing-reveal data-landing-delay="3250" data-landing-duration="500">내 돈 관리 시작하기 <span aria-hidden="true">→</span></a>
+          <form method="post" action="/demo" data-landing-reveal data-landing-delay="3430" data-landing-duration="500"><button class="btn btn-secondary btn-sm" type="submit">예시 계정으로 둘러보기</button></form>
+        </div>
+        <p class="hero-note" data-landing-reveal data-landing-delay="3550" data-landing-duration="450">약 5분 · 질문에 답하면 계획이 보여요</p>
       </div>
+    </div>
+  </section>
 
-      <div class="card calc" aria-labelledby="calc-title">
+  <section class="section quick-calculator">
+    <div class="wrap quick-calculator-grid">
+      <div class="quick-calculator-copy">
+        <p class="kicker" data-landing-reveal data-landing-duration="900">숫자로 먼저 살펴보기</p>
+        <h2 class="section-title" data-landing-reveal data-landing-delay="140" data-landing-duration="1000">내 월급으로<br>바로 계산해 보기</h2>
+        <p class="page-sub" data-landing-reveal data-landing-delay="280" data-landing-duration="1000">실수령액과 지출을 입력하면 매달 저축할 수 있는 금액을 계산해요.</p>
+      </div>
+      <div class="card calc" aria-labelledby="calc-title" data-landing-reveal data-landing-delay="380" data-landing-duration="1100">
         <h2 class="calc-title" id="calc-title">내 월급으로 바로 계산해 보기</h2>
         <form class="calc-form" id="calc-form" novalidate>
           <label class="field">
@@ -43,10 +65,12 @@
               <span class="money-input"><input name="fixed_costs" inputmode="numeric" autocomplete="off" value="35"><span class="unit">만 원</span></span>
             </label>
           </div>
+          <button class="btn btn-primary calc-apply" id="calc-apply" type="submit">적용하기</button>
         </form>
-        <div class="calc-result" aria-live="polite">
+        <p id="calc-status" class="field-help" role="status"></p>
+        <div class="calc-result" id="calc-result" aria-live="polite">
           <p class="calc-label">매달 저축할 수 있는 돈</p>
-          <p class="calc-amount" id="calc-amount">&nbsp;</p>
+          <p class="calc-amount" id="calc-amount">—</p>
           <div class="stack-bar" id="calc-bar" role="img" aria-label="월급 배분"></div>
           <ul class="legend" id="calc-legend"></ul>
           <p class="calc-extra" id="calc-extra"></p>
@@ -57,36 +81,36 @@
 
   <section class="section section-white">
     <div class="wrap">
-      <h2 class="section-title">돈 관리, 이 순서대로 합니다</h2>
+      <h2 class="section-title" data-landing-reveal>돈 관리, 이 순서대로 합니다</h2>
       <div class="feature-grid">
-        <article class="feature">
+        <article class="feature" data-landing-reveal="feature" data-landing-delay="500" data-landing-duration="850">
           <div class="feature-demo" aria-hidden="true">
-            <div class="mini-bar"><span class="k-fixed" style="flex:100"></span><span class="k-living" style="flex:80"></span><span class="k-saving" style="flex:65"></span></div>
+            <div class="mini-bar"><span class="k-fixed" data-feature-step="0" style="flex:100"></span><span class="k-living" data-feature-step="1" style="flex:80"></span><span class="k-saving" data-feature-step="2" style="flex:65"></span></div>
             <dl class="mini-rows">
-              <div><dt>꼭 나가는 돈</dt><dd>100만 원</dd></div>
-              <div><dt>생활비</dt><dd>80만 원</dd></div>
-              <div><dt>저축</dt><dd>65만 원</dd></div>
+              <div data-feature-step="0"><dt><span class="dot k-fixed"></span>꼭 나가는 돈</dt><dd>100만 원</dd></div>
+              <div data-feature-step="1"><dt><span class="dot k-living"></span>생활비</dt><dd>80만 원</dd></div>
+              <div data-feature-step="2"><dt><span class="dot k-saving"></span>저축</dt><dd>65만 원</dd></div>
             </dl>
           </div>
-          <h3>월급부터 나눕니다</h3>
-          <p>꼭 나가는 돈을 빼고 남는 돈을 생활비와 저축으로 나눠요. 비상금이 모자라면 비상금부터 채웁니다.</p>
+          <h3 data-feature-step="0">월급부터 나눕니다</h3>
+          <p data-feature-step="1">꼭 나가는 돈을 빼고 남는 돈을 생활비와 저축으로 나눠요. 비상금이 모자라면 비상금부터 채웁니다.</p>
         </article>
-        <article class="feature">
+        <article class="feature" data-landing-reveal="feature" data-landing-delay="760" data-landing-duration="850">
           <div class="feature-demo" aria-hidden="true">
-            <div class="mini-item"><strong>청년월세 지원</strong><span>월 20만 원, 최대 24개월</span></div>
-            <div class="mini-item"><strong>청년미래적금</strong><span>월 30만 원씩 3년, 기여금 약 130만 원</span></div>
-            <div class="mini-item"><strong>중소기업 취업 청년 소득세 감면</strong><span>소득세 90% 감면</span></div>
+            <div class="mini-item" data-feature-step="0"><strong>청년월세 지원</strong><span>월 20만 원, 최대 24개월</span></div>
+            <div class="mini-item" data-feature-step="1"><strong>청년미래적금</strong><span>월 30만 원씩 3년, 기여금 약 130만 원</span></div>
+            <div class="mini-item" data-feature-step="2"><strong>중소기업 취업 청년 소득세 감면</strong><span>소득세 90% 감면</span></div>
           </div>
-          <h3>받을 수 있는 혜택을 찾습니다</h3>
-          <p>나이, 소득, 사는 곳으로 자격을 따져 보고 예상 금액과 신청 방법을 출처와 함께 알려 드려요.</p>
+          <h3 data-feature-step="0">받을 수 있는 혜택을 찾습니다</h3>
+          <p data-feature-step="1">나이, 소득, 사는 곳으로 자격을 따져 보고 예상 금액과 신청 방법을 출처와 함께 알려 드려요.</p>
         </article>
-        <article class="feature">
+        <article class="feature" data-landing-reveal="feature" data-landing-delay="1020" data-landing-duration="850">
           <div class="feature-demo feature-demo-chat" aria-hidden="true">
-            <p class="mini-q">이번 달 30만 원 더 써도 될까요?</p>
-            <p class="mini-a">생활비 예산 안이면 괜찮아요. 그게 어렵다면 이번 달 목표 저축이 46만 원에서 16만 원으로 줄어요.</p>
+            <p class="mini-q" data-feature-step="0">이번 달 30만 원 더 써도 될까요?</p>
+            <p class="mini-a" data-feature-step="1">생활비 예산 안이면 괜찮아요. 그게 어렵다면 이번 달 목표 저축이 46만 원에서 16만 원으로 줄어요.</p>
           </div>
-          <h3>흔들릴 때 물어보세요</h3>
-          <p>코치가 내 플랜을 보고 답합니다. 지키기로 한 약속은 기억해 두었다가 다음에 다시 물어봐요.</p>
+          <h3 data-feature-step="0">흔들릴 때 물어보세요</h3>
+          <p data-feature-step="1">코치가 내 플랜을 보고 답합니다. 지키기로 한 약속은 기억해 두었다가 다음에 다시 물어봐요.</p>
         </article>
       </div>
     </div>
@@ -94,8 +118,8 @@
 
   <section class="band-dark">
     <div class="wrap band-grid">
-      <p class="band-stat">40배</p>
-      <div>
+      <p class="band-stat" data-landing-reveal="stat" data-landing-duration="950">40배</p>
+      <div data-landing-reveal data-landing-delay="180">
         <h2>같은 청년인데, 자산 차이는 40배입니다</h2>
         <p>청년층 순자산 상위 20%와 하위 20%의 차이예요(국회입법조사처, 2026년 7월).
           차이는 첫 월급을 어떻게 나누고, 어떤 혜택을 챙기고, 그 계획을 얼마나 오래 지키느냐에서 벌어지기 시작합니다.</p>
@@ -109,21 +133,24 @@
 
   <section class="section">
     <div class="wrap faq-grid">
-      <h2 class="section-title">자주 묻는 질문</h2>
+      <div class="faq-intro">
+        <h2 class="section-title" data-landing-reveal>자주 묻는 질문</h2>
+        <p class="faq-wordmark" aria-hidden="true" data-landing-reveal data-landing-delay="160" data-landing-duration="900">FAQ</p>
+      </div>
       <div class="faq">
-        <details>
+        <details data-landing-reveal data-landing-delay="120">
           <summary>계좌나 카드를 연결해야 하나요?</summary>
           <p>아니요. 월급, 월세, 고정비처럼 숫자 몇 개만 직접 적으면 됩니다. 계좌번호나 주민등록번호는 받지 않고, 대화 중에 적어도 자동으로 가립니다.</p>
         </details>
-        <details>
+        <details data-landing-reveal data-landing-delay="240">
           <summary>금액 계산도 AI가 하나요?</summary>
           <p>금액은 정해진 규칙에 따라 코드가 계산합니다. AI는 계산 결과를 설명하고 질문에 답하는 일만 맡아요. 같은 정보를 넣으면 늘 같은 숫자가 나옵니다.</p>
         </details>
-        <details>
+        <details data-landing-reveal data-landing-delay="360">
           <summary>주식이나 코인도 추천해 주나요?</summary>
           <p>하지 않습니다. 특정 종목을 사거나 팔라는 조언은 등록된 투자자문업자만 할 수 있어요. 사다리는 비상금, 저축, 청년 혜택처럼 먼저 챙길 것에 집중합니다.</p>
         </details>
-        <details>
+        <details data-landing-reveal data-landing-delay="480">
           <summary>정책 정보는 믿을 수 있나요?</summary>
           <p>정부와 공공기관 안내문을 기준으로 정리하고, 화면마다 출처와 기준일을 적어 둡니다. 정책은 자주 바뀌니 신청 전에는 공식 공고를 한 번 더 확인해 주세요.</p>
         </details>
@@ -133,8 +160,8 @@
 
   <section class="band-cta">
     <div class="wrap cta-row">
-      <h2>첫 월급이 들어오기 전에<br>나눌 곳부터 정해 두세요</h2>
-      <a class="btn btn-dark btn-lg" href="/signup">무료로 시작하기</a>
+      <h2 data-landing-reveal>첫 월급이 들어오기 전에<br>나눌 곳부터 정해 두세요</h2>
+      <div class="cta-action" data-landing-reveal data-landing-delay="180"><a class="btn btn-dark btn-lg" href="/signup">무료로 시작하기</a></div>
     </div>
   </section>
 </main>
