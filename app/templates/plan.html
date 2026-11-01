@@ -69,7 +69,11 @@
     {% if goal %}
     <p class="label">나의 저축 목표</p>
     <h2 class="goal-name">{{ user.profile.goal_text }}</h2>
-    <p class="goal-target">{{ goal.target_months }}개월 동안 {{ (goal.monthly_planned * goal.target_months) | won }} 모으기</p>
+    <p class="goal-target">
+      {% if goal.feasible %}{{ goal.target_months }}개월 안에 목표를 이룰 수 있어요.
+      {% elif goal.months_needed %}현재 계획대로면 약 {{ goal.months_needed }}개월 걸려요.
+      {% else %}기간 안에 모으려면 월 {{ goal.monthly_needed | won }}이 필요해요.{% endif %}
+    </p>
     <dl class="kv">
       <dt>목표 기간</dt><dd>{{ goal.target_months }}개월</dd>
       <dt>필요한 저축</dt><dd>월 {{ goal.monthly_needed | won }}</dd>

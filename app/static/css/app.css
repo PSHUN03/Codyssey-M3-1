@@ -718,7 +718,8 @@ body.no-nav .toast { bottom: 24px; }
 .goal-mini { display: grid; gap: 6px; margin-top: 16px; padding: 18px; border-radius: 20px; background: var(--surface); }
 .goal-mini strong { color: var(--ink); font-size: 17px; }
 .goal-mini > span { color: var(--body); font-size: 14px; }
-.plan-edit-link { display: block; margin-top: 14px; color: var(--body); font-size: 14px; text-align: center; text-underline-offset: 3px; }
+.plan-edit-link { display: block; margin-top: 14px; color: var(--body); font-size: 14px; text-align: center; text-decoration: none; text-underline-offset: 3px; }
+.plan-edit-link:hover { text-decoration: underline; }
 .plan-breakdown { padding: clamp(24px, 3vw, 36px); }
 .plan-breakdown-head { margin-bottom: 16px; }
 .plan-income { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; color: var(--body); }
