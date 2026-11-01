@@ -449,11 +449,12 @@ function metaHtml() {
     `<button class="fb-btn" type="button" data-rating="-1" aria-label="아쉬워요" title="아쉬워요">${THUMB_DOWN}</button></div>`;
 }
 
-// Mock responses may arrive together. Reveal them over a few frames without
-// delaying the request or replaying saved conversation history.
+// Reveal new replies at a steady reading pace even when mock chunks arrive at
+// once. Network timing and saved conversation history are not delayed.
 function createReplyRenderer(body, bubble) {
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let characters = [], visible = 0, frame = 0, previousTime = 0, finished = null;
+  const charactersPerSecond = 45;
+  let characters = [], visible = 0, frame = 0, previousTime = 0, characterCredit = 0, finished = null;
 
   function render() {
     body.innerHTML = renderMd(characters.slice(0, visible).join(""));
@@ -468,6 +469,7 @@ function createReplyRenderer(body, bubble) {
     cancelAnimationFrame(frame);
     frame = 0;
     previousTime = 0;
+    characterCredit = 0;
     visible = characters.length;
     render();
     settle();
@@ -476,13 +478,18 @@ function createReplyRenderer(body, bubble) {
   function tick(now) {
     frame = 0;
     if (motion.matches || document.hidden) { flush(); return; }
-    const elapsed = previousTime ? Math.min(now - previousTime, 48) : 16;
+    const elapsed = previousTime ? Math.min(now - previousTime, 100) : 0;
     previousTime = now;
     const remaining = characters.length - visible;
-    visible += Math.min(remaining, Math.max(1, Math.ceil(remaining * (1 - Math.exp(-elapsed / 85)))));
-    render();
+    characterCredit += elapsed * charactersPerSecond / 1000;
+    const reveal = Math.min(remaining, Math.floor(characterCredit));
+    if (reveal > 0) {
+      characterCredit -= reveal;
+      visible += reveal;
+      render();
+    }
     if (visible < characters.length) frame = requestAnimationFrame(tick);
-    else { previousTime = 0; settle(); }
+    else { previousTime = 0; characterCredit = 0; settle(); }
   }
 
   const onMotionChange = () => { if (motion.matches) flush(); };
@@ -615,6 +622,7 @@ function initCoach() {
 
   form.addEventListener("submit", (ev) => {
     ev.preventDefault();
+    if (busy) return;
     const text = input.value.trim();
     input.value = "";
     autosize();
