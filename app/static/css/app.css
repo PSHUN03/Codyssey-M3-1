@@ -711,6 +711,10 @@ body.no-nav .toast { bottom: 24px; }
 .home-dashboard .card-action { min-height: 48px; }
 .plan-title-break { display: none; }
 .plan-dashboard { align-items: start; }
+.plan-dashboard > .plan-savings { order: 1; }
+.plan-dashboard > .plan-explanation { order: 2; }
+.plan-dashboard > .segment { order: 3; }
+.plan-dashboard > .plan-goal { order: 4; }
 .plan-dashboard > .card { border-radius: 28px; }
 .plan-savings { padding: clamp(24px, 3vw, 36px); }
 .plan-savings-total { margin: -4px -4px 24px; padding: 20px; border-radius: 24px; background: var(--surface); }
