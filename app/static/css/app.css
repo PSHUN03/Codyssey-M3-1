@@ -674,6 +674,7 @@ body.no-nav .toast { bottom: 24px; }
   }
   .landing-motion [data-landing-reveal="bar"] { transform-origin: center bottom; }
   .landing-motion [data-landing-reveal="bar"].is-revealed { animation-name: landing-bar-grow; }
+  /* Reveal each card and all its contents as one unit. */
   .landing-motion [data-landing-reveal="feature"].is-revealed { animation-name: landing-feature-enter; }
   .landing-motion [data-landing-reveal="stat"].is-revealed { animation-name: landing-stat-emphasis; }
   .landing-motion [data-landing-reveal][data-landing-instant] { opacity: 1; transform: none; animation: none; }
@@ -749,7 +750,7 @@ body.no-nav .toast { bottom: 24px; }
 .mini-bar span { border-radius: 4px; }
 .mini-rows { margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 .mini-rows div { display: flex; justify-content: space-between; }
-.mini-rows dt { color: var(--body); }
+.mini-rows dt { display: flex; align-items: center; gap: 8px; color: var(--body); }
 .mini-rows dd { margin: 0; color: var(--ink); font-weight: 700; }
 .mini-item { display: flex; flex-direction: column; font-size: 14px; }
 .mini-item + .mini-item { padding-top: 10px; border-top: 1px solid var(--hairline); }
@@ -757,7 +758,7 @@ body.no-nav .toast { bottom: 24px; }
 .mini-item span { color: var(--body); }
 .mini-q, .mini-a { max-width: 88%; padding: 10px 14px; font-size: 14px; line-height: 1.5; }
 .mini-q { align-self: flex-end; border-radius: 16px 16px 4px 16px; background: var(--ink); color: #fff; }
-.mini-a { align-self: flex-start; border-radius: 16px 16px 16px 4px; background: var(--canvas); color: var(--ink); }
+.mini-a { align-self: flex-start; border: 1px solid #e5dcfa; border-radius: 16px 16px 16px 4px; background: var(--canvas); color: var(--ink); }
 
 .band-dark { padding: 72px 0; background: var(--ink); color: rgba(255, 255, 255, 0.72); }
 .band-grid { display: grid; gap: 16px; }
