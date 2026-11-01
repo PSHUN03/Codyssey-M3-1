@@ -78,6 +78,10 @@ def _employed(profile: ProfileLike) -> bool | None:
 
 def _checks(rules: dict, profile: ProfileLike) -> list[Check]:
     checks: list[Check] = []
+    if "regions" in rules:
+        region = getattr(profile, "region", None)
+        checks.append(Check("거주 지역", region in rules["regions"] if region else None,
+                            "대상 지역: " + "·".join(rules["regions"])))
     if "age_min" in rules or "age_max" in rules:
         lo, hi = rules.get("age_min", 0), rules.get("age_max", 200)
         if profile.age is None:
@@ -161,22 +165,29 @@ def evaluate(policy: dict, profile: ProfileLike, monthly_saving: int | None = No
     checks = _checks(rules, profile)
     today = today or today_kst()
 
+    windows = rules.get("apply_windows", [])
+    if window := rules.get("apply_window"):
+        windows = [window, *windows]
+
     if any(c.ok is False for c in checks):
         status = "ineligible"
     elif rules.get("new_enrollment_open") is False:
         status = "closed"
-    elif (window := rules.get("apply_window")) and not (
+    elif windows and not any(
         date.fromisoformat(window["start"]) <= today <= date.fromisoformat(window["end"])
+        for window in windows
     ):
         status = "closed"
-    elif any(c.ok is None for c in checks) or policy.get("unknown_checks"):
+    elif (not rules or policy.get("review_status") == "pending"
+          or any(c.ok is None for c in checks) or policy.get("unknown_checks")):
         status = "check"
     else:
         status = "eligible"
 
     return Eligibility(
         policy_id=policy["id"], name=policy["name"], status=status, status_label=STATUS_LABELS[status],
-        checks=checks, unknown=list(policy.get("unknown_checks", [])),
+        checks=checks, unknown=list(policy.get("unknown_checks", [])) + (
+            ["자격 규칙의 공식 확인 필요"] if not rules else []),
         estimate=_estimate(policy.get("estimate"), profile, monthly_saving) if status != "ineligible" else None,
     )
 

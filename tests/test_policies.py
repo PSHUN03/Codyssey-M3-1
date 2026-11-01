@@ -33,13 +33,13 @@ def test_all_policies_have_sources_and_rules():
 
 def test_demo_persona_statuses():
     p = P()
-    assert status("youth-future-savings", p) == "check"  # 가구소득은 알 수 없어 확인 필요
+    assert status("youth-future-savings", p, date(2026, 10, 12)) == "check"
     assert status("youth-leap-account", p) == "closed"  # 신규 가입 종료
-    assert status("pension-tax-credit", p) == "eligible"
+    assert status("pension-tax-credit", p) == "check"  # 실제 납입액·결정세액은 모름
     assert status("sme-youth-tax-cut", p) == "check"
-    # 혼자 사는 연봉 3,400만 원이면 저소득 요건(1인 가구 중위소득 50~60%)을 넘는다
-    assert status("youth-tomorrow-savings", p) == "ineligible"
-    assert status("youth-rent-support", p, date(2026, 4, 15)) == "ineligible"
+    assert status("youth-tomorrow-savings", p) == "closed"
+    # 개인 연봉만으로 가구 규모·소득인정액을 알 수 없어 부적격을 단정하지 않는다.
+    assert status("youth-rent-support", p, date(2026, 4, 15)) == "check"
 
 
 def test_rent_support_window():
@@ -83,7 +83,7 @@ def test_tokenize_korean_bigrams():
 @pytest.mark.parametrize("query, expected", [
     ("월세 지원 받을 수 있어?", "youth-rent-support"),
     ("청년도약계좌 지금 가입할 수 있어?", "youth-leap-account"),
-    ("연말정산 세액공제 받는 법", "pension-tax-credit"),
+    ("연금저축 연말정산 세액공제 받는 법", "pension-tax-credit"),
     ("중소기업 다니면 소득세 깎아준다던데", "sme-youth-tax-cut"),
     ("내 집 마련 청약통장", "housing-dream-account"),
     ("정부가 돈 보태주는 적금", "youth-future-savings"),

@@ -1,0 +1,40 @@
+{"id": "draft01", "question": "청년미래적금 가입 나이 알려줘", "expected_policy": "youth-future-savings", "must_include": ["기여금"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft02", "question": "미래적금 갈아타기 가능한지 알고 싶어", "expected_policy": "youth-future-savings", "must_include": ["기여금"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft03", "question": "정부가 납입액에 기여금 더해주는 적금", "expected_policy": "youth-future-savings", "must_include": ["기여금"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft04", "question": "청년미래적금 2차 신청 기간", "expected_policy": "youth-future-savings", "must_include": ["기여금"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft05", "question": "청년도약계좌 새 가입 가능해?", "expected_policy": "youth-leap-account", "must_include": ["종료"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft06", "question": "청년도약계좌 기존 가입자는 유지돼?", "expected_policy": "youth-leap-account", "must_include": ["종료"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft07", "question": "도약계좌 신규가입 종료됐어?", "expected_policy": "youth-leap-account", "must_include": ["종료"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft08", "question": "청년 주택드림 청약통장 가입 조건", "expected_policy": "housing-dream-account", "must_include": ["청약"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft09", "question": "내 집 마련 청약통장", "expected_policy": "housing-dream-account", "must_include": ["청약"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft10", "question": "주택드림 청약통장 비과세 요건", "expected_policy": "housing-dream-account", "must_include": ["청약"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft11", "question": "청년월세 지원 신청 언제야", "expected_policy": "youth-rent-support", "must_include": ["월세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft12", "question": "월세 지원은 얼마 동안 받을까", "expected_policy": "youth-rent-support", "must_include": ["월세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft13", "question": "부모와 따로 사는 청년 월세 지원", "expected_policy": "youth-rent-support", "must_include": ["월세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft14", "question": "중소기업 취업 청년 소득세 감면", "expected_policy": "sme-youth-tax-cut", "must_include": ["감면"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft15", "question": "중소기업 소득세 감면 신청서 어디 제출해", "expected_policy": "sme-youth-tax-cut", "must_include": ["감면"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft16", "question": "중소기업 취업자는 세금 얼마나 깎아줘", "expected_policy": "sme-youth-tax-cut", "must_include": ["감면"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft17", "question": "청년내일저축계좌 가입 대상", "expected_policy": "youth-tomorrow-savings", "must_include": ["저축"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft18", "question": "저소득 청년 매달 30만 원 매칭 저축", "expected_policy": "youth-tomorrow-savings", "must_include": ["저축"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft19", "question": "청년내일저축계좌 모집일", "expected_policy": "youth-tomorrow-savings", "must_include": ["저축"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft20", "question": "IRP 세액공제 한도", "expected_policy": "pension-tax-credit", "must_include": ["세액공제"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft21", "question": "연금저축과 IRP 합산 공제", "expected_policy": "pension-tax-credit", "must_include": ["세액공제"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft22", "question": "연금저축 납입하면 세액공제 되나", "expected_policy": "pension-tax-credit", "must_include": ["세액공제"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft23", "question": "청년전용 버팀목전세자금 대상", "expected_policy": "youth-jeonse-loan", "must_include": ["전세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft24", "question": "청년 버팀목으로 전세 보증금 대출", "expected_policy": "youth-jeonse-loan", "must_include": ["전세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft25", "question": "청년전용 보증부월세대출 알려줘", "expected_policy": "youth-monthly-loan", "must_include": ["월세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft26", "question": "청년 보증금과 월세 같이 빌리기", "expected_policy": "youth-monthly-loan", "must_include": ["월세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft27", "question": "청년 주택드림 대출 청약 당첨 조건", "expected_policy": "housing-dream-loan", "must_include": ["당첨"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft28", "question": "주거안정월세대출 우대형", "expected_policy": "residential-monthly-loan", "must_include": ["월세"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft29", "question": "햇살론유스 연소득 조건", "expected_policy": "sunshine-youth", "must_include": ["보증"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft30", "question": "햇살론유스 대학생도 가능해", "expected_policy": "sunshine-youth", "must_include": ["보증"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft31", "question": "서울 희망두배 청년통장 가입", "expected_policy": "seoul-double-savings", "must_include": ["매칭"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft32", "question": "희망두배 청년통장 근로 조건", "expected_policy": "seoul-double-savings", "must_include": ["매칭"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft33", "question": "월세액 세액공제 증빙", "expected_policy": "rent-tax-credit", "must_include": ["공제"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft34", "question": "월세액 세액공제 무주택 조건", "expected_policy": "rent-tax-credit", "must_include": ["공제"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft35", "question": "취업 후 상환 학자금대출 언제 갚아", "expected_policy": "icl-student-loan", "must_include": ["상환"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft36", "question": "일반 상환 학자금대출 거치기간", "expected_policy": "general-student-loan", "must_include": ["거치"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft37", "question": "학자금대출 특별상환유예 신청", "expected_policy": "student-repayment-deferral", "must_include": ["유예"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft38", "question": "국민취업지원제도 구직촉진수당 대상", "expected_policy": "employment-support", "must_include": ["수당"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft39", "question": "국민내일배움카드 훈련비 지원", "expected_policy": "training-card", "must_include": ["훈련"], "review_status": "PM 확인 전 개발용 초안"}
+{"id": "draft40", "question": "근로장려금 가구 소득 재산", "expected_policy": "earned-income-credit", "must_include": ["근로"], "review_status": "PM 확인 전 개발용 초안"}
