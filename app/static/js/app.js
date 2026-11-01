@@ -81,7 +81,7 @@ function initLandingMotion() {
   };
   const reset = (target) => {
     // Keep focused controls visible even if the user scrolls while typing.
-    if (target.contains(document.activeElement)) return;
+    if (target.hasAttribute("data-landing-static") || target.contains(document.activeElement)) return;
     target.classList.remove("is-revealed");
     target.removeAttribute("data-landing-instant");
   };
@@ -133,12 +133,53 @@ function initLanding() {
   const rentField = $("#calc-rent"), row = $("#calc-row");
   const amountEl = $("#calc-amount"), bar = $("#calc-bar"), legend = $("#calc-legend"), extra = $("#calc-extra");
   const result = $("#calc-result"), status = $("#calc-status");
+  const applyButton = $("#calc-apply"), resultLabel = $(".calc-label", result), card = form.closest(".calc");
   const kinds = { fixed: "k-fixed", living: "k-living", saving: "k-saving" };
-  let timer, controller;
+  let controller = null, hasResult = false, appliedKey = "", pendingKey = "";
 
   const read = (name) => digits(form.elements[name].value);
+  const readValues = () => {
+    const withParents = form.elements.living.value === "parents";
+    return {
+      monthly_income: toWon(read("monthly_income")),
+      rent: withParents ? 0 : toWon(read("rent") || 0),
+      fixed_costs: toWon(read("fixed_costs") || 0),
+      with_parents: withParents,
+    };
+  };
+
+  function syncLiving() {
+    const withParents = form.elements.living.value === "parents";
+    rentField.hidden = withParents;
+    row.classList.toggle("is-single", withParents);
+  }
+
+  function settleMotion() {
+    card.setAttribute("data-landing-static", "");
+    card.setAttribute("data-landing-instant", "");
+    card.classList.add("is-revealed");
+  }
+
+  function markDirty() {
+    syncLiving();
+    settleMotion();
+    const key = JSON.stringify(readValues());
+    if (controller && key === pendingKey) return;
+    controller?.abort();
+    controller = null;
+    pendingKey = "";
+    applyButton.disabled = false;
+    applyButton.textContent = "적용하기";
+    result.setAttribute("aria-busy", "false");
+    status.classList.remove("ob-error");
+    const unchanged = hasResult && key === appliedKey;
+    resultLabel.textContent = hasResult && !unchanged ? "매달 저축할 수 있는 돈 (적용 전)" : "매달 저축할 수 있는 돈";
+    status.textContent = unchanged ? "입력한 값으로 계산했어요." : "값을 바꿨어요. 적용하기를 눌러 주세요.";
+  }
 
   function render(d) {
+    hasResult = true;
+    resultLabel.textContent = "매달 저축할 수 있는 돈";
     amountEl.textContent = won(d.total_saving);
     bar.innerHTML = d.groups.filter((g) => g.amount > 0)
       .map((g) => `<span class="${kinds[g.key]}" style="flex:${g.amount}"></span>`).join("");
@@ -151,56 +192,68 @@ function initLanding() {
     else extra.textContent = "";
   }
 
-  async function update() {
+  async function update(initial = false) {
     controller?.abort();
     controller = null;
-    const withParents = form.elements.living.value === "parents";
-    rentField.hidden = withParents;
-    row.classList.toggle("is-single", withParents);
+    pendingKey = "";
+    syncLiving();
     const income = read("monthly_income");
     if (!income) {
-      amountEl.textContent = "—";
-      bar.innerHTML = legend.innerHTML = extra.textContent = "";
       status.textContent = "월급을 적어 주세요";
-      status.classList.remove("ob-error");
+      status.classList.add("ob-error");
       result.setAttribute("aria-busy", "false");
       return;
     }
     const request = new AbortController();
     controller = request;
+    const values = readValues();
+    const requestKey = JSON.stringify(values);
+    pendingKey = requestKey;
     status.textContent = "계산하고 있어요";
     status.classList.remove("ob-error");
     result.setAttribute("aria-busy", "true");
+    applyButton.disabled = true;
+    applyButton.textContent = "계산 중…";
     try {
       const d = await api("/api/public/quick-plan", {
         method: "POST",
         signal: request.signal,
-        body: {
-          monthly_income: toWon(income),
-          rent: withParents ? 0 : toWon(read("rent") || 0),
-          fixed_costs: toWon(read("fixed_costs") || 0),
-          with_parents: withParents,
-        },
+        body: values,
       });
       if (controller !== request || request.signal.aborted) return;
-      status.textContent = "";
       render(d);
+      appliedKey = requestKey;
+      status.textContent = initial ? "값을 바꾸고 적용하기를 눌러 보세요." : "입력한 값으로 계산했어요.";
     } catch (e) {
       if (e.name !== "AbortError" && controller === request) {
-        amountEl.textContent = "—";
-        bar.innerHTML = legend.innerHTML = extra.textContent = "";
         status.classList.add("ob-error");
-        status.textContent = "계산하지 못했어요. 연결과 금액을 확인한 뒤 다시 시도해 주세요.";
+        status.textContent = "계산하지 못했어요. 다시 적용해 주세요.";
       }
     } finally {
-      if (controller === request) result.setAttribute("aria-busy", "false");
+      if (controller === request) {
+        controller = null;
+        pendingKey = "";
+        result.setAttribute("aria-busy", "false");
+        applyButton.disabled = false;
+        applyButton.textContent = "적용하기";
+      }
     }
   }
 
-  form.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(update, 250); });
-  form.addEventListener("change", update);
-  form.addEventListener("submit", (ev) => ev.preventDefault());
-  update();
+  form.addEventListener("input", markDirty);
+  form.addEventListener("change", markDirty);
+  form.addEventListener("focusin", settleMotion);
+  const clearApplyFeedback = () => applyButton.classList.remove("is-pressed");
+  applyButton.addEventListener("animationend", clearApplyFeedback);
+  applyButton.addEventListener("animationcancel", clearApplyFeedback);
+  form.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    if (!controller) {
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) applyButton.classList.add("is-pressed");
+      update();
+    }
+  });
+  update(true); // Populate the initial example once; edits only calculate on apply.
 }
 
 /* ------------------------------------------------------------ 재무 진단: 질문 카드 */

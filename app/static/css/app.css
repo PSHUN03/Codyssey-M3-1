@@ -708,6 +708,26 @@ body.no-nav .toast { bottom: 24px; }
 .calc-form { display: flex; flex-direction: column; gap: 16px; }
 .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .calc-row.is-single { grid-template-columns: 1fr; }
+.calc-row [hidden] { display: none; }
+.calc-form .seg span { transition: background-color .22s ease, box-shadow .22s ease, color .22s ease; }
+.calc-apply { width: 100%; transition: background-color .18s ease, box-shadow .22s ease, transform .22s ease, opacity .18s ease; }
+.calc-apply:is(:hover, :focus-visible):not(:disabled) { box-shadow: 0 4px 16px rgba(109, 75, 228, .22); }
+.calc-apply:disabled { opacity: .65; cursor: wait; }
+@keyframes calc-choice-in {
+  from { opacity: .65; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes calc-apply-press {
+  0%, 100% { transform: none; }
+  40% { transform: translateY(2px) scale(.975); }
+  75% { transform: translateY(-1px) scale(1.01); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .calc-form .seg input:checked + span { animation: calc-choice-in 350ms ease-out; }
+  .calc-apply.is-pressed { animation: calc-apply-press 360ms ease-out; }
+  .calc-apply:active:not(:disabled) { transform: translateY(1px) scale(.985); }
+}
+#calc-status { min-height: 3.2em; margin-top: 10px; }
 .calc-result { margin-top: 20px; padding: 20px; border-radius: var(--r-lg); background: var(--lime-pale); }
 .calc-label { font-size: 14px; font-weight: 600; color: var(--body); }
 .calc-amount { margin-top: 2px; font-family: var(--font-display); font-weight: 900; font-size: clamp(36px, 5vw, 48px); line-height: 1.15; letter-spacing: -0.03em; color: var(--ink); }
