@@ -195,19 +195,47 @@ body.has-nav { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
   body.has-nav { padding-bottom: 0; }
 }
 
-/* PC 코치 바로가기. 모바일은 기존 하단 코치 메뉴를 사용한다. */
-.coach-shortcut { display: none; }
+/* PC 코치 캐릭터. 모바일은 기존 하단 코치 메뉴를 사용한다. */
+.coach-launcher { display: none; }
+@keyframes coach-idle-look {
+  0%, 12%, 92%, 100% { transform: translate(0, 0); }
+  28%, 40% { transform: translate(-25px, -3px); }
+  62%, 76% { transform: translate(25px, 1px); }
+}
 @media (min-width: 900px) {
+  .coach-launcher { display: block; position: fixed; right: 20px; bottom: 20px; z-index: 25; }
   .coach-shortcut {
-    position: fixed; right: 24px; bottom: 24px; z-index: 25;
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    min-height: 56px; max-width: calc(100% - 48px); padding: 14px 20px;
-    border-radius: var(--r-pill); background: var(--lime); color: #fff;
-    box-shadow: 0 8px 24px rgba(67, 43, 145, .18);
-    font-size: 15px; font-weight: 700; line-height: 1.4; text-decoration: none;
+    display: grid; place-items: center; width: 112px; height: 112px;
+    border-radius: 28px; color: var(--ink-deep); text-decoration: none;
   }
-  .coach-shortcut:hover { background: var(--lime-active); }
-  .coach-shortcut:focus-visible { outline-offset: 4px; }
+  .coach-mascot { width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgba(67, 43, 145, .14)); }
+  .coach-shortcut:focus-visible { outline: 3px solid var(--ink-deep); outline-offset: 2px; box-shadow: 0 0 0 5px var(--surface); }
+  .coach-shortcut-panel {
+    position: absolute; right: 100%; top: 50%; transform: translateY(-50%); padding-right: 8px;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .15s ease, visibility .15s ease;
+  }
+  .coach-shortcut-hint {
+    display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 16px;
+    border: 1px solid var(--hairline); border-radius: 16px; background: var(--surface); color: var(--ink-deep);
+    box-shadow: 0 4px 16px rgba(67, 43, 145, .1); font-size: 14px; font-weight: 700; white-space: nowrap;
+  }
+  .coach-launcher:is(:hover, :focus-within) .coach-shortcut-panel { opacity: 1; visibility: visible; pointer-events: auto; }
+  .coach-launcher[data-hint-dismissed] .coach-shortcut-panel { opacity: 0; visibility: hidden; pointer-events: none; }
+  .coach-motion-toggle {
+    display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+    border: 0; border-radius: 10px; background: transparent; color: var(--ink-deep); cursor: pointer;
+  }
+  .coach-motion-toggle:hover { background: var(--lime-pale); }
+  .coach-motion-toggle[hidden], .coach-motion-play { display: none; }
+  .coach-launcher[data-motion-paused] .coach-motion-pause { display: none; }
+  .coach-launcher[data-motion-paused] .coach-motion-play { display: block; }
+}
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .coach-launcher[data-motion-ready] .coach-mascot-pupil { animation: coach-idle-look 7.8s ease-in-out infinite; }
+  .coach-launcher[data-motion-paused] .coach-mascot-pupil { animation-play-state: paused; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coach-motion-toggle { display: none; }
 }
 
 /* ---------------------------------------------------------------- 푸터 */

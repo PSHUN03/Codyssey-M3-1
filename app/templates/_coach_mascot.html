@@ -1,0 +1,25 @@
+{# The selected 3D mascot with separate pupils for gentle idle movement. #}
+<svg class="coach-mascot" viewBox="0 0 1280 1280" width="112" height="112" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="coach-pupil-fill" cx="30%" cy="22%" r="80%">
+      <stop offset="0" stop-color="#59378d"/>
+      <stop offset=".55" stop-color="#301253"/>
+      <stop offset="1" stop-color="#1d0a38"/>
+    </radialGradient>
+    <clipPath id="coach-left-eye"><ellipse cx="418" cy="626" rx="71" ry="97" transform="rotate(20 418 626)"/></clipPath>
+    <clipPath id="coach-right-eye"><ellipse cx="748" cy="632" rx="72" ry="99" transform="rotate(20 748 632)"/></clipPath>
+  </defs>
+  <image href="/static/images/coach-mascot-d-base.png" width="1280" height="1280"/>
+  <g clip-path="url(#coach-left-eye)">
+    <g class="coach-mascot-pupil">
+      <ellipse cx="422" cy="630" rx="35" ry="55" transform="rotate(20 422 630)" fill="url(#coach-pupil-fill)"/>
+      <ellipse cx="410" cy="609" rx="10" ry="14" transform="rotate(20 410 609)" fill="#fff"/>
+    </g>
+  </g>
+  <g clip-path="url(#coach-right-eye)">
+    <g class="coach-mascot-pupil">
+      <ellipse cx="752" cy="636" rx="35" ry="55" transform="rotate(20 752 636)" fill="url(#coach-pupil-fill)"/>
+      <ellipse cx="740" cy="615" rx="10" ry="14" transform="rotate(20 740 615)" fill="#fff"/>
+    </g>
+  </g>
+</svg>
