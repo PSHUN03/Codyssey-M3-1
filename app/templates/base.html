@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png?v={{ asset_version }}">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-fe03-coach-mascot-v3">
+  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-fe03-coach-pop-v1">
 </head>
 {% set nav_items = [
   ("/home", "홈", "home"),
@@ -91,10 +91,6 @@
     <div class="coach-shortcut-panel">
       <div class="coach-shortcut-hint">
         <span>코치에게 질문하기</span>
-        <button class="coach-motion-toggle" type="button" aria-label="눈동자 움직임 멈추기" title="눈동자 움직임 멈추기" hidden>
-          <svg class="coach-motion-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-          <svg class="coach-motion-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 4 12 8-12 8z"/></svg>
-        </button>
       </div>
     </div>
   </div>
@@ -102,6 +98,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   {% block dialogs %}{% endblock %}
-  <script src="/static/js/app.js?v={{ asset_version }}-fe03-coach-mascot-v2" defer></script>
+  <script src="/static/js/app.js?v={{ asset_version }}-fe03-coach-pop-v1" defer></script>
 </body>
 </html>

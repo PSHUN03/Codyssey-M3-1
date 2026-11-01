@@ -800,28 +800,9 @@ document.addEventListener("click", (ev) => {
 function initCoachShortcut() {
   const launcher = $("[data-coach-launcher]");
   if (!launcher) return;
-  const toggle = $(".coach-motion-toggle", launcher);
-  const preferenceKey = "sadari:coach-motion-paused";
-
-  function setPaused(paused) {
-    launcher.toggleAttribute("data-motion-paused", paused);
-    const label = paused ? "눈동자 움직임 재생" : "눈동자 움직임 멈추기";
-    toggle.setAttribute("aria-label", label);
-    toggle.title = label;
-  }
-
-  try { setPaused(localStorage.getItem(preferenceKey) === "true"); }
-  catch { setPaused(false); }
-  toggle.hidden = false;
-  toggle.addEventListener("click", () => {
-    const paused = !launcher.hasAttribute("data-motion-paused");
-    setPaused(paused);
-    try { localStorage.setItem(preferenceKey, String(paused)); } catch { /* Storage may be unavailable. */ }
-  });
   launcher.addEventListener("keydown", (ev) => {
     if (ev.key === "Escape") {
       launcher.setAttribute("data-hint-dismissed", "");
-      if (ev.target === toggle) $(".coach-shortcut", launcher).focus();
     }
   });
   launcher.addEventListener("pointerleave", () => {

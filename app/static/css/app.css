@@ -211,31 +211,26 @@ body.has-nav { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
   .coach-mascot { width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgba(67, 43, 145, .14)); }
   .coach-shortcut:focus-visible { outline: 3px solid var(--ink-deep); outline-offset: 2px; box-shadow: 0 0 0 5px var(--surface); }
   .coach-shortcut-panel {
-    position: absolute; right: 100%; top: 50%; transform: translateY(-50%); padding-right: 8px;
+    position: absolute; right: 0; bottom: 100%; padding-bottom: 8px;
     opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .15s ease, visibility .15s ease;
   }
   .coach-shortcut-hint {
-    display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 16px;
+    display: flex; align-items: center; gap: 6px; padding: 12px 16px;
     border: 1px solid var(--hairline); border-radius: 16px; background: var(--surface); color: var(--ink-deep);
     box-shadow: 0 4px 16px rgba(67, 43, 145, .1); font-size: 14px; font-weight: 700; white-space: nowrap;
   }
   .coach-launcher:is(:hover, :focus-within) .coach-shortcut-panel { opacity: 1; visibility: visible; pointer-events: auto; }
   .coach-launcher[data-hint-dismissed] .coach-shortcut-panel { opacity: 0; visibility: hidden; pointer-events: none; }
-  .coach-motion-toggle {
-    display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
-    border: 0; border-radius: 10px; background: transparent; color: var(--ink-deep); cursor: pointer;
-  }
-  .coach-motion-toggle:hover { background: var(--lime-pale); }
-  .coach-motion-toggle[hidden], .coach-motion-play { display: none; }
-  .coach-launcher[data-motion-paused] .coach-motion-pause { display: none; }
-  .coach-launcher[data-motion-paused] .coach-motion-play { display: block; }
+
 }
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   .coach-launcher[data-motion-ready] .coach-mascot-pupil { animation: coach-idle-look 7.8s ease-in-out infinite; }
-  .coach-launcher[data-motion-paused] .coach-mascot-pupil { animation-play-state: paused; }
+  .coach-shortcut:is(:hover, :focus-visible) .coach-mascot { animation: coach-pop 480ms ease-out; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .coach-motion-toggle { display: none; }
+@keyframes coach-pop {
+  0%, 100% { transform: scale(1); }
+  40% { transform: translateY(-5px) scale(1.12, .94); }
+  70% { transform: translateY(-2px) scale(.98, 1.04); }
 }
 
 /* ---------------------------------------------------------------- 푸터 */
