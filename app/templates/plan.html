@@ -20,24 +20,6 @@
 {% else %}
 {% set goal = plan.summary.goal %}
 <div class="grid plan-dashboard">
-  {% if segment %}
-  <section class="card span-12 segment" aria-labelledby="segment-name">
-    <p class="label">진단 결과</p>
-    <h2 class="segment-name" id="segment-name"><span class="segment-code">{{ segment.code }}</span>{{ segment.name }}</h2>
-    <p class="segment-reason">{{ segment.reason }}</p>
-    <h3 class="segment-sub">먼저 할 일</h3>
-    <ol class="segment-actions">{% for a in segment.actions %}<li>{{ a }}</li>{% endfor %}</ol>
-    <div class="segment-links">
-      {% for link in segment.links %}<a class="btn btn-sm {{ 'btn-primary' if loop.first else 'btn-secondary' }}" href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
-    </div>
-    <details class="segment-rules">
-      <summary>유형을 나누는 기준</summary>
-      <ul>{% for code, s in segments.items() | sort %}<li{% if code == segment.code %} class="is-current"{% endif %}><b>{{ code }} {{ s.name }}</b> {{ s.rule }}</li>{% endfor %}</ul>
-      <p class="card-foot">A, D, B, C 순서로 확인해요. 적자라면 적자 대응이, 이미 넣고 있는 돈이 있다면 유지가 먼저라서예요. AI가 아니라 계산 엔진이 규칙({{ segment_rule_version }})으로 정해요.</p>
-    </details>
-  </section>
-  {% endif %}
-
   <section class="card span-7 plan-savings">
     <div class="plan-savings-total">
     <p class="label">매달 저축</p>
@@ -83,6 +65,24 @@
     <p class="note note-warn">지금 계획으로는 기간이 모자라요. 기간을 늘리거나 생활비를 줄이는 방법을 코치와 같이 찾아보세요.</p>
     <a class="btn btn-secondary btn-sm card-action" href="/coach?q={{ '목표를 현실적으로 조정하고 싶어요' | urlencode }}">코치와 조정하기</a>
     {% endif %}
+  </section>
+  {% endif %}
+
+  {% if segment %}
+  <section class="card span-12 segment" aria-labelledby="segment-name">
+    <p class="label">진단 결과</p>
+    <h2 class="segment-name" id="segment-name"><span class="segment-code">{{ segment.code }}</span>{{ segment.name }}</h2>
+    <p class="segment-reason">{{ segment.reason }}</p>
+    <h3 class="segment-sub">먼저 할 일</h3>
+    <ol class="segment-actions">{% for a in segment.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+    <div class="segment-links">
+      {% for link in segment.links %}<a class="btn btn-sm {{ 'btn-primary' if loop.first else 'btn-secondary' }}" href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
+    </div>
+    <details class="segment-rules">
+      <summary>유형을 나누는 기준</summary>
+      <ul>{% for code, s in segments.items() | sort %}<li{% if code == segment.code %} class="is-current"{% endif %}><b>{{ code }} {{ s.name }}</b> {{ s.rule }}</li>{% endfor %}</ul>
+      <p class="card-foot">A, D, B, C 순서로 확인해요. 적자라면 적자 대응이, 이미 넣고 있는 돈이 있다면 유지가 먼저라서예요. AI가 아니라 계산 엔진이 규칙({{ segment_rule_version }})으로 정해요.</p>
+    </details>
   </section>
   {% endif %}
 
