@@ -6,6 +6,18 @@
 {% if user.profile and user.profile.onboarding_done %}<a class="header-link" href="/home">나가기</a>{% endif %}
 {% endblock %}
 {% block content %}
+<div class="ob-layout">
+  <aside class="ob-aside" aria-label="진단 안내">
+    <p class="kicker">나를 알아가는 시간</p>
+    <h2>내게 맞는 계획,<br>차근차근 만들어요.</h2>
+    <p class="ob-aside-copy">입력한 수입과 지출을 바탕으로 실천할 수 있는 목표를 찾아요.</p>
+    <ol class="ob-steps">
+      <li><span>1</span><div><strong>내 수입</strong><small>한 달에 들어오는 돈</small></div></li>
+      <li><span>2</span><div><strong>내 지출</strong><small>고정비와 생활비</small></div></li>
+      <li><span>3</span><div><strong>저축 목표</strong><small>금액과 목표 기간</small></div></li>
+    </ol>
+    <p class="ob-aside-foot">부담 없이, 아는 만큼만 입력해요.</p>
+  </aside>
 <div class="ob">
   <div class="ob-top">
     <button class="icon-btn" id="ob-back" type="button" aria-label="이전 질문">{{ ui.icon("arrow-left") }}</button>
@@ -17,5 +29,6 @@
     <noscript><p>이 화면은 자바스크립트가 켜져 있어야 동작해요.</p></noscript>
   </section>
   <p class="ob-foot">입력한 정보는 플랜 계산과 혜택 확인에만 써요. 언제든 내 정보에서 고칠 수 있어요.</p>
+</div>
 </div>
 {% endblock %}
