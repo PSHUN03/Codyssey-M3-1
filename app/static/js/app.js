@@ -72,6 +72,7 @@ function initLanding() {
   if (!form) return;
   const rentField = $("#calc-rent"), row = $("#calc-row");
   const amountEl = $("#calc-amount"), bar = $("#calc-bar"), legend = $("#calc-legend"), extra = $("#calc-extra");
+  const result = $("#calc-result"), status = $("#calc-status");
   const kinds = { fixed: "k-fixed", living: "k-living", saving: "k-saving" };
   let timer, controller;
 
@@ -91,21 +92,29 @@ function initLanding() {
   }
 
   async function update() {
+    controller?.abort();
+    controller = null;
     const withParents = form.elements.living.value === "parents";
     rentField.hidden = withParents;
     row.classList.toggle("is-single", withParents);
     const income = read("monthly_income");
     if (!income) {
-      amountEl.textContent = "월급을 적어 주세요";
+      amountEl.textContent = "—";
       bar.innerHTML = legend.innerHTML = extra.textContent = "";
+      status.textContent = "월급을 적어 주세요";
+      status.classList.remove("ob-error");
+      result.setAttribute("aria-busy", "false");
       return;
     }
-    controller?.abort();
-    controller = new AbortController();
+    const request = new AbortController();
+    controller = request;
+    status.textContent = "계산하고 있어요";
+    status.classList.remove("ob-error");
+    result.setAttribute("aria-busy", "true");
     try {
       const d = await api("/api/public/quick-plan", {
         method: "POST",
-        signal: controller.signal,
+        signal: request.signal,
         body: {
           monthly_income: toWon(income),
           rent: withParents ? 0 : toWon(read("rent") || 0),
@@ -113,9 +122,18 @@ function initLanding() {
           with_parents: withParents,
         },
       });
+      if (controller !== request || request.signal.aborted) return;
+      status.textContent = "";
       render(d);
     } catch (e) {
-      if (e.name !== "AbortError") { extra.classList.add("is-warn"); extra.textContent = "금액을 다시 확인해 주세요."; }
+      if (e.name !== "AbortError" && controller === request) {
+        amountEl.textContent = "—";
+        bar.innerHTML = legend.innerHTML = extra.textContent = "";
+        status.classList.add("ob-error");
+        status.textContent = "계산하지 못했어요. 연결과 금액을 확인한 뒤 다시 시도해 주세요.";
+      }
+    } finally {
+      if (controller === request) result.setAttribute("aria-busy", "false");
     }
   }
 
@@ -405,11 +423,12 @@ function initOnboarding() {
 
   api("/api/onboarding/questions")
     .then((d) => {
+      if (!Array.isArray(d.questions) || !d.questions.length) throw new Error("진단 질문을 찾지 못했어요. 잠시 후 다시 시도해 주세요.");
       questions = d.questions;
       answers = d.answers || {};
       show(0);
     })
-    .catch((e) => { card.innerHTML = `<p class="ob-error">${escapeHtml(e.message)}</p>`; });
+    .catch((e) => { card.innerHTML = `<p class="ob-error" role="alert">${escapeHtml(e.message)}</p><button type="button" class="btn btn-secondary card-action" data-action="reload-page">다시 불러오기</button>`; });
 }
 
 /* ------------------------------------------------------------ AI 코치 (SSE 스트리밍) */
@@ -660,6 +679,10 @@ function initPlan() {
     if (!monthly) { out.innerHTML = '<p class="ob-error">매달 넣을 돈을 적어 주세요.</p>'; return; }
     const body = { monthly_amount: toWon(monthly), product };
     if (product === "general") body.months = Number(digits(form.elements.months.value)) || 12;
+    const button = $('button[type="submit"]', form);
+    button.disabled = true;
+    form.setAttribute("aria-busy", "true");
+    out.innerHTML = '<p role="status">계산하고 있어요</p>';
     try {
       const d = await api("/api/goals/simulate", { method: "POST", body });
       const r = d.readable;
@@ -668,14 +691,21 @@ function initPlan() {
       out.innerHTML = `<p class="label">${d.months}개월 뒤 받는 돈</p><p class="sim-total">${escapeHtml(r["만기 수령액"])}</p>
         <dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("")}</dl>
         <p class="card-foot">${renderMd(d.notes.join(" "))}</p>`;
-    } catch (e) { out.innerHTML = `<p class="ob-error">${escapeHtml(e.message)}</p>`; }
+    } catch (e) { out.innerHTML = `<p class="ob-error" role="alert">${escapeHtml(e.message)}</p>`; }
+    finally { button.disabled = false; form.setAttribute("aria-busy", "false"); }
   });
   syncProduct();
 }
 
-async function regenerate() {
+async function regenerate(button) {
+  if (button.disabled) return;
+  const label = button.textContent;
+  button.disabled = true;
+  button.textContent = "계산 중이에요";
+  button.setAttribute("aria-busy", "true");
   try { await api("/api/plans/generate", { method: "POST" }); location.reload(); }
   catch (e) { toast(e.message); }
+  finally { button.disabled = false; button.textContent = label; button.setAttribute("aria-busy", "false"); }
 }
 
 /* ------------------------------------------------------------ 내 정보 */
@@ -697,10 +727,13 @@ function initSettings() {
       }
     }
     const btn = $('button[type="submit"]', form);
+    const label = btn.textContent;
     btn.disabled = true;
+    btn.textContent = "저장 중이에요";
+    form.setAttribute("aria-busy", "true");
     try { await api("/api/profile", { method: "PUT", body }); toast("저장했어요. 플랜도 다시 계산했어요."); }
     catch (e) { toast(e.message); }
-    btn.disabled = false;
+    finally { btn.disabled = false; btn.textContent = label; form.setAttribute("aria-busy", "false"); }
   });
 
   $("#memory-list")?.addEventListener("click", async (ev) => {
@@ -734,7 +767,8 @@ function initConsent() {
 document.addEventListener("click", (ev) => {
   const el = ev.target.closest("[data-action]");
   if (!el) return;
-  if (el.dataset.action === "regenerate") regenerate();
+  if (el.dataset.action === "regenerate") regenerate(el);
+  if (el.dataset.action === "reload-page") location.reload();
   if (el.dataset.action === "delete-account") {
     const dialog = $("#delete-dialog");
     if (!dialog?.showModal) { if (confirm("탈퇴할까요? 모든 정보가 바로 지워지고 되돌릴 수 없어요.")) deleteAccount(); return; }

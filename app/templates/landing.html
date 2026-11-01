@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block main %}
-<main id="main">
+<main id="main" tabindex="-1">
   <section class="hero">
     <div class="wrap">
       <div class="hero-shell">
@@ -61,7 +61,8 @@
             </label>
           </div>
         </form>
-        <div class="calc-result" aria-live="polite">
+        <p id="calc-status" class="field-help" role="status"></p>
+        <div class="calc-result" id="calc-result" aria-live="polite">
           <p class="calc-label">매달 저축할 수 있는 돈</p>
           <p class="calc-amount" id="calc-amount">&nbsp;</p>
           <div class="stack-bar" id="calc-bar" role="img" aria-label="월급 배분"></div>

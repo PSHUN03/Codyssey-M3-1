@@ -26,7 +26,7 @@
       <li class="benefit-mobile-item">
         <details class="benefit-accordion" {% if selected_match and m.policy_id == selected_match.policy_id %}open{% endif %}>
           <summary>
-            <span class="benefit-card-top"><span class="benefit-category">{{ policy.get('category', '정책') }}</span><span class="benefit-kind">정책 예시</span></span>
+            <span class="benefit-card-top"><span class="benefit-category">{{ policy.get('category', '정책') }}</span><span class="benefit-kind">{{ m.status_label }}</span></span>
             <strong>{{ m.name }}</strong>
             <span class="row-sub">{{ policy.get('summary', m.status_label) }}</span>
             <span class="benefit-card-more">자세히 보기 {{ ui.icon("chevron-right", 16) }}</span>
@@ -40,6 +40,8 @@
           </div>
         </details>
       </li>
+      {% else %}
+      <li class="benefit-empty"><p role="status">지금 조건으로 찾은 혜택이 없어요. 입력한 정보를 확인하거나 나중에 다시 살펴봐 주세요.</p><a class="link-more" href="/settings">내 정보 확인하기</a></li>
       {% endfor %}
     </ul>
   </div>
