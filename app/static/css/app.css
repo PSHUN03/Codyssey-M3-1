@@ -1294,3 +1294,7 @@ body { background: var(--canvas); }
 .coach-is-empty .coach-notice { max-width: 680px; margin: 14px auto 0; line-height: 1.75; }
 .coach-is-empty .chat { flex: none; padding: 0; }
 .sim-form [hidden] { display: none; }
+.benefit-preview-content { display: grid; gap: 12px; min-width: 0; }
+#benefit-preview { scroll-margin-top: calc(var(--header-h) + 24px); }
+@keyframes benefit-preview-in { from { opacity: .3; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { .benefit-preview-content { animation: benefit-preview-in 260ms ease-out; } }

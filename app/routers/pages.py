@@ -61,7 +61,7 @@ def plan_page(request: Request, user: User = Depends(require_onboarded)):
 
 
 @router.get("/benefits")
-def benefits_page(request: Request, user: User = Depends(require_onboarded)):
+def benefits_page(request: Request, selected: str | None = None, user: User = Depends(require_onboarded)):
     groups: dict[str, list] = {status: [] for status in eligibility.STATUS_LABELS}
     for m in _matches(user):
         groups[m.status].append(m)
@@ -73,7 +73,8 @@ def benefits_page(request: Request, user: User = Depends(require_onboarded)):
         eligibility.STATUS_ORDER[match.status],
         match.name,
     ))
-    selected_match = benefit_matches[0] if benefit_matches else None
+    selected_match = next((match for match in benefit_matches if match.policy_id == selected),
+                          benefit_matches[0] if benefit_matches else None)
     selected_policy = policies_by_id.get(selected_match.policy_id) if selected_match else None
     return render(request, "benefits.html", user=user, benefit_matches=benefit_matches,
                   groups=groups, labels=eligibility.STATUS_LABELS, meta=repository.meta(),

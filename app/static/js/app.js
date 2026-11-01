@@ -912,6 +912,31 @@ function initCoach() {
   else chat.lastElementChild?.scrollIntoView({ block: "end" });
 }
 
+/* ------------------------------------------------------------ 혜택: 목록에서 선택한 요약 */
+function initBenefits() {
+  const preview = $("#benefit-preview"), links = $$("[data-benefit-select]");
+  if (!preview) return;
+  const templates = $$("template[data-benefit-preview]");
+  links.forEach((link) => link.addEventListener("click", (event) => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button > 0) return;
+    if (!window.matchMedia("(min-width: 900px)").matches) return;
+    const id = link.dataset.benefitSelect;
+    const template = templates.find((item) => item.dataset.benefitPreview === id);
+    if (!template?.content) return; // The link still selects the same preview without JavaScript.
+    event.preventDefault();
+    preview.replaceChildren(template.content.cloneNode(true));
+    links.forEach((item) => {
+      const selected = item === link;
+      item.classList.toggle("is-selected", selected);
+      if (selected) item.setAttribute("aria-current", "true");
+      else item.removeAttribute("aria-current");
+    });
+    $$("[data-benefit-accordion]").forEach((item) => { item.open = item.dataset.benefitAccordion === id; });
+    history.replaceState(null, "", link.href);
+    setFeedback($("#benefit-preview-status"), `${link.dataset.benefitName} 내용을 오른쪽에 표시했어요.`);
+  }));
+}
+
 /* ------------------------------------------------------------ 플랜: 적금 계산 */
 function initPlan() {
   const form = $("#simulate-form"), out = $("#simulate-result");
@@ -1222,6 +1247,7 @@ const page = document.body.dataset.page;
 if (page === "landing") { initLandingMotion(); initLanding(); }
 if (page === "onboarding") initOnboarding();
 if (page === "coach") initCoach();
+if (page === "benefits") initBenefits();
 if (page === "plan") initPlan();
 if (page === "settings") initSettings();
 if (page === "consent") initConsent();
