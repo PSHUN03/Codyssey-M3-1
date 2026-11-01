@@ -66,7 +66,7 @@ document.addEventListener("input", (ev) => {
   }
 });
 
-/* ------------------------------------------------------------ 랜딩: 한 번씩 순서대로 등장 */
+/* ------------------------------------------------------------ 랜딩: 다시 보이는 구역도 순서대로 등장 */
 function initLandingMotion() {
   const root = document.body;
   const targets = $$("[data-landing-reveal]");
@@ -78,7 +78,12 @@ function initLandingMotion() {
 
   const show = (target) => {
     target.classList.add("is-revealed");
-    observer.unobserve(target);
+  };
+  const reset = (target) => {
+    // Keep focused controls visible even if the user scrolls while typing.
+    if (target.contains(document.activeElement)) return;
+    target.classList.remove("is-revealed");
+    target.removeAttribute("data-landing-instant");
   };
   const revealFocus = (event) => {
     let target = event.target.closest("[data-landing-reveal]");
@@ -100,13 +105,14 @@ function initLandingMotion() {
   try {
     observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        if (entry.target === hero) {
-          heroTargets.forEach(show);
-          observer.unobserve(hero);
-        } else show(entry.target);
+        // Reveal after enough of a section enters; reset only once it is
+        // entirely outside, so small movements near an edge do not flicker.
+        const action = !entry.isIntersecting ? reset : entry.intersectionRatio >= .12 ? show : null;
+        if (!action) continue;
+        if (entry.target === hero) heroTargets.forEach(action);
+        else action(entry.target);
       }
-    }, { threshold: .1, rootMargin: "0px 0px -16px 0px" });
+    }, { threshold: [0, .12] });
     targets.forEach((target) => {
       target.style.setProperty("--landing-delay", `${Number(target.dataset.landingDelay) || 0}ms`);
       target.style.setProperty("--landing-duration", `${Number(target.dataset.landingDuration) || 600}ms`);
