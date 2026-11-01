@@ -450,13 +450,16 @@ function metaHtml() {
 }
 
 // Reveal new replies at a steady reading pace even when mock chunks arrive at
-// once. Network timing and saved conversation history are not delayed.
-function createReplyRenderer(body, bubble) {
+// once. Count network time toward the brief preparation indicator; saved
+// conversation history is not delayed or animated again.
+function createReplyRenderer(body, bubble, preparation = null) {
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const charactersPerSecond = 55;
+  let preparationUntil = preparation ? performance.now() + 650 : 0;
   let characters = [], visible = 0, frame = 0, previousTime = 0, characterCredit = 0, finished = null;
 
   function render() {
+    if (visible > 0) { preparation?.remove(); preparationUntil = 0; }
     body.innerHTML = renderMd(characters.slice(0, visible).join(""));
     bubble.scrollIntoView({ behavior: "auto", block: "end" });
   }
@@ -478,6 +481,7 @@ function createReplyRenderer(body, bubble) {
   function tick(now) {
     frame = 0;
     if (motion.matches || document.hidden) { flush(); return; }
+    if (now < preparationUntil) { frame = requestAnimationFrame(tick); return; }
     const elapsed = previousTime ? Math.min(now - previousTime, 100) : 0;
     previousTime = now;
     const remaining = characters.length - visible;
@@ -531,13 +535,18 @@ async function streamChat(message, bubble) {
   const status = document.createElement("div");
   status.className = "status-line";
   status.setAttribute("aria-hidden", "true");
-  status.textContent = "답을 준비하고 있어요";
+  const statusText = document.createElement("span");
+  statusText.textContent = "답변을 준비하고 있어요";
+  const dots = document.createElement("span");
+  dots.className = "reply-dots";
+  dots.innerHTML = "<span></span><span></span><span></span>";
+  status.append(statusText, dots);
   const body = document.createElement("div");
   body.className = "body";
   // Announce the completed answer once instead of every animated fragment.
   bubble.setAttribute("aria-busy", "true");
   bubble.replaceChildren(status, body);
-  const renderer = createReplyRenderer(body, bubble);
+  const renderer = createReplyRenderer(body, bubble, status);
   let completed = null;
 
   try {
@@ -567,11 +576,11 @@ async function streamChat(message, bubble) {
         if (!raw.startsWith("data: ")) continue;
         const ev = JSON.parse(raw.slice(6));
         if (ev.type === "status") {
-          status.textContent = ev.text;
+          statusText.textContent = ev.text;
           $("#coach-status").textContent = ev.text;
         }
         else if (ev.type === "notice") toast(ev.text);
-        else if (ev.type === "delta") { status.remove(); text += ev.text; renderer.write(text); }
+        else if (ev.type === "delta") { text += ev.text; renderer.write(text); }
         // Safety corrections and errors replace pending text immediately.
         else if (ev.type === "replace") { status.remove(); text = ev.text; renderer.write(text, true); }
         else if (ev.type === "error") {
@@ -579,16 +588,18 @@ async function streamChat(message, bubble) {
           text = (text ? `${text}\n\n` : "") + ev.text;
           renderer.write(text, true);
         }
-        else if (ev.type === "done") { status.remove(); completed = ev; }
+        else if (ev.type === "done") { completed = ev; }
       }
     }
     await renderer.finish();
+    status.remove();
     if (completed) {
       bubble.dataset.messageId = completed.message_id;
       bubble.insertAdjacentHTML("beforeend", sourcesHtml(completed.sources) + metaHtml());
       bubble.scrollIntoView({ behavior: "auto", block: "end" });
     }
   } finally {
+    status.remove();
     renderer.dispose();
     bubble.setAttribute("aria-busy", "false");
   }
