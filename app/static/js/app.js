@@ -430,66 +430,148 @@ function metaHtml() {
     `<button class="fb-btn" type="button" data-rating="-1" aria-label="아쉬워요" title="아쉬워요">${THUMB_DOWN}</button></div>`;
 }
 
+// Mock responses may arrive together. Reveal them over a few frames without
+// delaying the request or replaying saved conversation history.
+function createReplyRenderer(body, bubble) {
+  const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let characters = [], visible = 0, frame = 0, previousTime = 0, finished = null;
+
+  function render() {
+    body.innerHTML = renderMd(characters.slice(0, visible).join(""));
+    bubble.scrollIntoView({ behavior: "auto", block: "end" });
+  }
+
+  function settle() {
+    if (finished) { finished(); finished = null; }
+  }
+
+  function flush() {
+    cancelAnimationFrame(frame);
+    frame = 0;
+    previousTime = 0;
+    visible = characters.length;
+    render();
+    settle();
+  }
+
+  function tick(now) {
+    frame = 0;
+    if (motion.matches || document.hidden) { flush(); return; }
+    const elapsed = previousTime ? Math.min(now - previousTime, 48) : 16;
+    previousTime = now;
+    const remaining = characters.length - visible;
+    visible += Math.min(remaining, Math.max(1, Math.ceil(remaining * (1 - Math.exp(-elapsed / 85)))));
+    render();
+    if (visible < characters.length) frame = requestAnimationFrame(tick);
+    else { previousTime = 0; settle(); }
+  }
+
+  const onMotionChange = () => { if (motion.matches) flush(); };
+  const onVisibilityChange = () => { if (document.hidden) flush(); };
+  motion.addEventListener("change", onMotionChange);
+  document.addEventListener("visibilitychange", onVisibilityChange);
+
+  return {
+    write(text, immediate = false) {
+      characters = Array.from(text);
+      visible = Math.min(visible, characters.length);
+      if (immediate || motion.matches || document.hidden) flush();
+      else if (!frame) frame = requestAnimationFrame(tick);
+    },
+    finish() {
+      if (motion.matches || document.hidden) flush();
+      return visible === characters.length ? Promise.resolve() : new Promise((resolve) => { finished = resolve; });
+    },
+    dispose() {
+      cancelAnimationFrame(frame);
+      motion.removeEventListener("change", onMotionChange);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      settle();
+    },
+  };
+}
+
 function addMessage(chat, role, html) {
   const div = document.createElement("div");
-  div.className = `msg ${role}`;
+  div.className = `msg ${role} is-new`;
   div.innerHTML = html;
   chat.appendChild(div);
-  div.scrollIntoView({ behavior: "smooth", block: "end" });
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  div.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
   return div;
 }
 
 async function streamChat(message, bubble) {
   const status = document.createElement("div");
   status.className = "status-line";
+  status.setAttribute("aria-hidden", "true");
   status.textContent = "답을 준비하고 있어요";
   const body = document.createElement("div");
   body.className = "body";
+  // Announce the completed answer once instead of every animated fragment.
+  bubble.setAttribute("aria-busy", "true");
   bubble.replaceChildren(status, body);
+  const renderer = createReplyRenderer(body, bubble);
+  let completed = null;
 
-  const res = await fetch("/api/coach/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
-    credentials: "same-origin",
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    status.remove();
-    body.innerHTML = renderMd(data.detail || "답변을 받지 못했어요.");
-    return;
-  }
+  try {
+    const res = await fetch("/api/coach/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+      credentials: "same-origin",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      status.remove();
+      renderer.write(data.detail || "답변을 받지 못했어요.", true);
+      return;
+    }
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "", text = "";
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const events = buffer.split("\n\n");
-    buffer = events.pop();
-    for (const raw of events) {
-      if (!raw.startsWith("data: ")) continue;
-      const ev = JSON.parse(raw.slice(6));
-      if (ev.type === "status") status.textContent = ev.text;
-      else if (ev.type === "notice") toast(ev.text);
-      else if (ev.type === "delta") { status.remove(); text += ev.text; body.innerHTML = renderMd(text); }
-      else if (ev.type === "replace") { text = ev.text; body.innerHTML = renderMd(text); }
-      else if (ev.type === "error") { status.remove(); body.innerHTML = renderMd((text ? `${text}\n\n` : "") + ev.text); }
-      else if (ev.type === "done") {
-        status.remove();
-        bubble.dataset.messageId = ev.message_id;
-        bubble.insertAdjacentHTML("beforeend", sourcesHtml(ev.sources) + metaHtml());
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "", text = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split("\n\n");
+      buffer = events.pop();
+      for (const raw of events) {
+        if (!raw.startsWith("data: ")) continue;
+        const ev = JSON.parse(raw.slice(6));
+        if (ev.type === "status") {
+          status.textContent = ev.text;
+          $("#coach-status").textContent = ev.text;
+        }
+        else if (ev.type === "notice") toast(ev.text);
+        else if (ev.type === "delta") { status.remove(); text += ev.text; renderer.write(text); }
+        // Safety corrections and errors replace pending text immediately.
+        else if (ev.type === "replace") { status.remove(); text = ev.text; renderer.write(text, true); }
+        else if (ev.type === "error") {
+          status.remove();
+          text = (text ? `${text}\n\n` : "") + ev.text;
+          renderer.write(text, true);
+        }
+        else if (ev.type === "done") { status.remove(); completed = ev; }
       }
     }
-    bubble.scrollIntoView({ block: "end" });
+    await renderer.finish();
+    if (completed) {
+      bubble.dataset.messageId = completed.message_id;
+      bubble.insertAdjacentHTML("beforeend", sourcesHtml(completed.sources) + metaHtml());
+      bubble.scrollIntoView({ behavior: "auto", block: "end" });
+    }
+  } finally {
+    renderer.dispose();
+    bubble.setAttribute("aria-busy", "false");
   }
 }
 
 function initCoach() {
   const chat = $("#chat"), form = $("#chat-form"), input = $("#chat-input"), sendBtn = $(".send-btn", form);
   const dialog = $("#feedback-dialog");
+  const coachStatus = $("#coach-status");
   let busy = false;
 
   const autosize = () => { input.style.height = "auto"; input.style.height = `${Math.min(input.scrollHeight, 160)}px`; };
@@ -498,14 +580,18 @@ function initCoach() {
     if (busy || !text) return;
     busy = true;
     sendBtn.disabled = true;
+    coachStatus.textContent = "코치가 답변을 준비하고 있어요";
     $("#suggestions")?.remove();
     addMessage(chat, "user", escapeHtml(text));
     const bubble = addMessage(chat, "bot", "");
     try { await streamChat(text, bubble); }
-    catch { bubble.innerHTML = renderMd("연결이 끊겼어요. 다시 시도해 주세요."); }
-    busy = false;
-    sendBtn.disabled = false;
-    input.focus();
+    catch { bubble.innerHTML = `<div class="body">${renderMd("연결이 끊겼어요. 다시 시도해 주세요.")}</div>`; }
+    finally {
+      busy = false;
+      sendBtn.disabled = false;
+      coachStatus.textContent = "";
+      input.focus();
+    }
   }
 
   form.addEventListener("submit", (ev) => {

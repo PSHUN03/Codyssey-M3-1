@@ -461,6 +461,13 @@ body.no-nav .toast { bottom: 24px; }
 .msg.bot { align-self: flex-start; padding: 16px 18px; border-radius: 20px 20px 20px 6px; background: var(--surface); color: var(--ink); }
 .msg .body { line-height: 1.7; }
 .msg .body strong { font-weight: 800; }
+@keyframes message-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .msg.is-new { animation: message-enter 260ms cubic-bezier(.2, .7, .3, 1); }
+}
 .msg .status-line { font-size: 14px; color: var(--mute); }
 .msg .status-line::after { content: ""; animation: dots 1.2s steps(4, end) infinite; }
 @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
