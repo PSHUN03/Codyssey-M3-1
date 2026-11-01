@@ -135,7 +135,26 @@ function initLanding() {
   const result = $("#calc-result"), status = $("#calc-status");
   const applyButton = $("#calc-apply"), resultLabel = $(".calc-label", result), card = form.closest(".calc");
   const kinds = { fixed: "k-fixed", living: "k-living", saving: "k-saving" };
+  const resultMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let controller = null, hasResult = false, appliedKey = "", pendingKey = "";
+  let resultAnimation = null;
+
+  function stopResultMotion() {
+    resultAnimation?.cancel();
+    resultAnimation = null;
+  }
+
+  function revealResult() {
+    stopResultMotion();
+    if (resultMotion.matches || typeof result.animate !== "function") return;
+    resultAnimation = result.animate([
+      { opacity: .35, transform: "translateY(8px)" },
+      { opacity: 1, transform: "translateY(0)" },
+    ], { duration: 420, easing: "cubic-bezier(.2, .7, .3, 1)" });
+  }
+
+  resultMotion.addEventListener("change", stopResultMotion);
+  window.addEventListener("pagehide", stopResultMotion);
 
   const read = (name) => digits(form.elements[name].value);
   const readValues = () => {
@@ -161,6 +180,7 @@ function initLanding() {
   }
 
   function markDirty() {
+    stopResultMotion();
     syncLiving();
     settleMotion();
     const key = JSON.stringify(readValues());
@@ -193,6 +213,7 @@ function initLanding() {
   }
 
   async function update(initial = false) {
+    stopResultMotion();
     controller?.abort();
     controller = null;
     pendingKey = "";
@@ -222,6 +243,7 @@ function initLanding() {
       });
       if (controller !== request || request.signal.aborted) return;
       render(d);
+      if (!initial) revealResult();
       appliedKey = requestKey;
       status.textContent = initial ? "값을 바꾸고 적용하기를 눌러 보세요." : "입력한 값으로 계산했어요.";
     } catch (e) {
