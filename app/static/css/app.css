@@ -556,8 +556,15 @@ body.no-nav .toast { bottom: 24px; }
   background: transparent; color: var(--ink); font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer;
 }
 .suggestion:hover { background: var(--surface); }
-.chat-form { display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 18px; border: 1px solid var(--control-border); border-radius: var(--r-xl); background: var(--surface); }
-.chat-form:focus-within { box-shadow: 0 0 0 2px var(--ink); }
+.chat-form {
+  display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 18px;
+  border: 1px solid #e5dcfa; border-radius: var(--r-xl); background: var(--surface);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.chat-form:focus-within {
+  border-color: #a77bfa;
+  box-shadow: 0 0 0 2px rgba(167, 123, 250, .24), 0 0 18px rgba(176, 137, 255, .24);
+}
 .chat-form textarea { min-height: 44px; max-height: 160px; padding: 11px 0; border: 0; border-radius: 0; resize: none; background: transparent; }
 .chat-form textarea:focus { box-shadow: none; }
 .send-btn {
