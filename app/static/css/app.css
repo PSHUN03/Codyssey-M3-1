@@ -755,8 +755,10 @@ body.no-nav .toast { bottom: 24px; }
 
 .faq-grid { display: grid; gap: 32px; }
 @media (min-width: 960px) { .faq-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 64px; align-items: start; } .faq-grid .faq { margin-top: 0; } }
+.faq-wordmark { margin-top: 20px; font-family: var(--font-display); font-size: clamp(72px, 9vw, 132px); font-weight: 900; line-height: 1; letter-spacing: -.065em; color: var(--lime); }
 .faq { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
-.faq details { border-radius: var(--r-xl); background: var(--surface); }
+.faq details { border: 1px solid #e5dcfa; border-radius: var(--r-xl); background: var(--surface); transition: border-color .2s ease, box-shadow .2s ease; }
+.faq details:is(:hover, :focus-within, [open]) { border-color: #b497ef; box-shadow: 0 0 0 2px rgba(167, 123, 250, .12), 0 8px 22px rgba(67, 43, 145, .06); }
 .faq summary {
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
   padding: 20px 24px; list-style: none; cursor: pointer;
@@ -766,11 +768,24 @@ body.no-nav .toast { bottom: 24px; }
 .faq summary::after { content: "+"; flex: none; font-size: 24px; font-weight: 500; line-height: 1; }
 .faq details[open] summary::after { content: "\2212"; }
 .faq details p { padding: 0 24px 22px; line-height: 1.75; }
+@keyframes faq-answer-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .faq details[open] p { animation: faq-answer-in 650ms cubic-bezier(.22, .61, .36, 1) both; }
+}
 
 .band-cta { padding: 64px 0; background: var(--lime); }
 .band-cta h2 { font-family: var(--font-display); font-weight: 900; font-size: clamp(28px, 4vw, 44px); line-height: 1.2; letter-spacing: -0.03em; color: #fff; }
 .cta-row { display: flex; flex-direction: column; align-items: flex-start; gap: 28px; }
 @media (min-width: 900px) { .cta-row { flex-direction: row; align-items: center; justify-content: space-between; } }
+.band-cta .btn-dark { border: 1px solid rgba(255, 255, 255, .24); transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.band-cta .btn-dark:is(:hover, :focus-visible) { background: #342359; box-shadow: 0 10px 26px rgba(24, 14, 58, .3), 0 0 0 3px rgba(255, 255, 255, .2); }
+@media (prefers-reduced-motion: no-preference) {
+  .band-cta .btn-dark:is(:hover, :focus-visible) { transform: translateY(-3px) scale(1.035); }
+  .band-cta .btn-dark:active { transform: scale(.98); }
+}
 
 /* ---------------------------------------------------------------- 약관·오류 */
 .legal { max-width: 760px; margin: 8px auto 0; padding: 32px 24px; border-radius: var(--r-xl); background: var(--surface); }
