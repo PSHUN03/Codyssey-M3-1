@@ -66,6 +66,60 @@ document.addEventListener("input", (ev) => {
   }
 });
 
+/* ------------------------------------------------------------ 랜딩: 한 번씩 순서대로 등장 */
+function initLandingMotion() {
+  const root = document.body;
+  const targets = $$("[data-landing-reveal]");
+  const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  if (!targets.length || motion.matches || !("IntersectionObserver" in window)) return;
+  const hero = $(".hero-shell");
+  const heroTargets = new Set(hero ? $$("[data-landing-reveal]", hero) : []);
+  let observer;
+
+  const show = (target) => {
+    target.classList.add("is-revealed");
+    observer.unobserve(target);
+  };
+  const revealFocus = (event) => {
+    let target = event.target.closest("[data-landing-reveal]");
+    while (target) {
+      target.setAttribute("data-landing-instant", "");
+      show(target);
+      target = target.parentElement?.closest("[data-landing-reveal]");
+    }
+  };
+  const stop = () => {
+    root.classList.remove("landing-motion");
+    observer?.disconnect();
+    root.removeEventListener("focusin", revealFocus);
+    motion.removeEventListener("change", onMotionChange);
+    window.removeEventListener("pagehide", stop);
+  };
+  const onMotionChange = () => { if (motion.matches) stop(); };
+
+  try {
+    observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        if (entry.target === hero) {
+          heroTargets.forEach(show);
+          observer.unobserve(hero);
+        } else show(entry.target);
+      }
+    }, { threshold: .1, rootMargin: "0px 0px -16px 0px" });
+    targets.forEach((target) => {
+      target.style.setProperty("--landing-delay", `${Number(target.dataset.landingDelay) || 0}ms`);
+      target.style.setProperty("--landing-duration", `${Number(target.dataset.landingDuration) || 600}ms`);
+      if (!heroTargets.has(target)) observer.observe(target);
+    });
+    if (hero) observer.observe(hero);
+    root.addEventListener("focusin", revealFocus);
+    motion.addEventListener("change", onMotionChange);
+    window.addEventListener("pagehide", stop);
+    root.classList.add("landing-motion");
+  } catch { stop(); } // Keep the page readable if motion support is unavailable.
+}
+
 /* ------------------------------------------------------------ 랜딩: 월급 계산기 */
 function initLanding() {
   const form = $("#calc-form");
@@ -816,7 +870,7 @@ function initCoachShortcut() {
 
 initCoachShortcut();
 const page = document.body.dataset.page;
-if (page === "landing") initLanding();
+if (page === "landing") { initLandingMotion(); initLanding(); }
 if (page === "onboarding") initOnboarding();
 if (page === "coach") initCoach();
 if (page === "plan") initPlan();

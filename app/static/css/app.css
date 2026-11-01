@@ -647,6 +647,25 @@ body.no-nav .toast { bottom: 24px; }
 .ob-foot { margin-top: 16px; font-size: 14px; color: var(--body); text-align: center; }
 
 /* ---------------------------------------------------------------- 랜딩 */
+.hero-title-line { display: block; }
+@keyframes landing-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes landing-bar-grow {
+  from { opacity: 0; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  body[data-page="landing"] #main { animation: none; }
+  .landing-motion [data-landing-reveal] { opacity: 0; }
+  .landing-motion [data-landing-reveal].is-revealed {
+    animation: landing-rise var(--landing-duration, 600ms) cubic-bezier(.2, .7, .3, 1) var(--landing-delay, 0ms) both;
+  }
+  .landing-motion [data-landing-reveal="bar"] { transform-origin: center bottom; }
+  .landing-motion [data-landing-reveal="bar"].is-revealed { animation-name: landing-bar-grow; }
+  .landing-motion [data-landing-reveal][data-landing-instant] { opacity: 1; transform: none; animation: none; }
+}
  @media (max-width: 599px) {
    .hero-copy { max-width: 440px; margin: 0 auto; padding: 28px 24px; border: 1px solid var(--hairline); border-radius: 32px; background: var(--surface); }
    .hero-copy .display { font-size: clamp(36px, 10vw, 46px); }
