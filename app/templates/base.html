@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png?v={{ asset_version }}">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-fe03-coach-layout-v4">
+  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-fe03-final-ui-v7">
 </head>
 {% set nav_items = [
   ("/home", "홈", "home"),
@@ -54,6 +54,7 @@
     {% block content %}{% endblock %}
   </main>
   {% endblock %}
+  <p id="page-feedback" class="page-feedback" role="status" aria-live="polite" hidden></p>
 
   <footer class="site-footer">
     <div class="wrap">
@@ -98,6 +99,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   {% block dialogs %}{% endblock %}
-  <script src="/static/js/app.js?v={{ asset_version }}-fe03-calculator-result-v4" defer></script>
+  <script src="/static/js/app.js?v={{ asset_version }}-fe03-final-ui-v7" defer></script>
 </body>
 </html>

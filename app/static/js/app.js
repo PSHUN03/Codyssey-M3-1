@@ -13,6 +13,101 @@ function toast(message) {
   toast.timer = setTimeout(() => el.classList.remove("show"), 2600);
 }
 
+function setFeedback(element, message, state = "") {
+  if (!element) return;
+  element.hidden = !message;
+  element.classList.toggle("is-error", state === "error");
+  element.classList.toggle("is-success", state === "success");
+  element.setAttribute("role", state === "error" ? "alert" : "status");
+  element.textContent = message;
+}
+
+function formFeedback(form, message, state = "") {
+  let output = form.dataset.feedbackTarget ? document.getElementById(form.dataset.feedbackTarget) : $(".form-status", form);
+  if (!output) {
+    output = document.createElement("p");
+    output.className = "field-help form-status";
+    form.append(output);
+  }
+  setFeedback(output, message, state);
+}
+
+function initPageFeedback() {
+  let fieldId = 0, navigating = false;
+  const pendingForms = new Map();
+  const fieldError = (control, message) => {
+    const field = control.closest(".field");
+    if (!field) return;
+    if (!control.id) control.id = `feedback-field-${++fieldId}`;
+    const label = $(".field-label", field);
+    if (label) {
+      if (!label.id) label.id = `${control.id}-label`;
+      control.setAttribute("aria-labelledby", label.id);
+    }
+    const id = `${control.id}-error`;
+    let error = document.getElementById(id);
+    if (!error) {
+      error = document.createElement("span");
+      error.id = id;
+      error.className = "field-error";
+      field.append(error);
+    }
+    error.textContent = message;
+    const describedBy = new Set((control.getAttribute("aria-describedby") || "").split(" ").filter(Boolean));
+    if (message) { control.setAttribute("aria-invalid", "true"); describedBy.add(id); }
+    else { control.removeAttribute("aria-invalid"); describedBy.delete(id); }
+    if (describedBy.size) control.setAttribute("aria-describedby", [...describedBy].join(" "));
+    else control.removeAttribute("aria-describedby");
+  };
+  document.addEventListener("invalid", (event) => {
+    const control = event.target;
+    if (!control.form) return;
+    const label = $(".field-label", control.closest(".field") || control.form)?.textContent || control.labels?.[0]?.textContent || "필수 항목";
+    const message = control.validity.valueMissing
+      ? control.type === "checkbox" ? "필수 동의를 확인해 주세요." : `${label.trim()} 항목을 입력해 주세요.`
+      : control.type === "email" ? "이메일 주소 형식을 확인해 주세요."
+        : control.title || "입력 형식과 범위를 확인해 주세요.";
+    fieldError(control, message);
+    formFeedback(control.form, message, "error");
+  }, true);
+  document.addEventListener("input", (event) => {
+    const control = event.target;
+    if (control.getAttribute?.("aria-invalid") === "true" && control.validity?.valid) fieldError(control, "");
+  });
+  $$("form[method='post']").forEach((form) => form.addEventListener("submit", (event) => {
+    if (event.defaultPrevented) return;
+    if (pendingForms.has(form)) { event.preventDefault(); return; }
+    const button = event.submitter || $("button[type='submit']", form);
+    pendingForms.set(form, { button, label: button?.textContent });
+    if (button) { button.disabled = true; button.textContent = "처리하고 있어요…"; }
+    form.setAttribute("aria-busy", "true");
+    formFeedback(form, "요청을 처리하고 있어요. 잠시 기다려 주세요.");
+  }));
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button > 0) return;
+    const link = event.target.closest("a[href]");
+    if (!link || link.target || link.hasAttribute("download")) return;
+    const url = new URL(link.href, location.href);
+    if (url.origin === location.origin && url.pathname + url.search !== location.pathname + location.search) {
+      navigating = true;
+      setFeedback($("#page-feedback"), "화면을 불러오고 있어요.");
+    }
+  });
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+    if (navigating) setFeedback($("#page-feedback"), "");
+    navigating = false;
+    for (const [form, { button, label }] of pendingForms) {
+      if (button) { button.disabled = false; button.textContent = label; }
+      form.setAttribute("aria-busy", "false");
+      formFeedback(form, "다시 입력하거나 제출할 수 있어요.");
+    }
+    pendingForms.clear();
+  });
+  window.addEventListener("offline", () => setFeedback($("#page-feedback"), "네트워크 연결이 끊겼어요. 연결을 확인한 뒤 다시 시도해 주세요.", "error"));
+  window.addEventListener("online", () => setFeedback($("#page-feedback"), "네트워크가 다시 연결됐어요. 작업을 다시 시도할 수 있어요."));
+}
+
 async function api(path, { method = "GET", body, signal } = {}) {
   const res = await fetch(path, {
     method,
@@ -863,10 +958,155 @@ async function regenerate(button) {
 }
 
 /* ------------------------------------------------------------ 내 정보 */
+function initProfileSelects(form) {
+  if (!form) return;
+  let closeOpen = () => {};
+  $$("select[data-profile-select]", form).forEach((select) => {
+    const label = document.querySelector(`label[for="${select.id}"]`);
+    if (!label) return; // Leave the native control usable if its label is missing.
+    const choices = Array.from(select.options);
+    const enabled = choices.map((option, index) => option.disabled ? -1 : index).filter((index) => index >= 0);
+    if (!enabled.length) return;
+    const wrapper = document.createElement("div"), trigger = document.createElement("button");
+    const value = document.createElement("span"), menu = document.createElement("div");
+    wrapper.className = "profile-select";
+    trigger.className = "profile-select-trigger";
+    trigger.type = "button";
+    trigger.id = `${select.id}-trigger`;
+    trigger.disabled = select.disabled;
+    trigger.setAttribute("role", "combobox");
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    label.id = `${select.id}-label`;
+    value.id = `${select.id}-value`;
+    trigger.setAttribute("aria-labelledby", `${label.id} ${value.id}`);
+    menu.id = `${select.id}-menu`;
+    menu.className = "profile-select-menu";
+    menu.hidden = true;
+    menu.setAttribute("role", "listbox");
+    menu.setAttribute("aria-labelledby", label.id);
+    trigger.setAttribute("aria-controls", menu.id);
+    let active = select.selectedIndex, query = "", typedAt = 0;
+
+    const items = choices.map((option, index) => {
+      const item = document.createElement("div"), text = document.createElement("span"), check = document.createElement("span");
+      item.className = "profile-select-option";
+      item.id = `${select.id}-option-${index}`;
+      item.setAttribute("role", "option");
+      item.setAttribute("aria-disabled", String(option.disabled));
+      text.textContent = option.textContent;
+      check.className = "profile-select-check";
+      check.textContent = "✓";
+      check.setAttribute("aria-hidden", "true");
+      item.append(text, check);
+      item.addEventListener("click", () => choose(index));
+      menu.append(item);
+      return item;
+    });
+
+    function sync() {
+      value.textContent = choices[select.selectedIndex]?.textContent || "선택";
+      items.forEach((item, index) => item.setAttribute("aria-selected", String(index === select.selectedIndex)));
+    }
+    function close() {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.removeAttribute("aria-activedescendant");
+      wrapper.classList.remove("is-open", "is-upward");
+      query = "";
+    }
+    function highlight(index) {
+      active = index;
+      items.forEach((item, i) => item.classList.toggle("is-active", i === index));
+      trigger.setAttribute("aria-activedescendant", items[index].id);
+      const top = items[index].offsetTop, bottom = top + items[index].offsetHeight;
+      if (top < menu.scrollTop) menu.scrollTop = top;
+      else if (bottom > menu.scrollTop + menu.clientHeight) menu.scrollTop = bottom - menu.clientHeight;
+    }
+    function open() {
+      if (trigger.disabled) return;
+      closeOpen();
+      closeOpen = close;
+      menu.hidden = false;
+      wrapper.classList.add("is-open");
+      trigger.setAttribute("aria-expanded", "true");
+      const rect = trigger.getBoundingClientRect();
+      const below = window.innerHeight - rect.bottom - (window.innerWidth < 900 ? 88 : 12);
+      const above = rect.top - 88;
+      const upward = below < Math.min(240, menu.scrollHeight) && above > below;
+      wrapper.classList.toggle("is-upward", upward);
+      menu.style.maxHeight = `${Math.max(44, Math.min(280, upward ? above : below))}px`;
+      highlight(enabled.includes(select.selectedIndex) ? select.selectedIndex : enabled[0]);
+    }
+    function choose(index) {
+      if (choices[index].disabled) return;
+      const changed = select.selectedIndex !== index;
+      select.selectedIndex = index;
+      sync();
+      close();
+      trigger.focus();
+      if (changed) {
+        select.dispatchEvent(new Event("input", { bubbles: true }));
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+    trigger.addEventListener("click", () => menu.hidden ? open() : close());
+    trigger.addEventListener("keydown", (event) => {
+      if (event.isComposing) return;
+      const key = event.key;
+      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(key)) {
+        event.preventDefault();
+        const wasOpen = !menu.hidden;
+        if (!wasOpen) open();
+        if (key === "Home") highlight(enabled[0]);
+        else if (key === "End") highlight(enabled.at(-1));
+        else if (wasOpen) {
+          const position = enabled.indexOf(active);
+          highlight(enabled[(position + (key === "ArrowDown" ? 1 : -1) + enabled.length) % enabled.length]);
+        }
+      } else if (key === "Enter" || key === " ") {
+        event.preventDefault();
+        if (menu.hidden) open();
+        else choose(active);
+      } else if (key === "Escape" && !menu.hidden) {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+      } else if (key === "Tab") close();
+      else if (key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        if (menu.hidden) open();
+        const now = Date.now();
+        query = now - typedAt < 700 ? query + key : key;
+        typedAt = now;
+        const match = enabled.find((index) => choices[index].textContent.trim().startsWith(query));
+        if (match !== undefined) highlight(match);
+      }
+    });
+    document.addEventListener("pointerdown", (event) => { if (!wrapper.contains(event.target)) close(); });
+    document.addEventListener("focusin", (event) => { if (!wrapper.contains(event.target)) close(); });
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", (event) => { if (!menu.contains(event.target)) close(); }, true);
+    select.addEventListener("change", sync);
+    form.addEventListener("reset", () => setTimeout(sync, 0));
+    trigger.append(value);
+    wrapper.append(trigger, menu);
+    select.after(wrapper);
+    sync();
+    label.htmlFor = trigger.id;
+    select.hidden = true;
+    select.tabIndex = -1;
+    select.classList.add("profile-select-native");
+  });
+}
+
 function initSettings() {
   const form = $("#profile-form");
+  initProfileSelects(form);
   form?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    if (form.getAttribute("aria-busy") === "true") return;
+    if (!form.checkValidity()) { form.reportValidity(); return; }
     const body = {};
     for (const el of form.elements) {
       if (!el.name) continue;
@@ -885,21 +1125,26 @@ function initSettings() {
     btn.disabled = true;
     btn.textContent = "저장 중이에요";
     form.setAttribute("aria-busy", "true");
-    try { await api("/api/profile", { method: "PUT", body }); toast("저장했어요. 플랜도 다시 계산했어요."); }
-    catch (e) { toast(e.message); }
+    formFeedback(form, "저장하고 플랜을 다시 계산하고 있어요.");
+    try { await api("/api/profile", { method: "PUT", body }); formFeedback(form, "저장했어요. 플랜도 다시 계산했어요.", "success"); }
+    catch (e) { formFeedback(form, `${e.message} 입력을 확인한 뒤 다시 저장해 주세요.`, "error"); }
     finally { btn.disabled = false; btn.textContent = label; form.setAttribute("aria-busy", "false"); }
   });
 
   $("#memory-list")?.addEventListener("click", async (ev) => {
     const btn = ev.target.closest('[data-action="delete-memory"]');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
     const li = btn.closest("li"), list = li.parentElement;
+    btn.disabled = true;
+    btn.textContent = "삭제 중…";
+    setFeedback($("#memory-status"), "기억을 삭제하고 있어요.");
     try {
       await api(`/api/memories/${li.dataset.memoryId}`, { method: "DELETE" });
       li.remove();
       if (!list.children.length) list.innerHTML = '<li class="empty">아직 기억한 내용이 없어요.</li>';
-      toast("지웠어요.");
-    } catch (e) { toast(e.message); }
+      setFeedback($("#memory-status"), "기억을 삭제했어요.", "success");
+    } catch (e) { setFeedback($("#memory-status"), `${e.message} 다시 삭제를 눌러 주세요.`, "error"); }
+    finally { btn.disabled = false; btn.textContent = "삭제"; }
   });
 }
 
@@ -949,6 +1194,7 @@ function initCoachShortcut() {
   launcher.setAttribute("data-motion-ready", "");
 }
 
+initPageFeedback();
 initCoachShortcut();
 const page = document.body.dataset.page;
 if (page === "landing") { initLandingMotion(); initLanding(); }
