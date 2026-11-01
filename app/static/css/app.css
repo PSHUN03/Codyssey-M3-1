@@ -688,11 +688,12 @@ body.no-nav .toast { bottom: 24px; }
 }
 @keyframes landing-feature-enter {
   0% { opacity: 0; transform: translateY(22px); }
+  12% { opacity: 1; }
   55% { opacity: 1; transform: translateY(-3px); border-color: #b69aee; box-shadow: 0 0 0 2px rgba(109, 75, 228, .12), 0 12px 28px rgba(67, 43, 145, .08); }
   100% { opacity: 1; transform: none; border-color: var(--hairline); box-shadow: none; }
 }
 @keyframes feature-content-rise {
-  from { opacity: 0; transform: translateY(7px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes feature-segment-grow {
@@ -712,7 +713,7 @@ body.no-nav .toast { bottom: 24px; }
   }
   .landing-motion [data-landing-reveal="bar"] { transform-origin: center bottom; }
   .landing-motion [data-landing-reveal="bar"].is-revealed { animation-name: landing-bar-grow; }
-  /* Start the inner sweep with the card, finishing it before the next card begins. */
+  /* Inner sweeps share the card start; the chat example takes a little longer. */
   .landing-motion [data-landing-reveal="feature"] { --feature-reveal-delay: var(--landing-delay, 0ms); }
   .landing-motion [data-landing-reveal="feature"].is-revealed { animation-name: landing-feature-enter; animation-delay: var(--feature-reveal-delay); }
   .landing-motion .feature [data-feature-step="1"] { --feature-step-delay: 35ms; }
@@ -721,6 +722,9 @@ body.no-nav .toast { bottom: 24px; }
     animation: feature-content-rise 180ms cubic-bezier(.2, .7, .3, 1) calc(var(--feature-reveal-delay) + var(--feature-step-delay, 0ms)) both;
   }
   .landing-motion .feature.is-revealed .mini-bar [data-feature-step] { animation-name: feature-segment-grow; transform-origin: left center; }
+  .landing-motion .feature.is-revealed :is(.mini-item, .mini-q, .mini-a)[data-feature-step] { animation-duration: 300ms; }
+  .landing-motion .feature.is-revealed .feature-demo-chat .mini-q[data-feature-step] { --feature-step-delay: 70ms; animation-duration: 380ms; }
+  .landing-motion .feature.is-revealed .feature-demo-chat .mini-a[data-feature-step] { --feature-step-delay: 240ms; animation-duration: 480ms; }
   .landing-motion [data-landing-reveal="stat"].is-revealed { animation-name: landing-stat-emphasis; }
   .landing-motion [data-landing-reveal][data-landing-instant] { opacity: 1; transform: none; animation: none; }
   .landing-motion .feature[data-landing-instant] [data-feature-step] { opacity: 1; transform: none; animation: none; }
