@@ -453,7 +453,7 @@ function metaHtml() {
 // once. Network timing and saved conversation history are not delayed.
 function createReplyRenderer(body, bubble) {
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const charactersPerSecond = 45;
+  const charactersPerSecond = 55;
   let characters = [], visible = 0, frame = 0, previousTime = 0, characterCredit = 0, finished = null;
 
   function render() {
