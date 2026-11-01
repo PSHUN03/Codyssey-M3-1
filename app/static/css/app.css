@@ -758,3 +758,258 @@ body.no-nav .toast { bottom: 24px; }
   .benefit-dashboard .benefit-group { padding: 16px; border-radius: 24px; }
   .plan-title-break { display: inline; }
 }
+
+
+/* ---------------------------------------------------------------- FE-03: 8장 보라색 UI 목업 반영 */
+:root {
+  --ink: #211a38;
+  --ink-deep: #4d35a6;
+  --body: #5b536d;
+  --mute: #817a91;
+  --canvas: #fbfaff;
+  --surface: #fff;
+  --hairline: #e9e3f4;
+  --lime: #6d4be4;
+  --lime-active: #5b39cf;
+  --lime-neutral: #d5c8f7;
+  --lime-pale: #f2eefb;
+  --tint: rgba(109, 75, 228, .08);
+  --tint-strong: rgba(109, 75, 228, .14);
+  --font-display: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+body { background: var(--canvas); }
+.display, .page-title, .section-title, .big-num, .calc-amount, .goal-name, .ob-title, .ob-aside h2,
+.feature h3, .band-dark h2, .band-stat, .segment-name, .sim-total { font-family: var(--font-display); }
+.display { font-size: clamp(38px, 5vw, 52px); font-weight: 800; line-height: 1.25; letter-spacing: -.045em; }
+.page-title { font-size: clamp(28px, 3.2vw, 38px); font-weight: 800; line-height: 1.3; letter-spacing: -.04em; }
+.section-title { font-size: clamp(28px, 3.6vw, 40px); font-weight: 800; }
+.big-num { font-weight: 800; letter-spacing: -.045em; }
+.card { border-radius: 24px; }
+.site-header { box-shadow: 0 1px 0 var(--hairline); }
+.brand { gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+.logo-mark { border-radius: 12px; }
+@media (min-width: 900px) {
+  .header-row { height: 72px; }
+  .top-nav { margin-left: auto; gap: 12px; }
+  .top-nav a { padding: 10px 4px; border-radius: 0; }
+  .top-nav a.is-active { color: var(--lime); box-shadow: inset 0 -2px var(--lime); }
+}
+.tab-bar { box-shadow: 0 -1px 0 var(--hairline); }
+.tab-icon { width: 52px; height: 40px; }
+.btn-primary { background: var(--lime); }
+.btn-lg { min-height: 54px; border-radius: 14px; }
+.k-fixed { background: #bdb5c9; }
+.k-living { background: #d2c3f4; }
+.k-emergency { background: #9bcdb9; }
+.k-saving { background: #6d4be4; }
+.dot { border-radius: 2px; }
+.page-head { margin: 18px 0 28px; }
+
+/* Start: editorial hero and the same floating goal illustration as the reference. */
+.hero { padding: 36px 0 64px; background: var(--canvas); }
+.hero-grid { gap: 28px; }
+.hero-copy { position: relative; z-index: 1; }
+.hero-copy .eyebrow { padding: 0; background: transparent; color: var(--lime); }
+.hero-copy .eyebrow::before { content: "•"; padding-right: 8px; }
+.hero-copy .lead { max-width: 26em; margin-top: 18px; font-size: 17px; }
+.hero-points { display: grid; gap: 10px; margin: 22px 0 0; padding: 0; list-style: none; color: var(--ink); font-size: 15px; }
+.hero-points li::before { content: "✓"; margin-right: 10px; color: var(--lime); font-weight: 800; }
+.hero-actions { margin-top: 26px; }
+.hero-actions > form .btn { width: 100%; }
+.hero-note { text-align: center; }
+.hero-art { position: relative; min-height: 330px; display: grid; place-items: center; isolation: isolate; }
+.art-orbit { position: absolute; z-index: -1; width: min(78%, 300px); aspect-ratio: 1; border-radius: 50%; background: var(--lime-pale); }
+.art-bars { width: min(70%, 250px); height: 175px; display: flex; align-items: end; gap: 8px; }
+.art-bars i { flex: 1; border-radius: 14px 14px 4px 4px; background: #d9cff5; }
+.art-bars i:nth-child(1) { height: 38%; opacity: .8; }
+.art-bars i:nth-child(2) { height: 70%; background: #bba9ee; }
+.art-bars i:nth-child(3) { height: 100%; background: #8064e5; }
+.art-note { position: absolute; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--hairline); border-radius: 16px; background: var(--surface); box-shadow: 0 10px 28px rgba(49, 33, 92, .08); color: var(--ink); }
+.art-note small, .art-note b { display: block; }
+.art-note small { color: var(--body); font-size: 12px; }
+.art-note b { font-size: 14px; }
+.art-note-small { top: 13%; left: 0; }
+.art-note-goal { right: 0; bottom: 7%; }
+.art-spark, .art-flag { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 12px; background: var(--lime-pale); color: var(--lime); font-size: 19px; }
+.quick-calculator { padding-top: 40px; }
+.quick-calculator-grid { display: grid; gap: 28px; align-items: start; }
+.quick-calculator .calc { max-width: 560px; width: 100%; justify-self: end; background: var(--surface); }
+.quick-calculator .calc-result { background: var(--lime-pale); }
+@media (min-width: 960px) {
+  .hero { padding: 54px 0 80px; }
+  .hero-grid { grid-template-columns: 1fr 1fr; gap: 48px; }
+  .hero-copy { padding: 28px 0; }
+  .hero-art { min-height: 410px; }
+  .quick-calculator-grid { grid-template-columns: .8fr 1.2fr; gap: 64px; }
+}
+
+/* Diagnose: single-question card on mobile; progress rail and panel on desktop. */
+.ob-layout { max-width: 1120px; }
+.ob-aside { background: var(--lime-pale); border-radius: 24px; }
+.ob-card { border: 0; border-radius: 24px; background: var(--surface); box-shadow: none; }
+.ob-title { font-size: clamp(27px, 3vw, 34px); font-weight: 800; }
+.ob-progress { background: #e7def9; }
+.ob-progress span { background: var(--lime); }
+.choice { border-color: var(--hairline); border-radius: 14px; }
+.choice[aria-pressed="true"] { background: var(--lime); border-color: var(--lime); }
+.big-input { border-color: var(--hairline); border-radius: 14px; }
+@media (min-width: 900px) {
+  .ob-layout { grid-template-columns: 235px minmax(0, 1fr); gap: 48px; }
+  .ob-aside { padding: 28px 24px; }
+  .ob-card { min-height: 540px; padding: 44px 48px; }
+}
+
+/* Plan: summary, goal and allocation chart follow the two-column reference. */
+.plan-dashboard { gap: 18px; }
+.plan-dashboard > .card { border-radius: 24px; border: 0; box-shadow: none; }
+.plan-savings, .plan-goal { background: var(--lime-pale); }
+.plan-savings { padding: 18px; }
+.plan-savings-total { padding: 24px; border-radius: 24px; background: var(--surface); }
+.plan-savings-total .big-num { color: var(--ink); font-size: clamp(48px, 6vw, 64px); }
+.goal-mini { border-radius: 18px; }
+.plan-breakdown { background: var(--surface); padding: clamp(22px, 3vw, 32px); }
+.plan-breakdown .stack-bar { height: 16px; gap: 3px; }
+.plan-breakdown .stack-bar span { border-radius: 0; }
+.plan-alloc li { padding: 12px 0; }
+.plan-goal { padding: clamp(22px, 3vw, 32px); }
+.plan-goal .goal-name { font-size: 25px; font-weight: 750; }
+.plan-explanation { background: var(--surface); }
+@media (min-width: 900px) {
+  .plan-dashboard {
+    grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+    grid-template-areas: "savings breakdown" "goal explanation";
+    gap: 24px;
+  }
+  .plan-savings { grid-area: savings; }
+  .plan-breakdown { grid-area: breakdown; }
+  .plan-goal { grid-area: goal; }
+  .plan-explanation { grid-area: explanation; }
+  .plan-dashboard > .span-12 { grid-column: 1 / -1; }
+}
+@media (max-width: 899px) {
+  .plan-dashboard { grid-template-columns: minmax(0, 1fr); grid-template-areas: none; }
+  .plan-dashboard > * { grid-area: auto; }
+}
+
+/* Benefits: category cards on the left and selected policy detail on desktop. */
+.benefit-notice { display: flex; gap: 10px; align-items: center; border-radius: 14px; }
+.benefit-layout { display: grid; gap: 20px; align-items: start; }
+.benefit-results { display: grid; align-content: start; gap: 12px; }
+.benefit-results-title { font-size: 16px; font-weight: 700; }
+.benefit-group { min-width: 0; }
+.group-title { margin: 0 0 12px; color: var(--ink); font-size: 15px; }
+.group-title > span:first-child { font-weight: 700; }
+.benefit-list { display: grid; gap: 10px; }
+.benefit-list > li { padding: 0; border: 0; border-radius: 18px; background: transparent; }
+.benefit-card { min-height: 136px; display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 16px 18px; border: 1px solid var(--hairline); border-radius: 18px; background: var(--surface); color: var(--ink); text-decoration: none; }
+.benefit-card:hover, .benefit-card.is-selected { border-color: var(--lime); }
+.benefit-card-top { display: flex; justify-content: space-between; align-items: center; }
+.benefit-category { display: inline-flex; align-items: center; width: fit-content; padding: 4px 9px; border-radius: 8px; background: var(--lime-pale); color: var(--lime); font-size: 12px; font-weight: 700; }
+.benefit-kind { font-size: 12px; color: var(--body); }
+.benefit-card > strong { font-size: 16px; }
+.benefit-card .row-sub { font-size: 13px; }
+.benefit-card-more { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--hairline); font-size: 13px; font-weight: 600; }
+.benefit-selected { display: grid; gap: 12px; border: 1px solid var(--hairline); border-radius: 22px; background: var(--surface); }
+.benefit-selected-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--lime-pale); color: var(--lime); }
+.benefit-selected .label { margin-top: 4px; }
+.benefit-selected h2 { font-size: 23px; font-weight: 800; }
+.benefit-selected-summary { color: var(--body); }
+.benefit-conditions { padding: 14px 16px; border-radius: 14px; background: var(--lime-pale); }
+.benefit-conditions b { color: var(--ink-deep); font-size: 13px; }
+.benefit-conditions p { margin-top: 6px; font-size: 14px; }
+.benefit-facts { display: block; }
+.benefit-facts > div { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.benefit-facts dd { max-width: 72%; font-size: 13px; }
+.benefit-example-note { color: var(--mute); font-size: 12px; }
+@media (min-width: 900px) {
+  .benefit-layout { grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 24px; }
+  .benefit-selected { position: sticky; top: calc(var(--header-h) + 20px); padding: 28px; }
+  .benefit-card { min-height: 145px; }
+}
+@media (max-width: 899px) {
+  .benefit-selected { display: none; }
+  .benefit-card { min-height: 120px; }
+}
+@media (max-width: 599px) {
+  .wrap { padding-left: 20px; padding-right: 20px; }
+  .main { padding-top: 8px; padding-bottom: 32px; }
+  .page-head { align-items: flex-start; margin: 16px 0 22px; }
+  .hero { padding: 18px 0 42px; }
+  .hero-grid { gap: 20px; }
+  .hero-copy { max-width: 420px; padding: 26px 22px; border: 1px solid var(--hairline); border-radius: 28px; background: var(--surface); }
+  .hero-copy .display { font-size: 34px; }
+  .hero-copy .lead { margin-top: 14px; font-size: 15px; }
+  .hero-points { gap: 8px; margin-top: 18px; font-size: 14px; }
+  .hero-actions { margin-top: 20px; }
+  .hero-actions > * { flex: 1 1 100%; }
+  .hero-actions .btn { width: 100%; }
+  .hero-actions form .btn { display: none; }
+  .hero-note { font-size: 12px; }
+  .hero-art { min-height: 280px; margin: 0 6px; }
+  .art-bars { width: 68%; height: 150px; }
+  .art-note-small { left: -2px; top: 12%; }
+  .art-note-goal { right: -2px; bottom: 3%; }
+  .art-note { padding: 10px 12px; }
+  .art-note b { font-size: 12px; }
+  .art-note small { font-size: 10px; }
+  .quick-calculator-grid { grid-template-columns: 1fr; }
+  .quick-calculator .calc { justify-self: stretch; }
+  .ob { margin-top: 8px; }
+  .ob-card { padding: 28px 22px; }
+  .ob-foot { font-size: 12px; }
+  .plan-savings { padding: 12px; }
+  .plan-savings-total { padding: 22px; }
+  .plan-savings-total .big-num { font-size: 52px; }
+  .plan-breakdown { padding: 22px; }
+  .plan-breakdown .alloc li { grid-template-columns: 10px minmax(0, 1fr) auto 2.6em; gap: 8px; font-size: 14px; }
+  .plan-goal { padding: 22px; }
+  .benefit-dashboard { grid-template-columns: 1fr; }
+  .benefit-group { padding: 0; background: transparent; }
+  .benefit-card { padding: 14px 16px; }
+  .benefit-notice { font-size: 13px; }
+  .tab-bar { padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .tab-bar a { font-size: 12px; }
+}
+
+
+/* Mockup composition: the mobile welcome screen keeps the illustration inside one card. */
+.hero-shell { display: grid; gap: 0 32px; }
+@media (min-width: 960px) {
+  .hero-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "copy art" "points art" "actions art" "note art";
+    align-items: center;
+  }
+  .hero-copy { grid-area: copy; }
+  .hero-art { grid-area: art; }
+  .hero-points { grid-area: points; }
+  .hero-actions { grid-area: actions; }
+  .hero-note { grid-area: note; text-align: left; }
+}
+@media (max-width: 599px) {
+  .hero-shell { max-width: 430px; margin: 0 auto; padding: 24px 22px 18px; border: 1px solid var(--hairline); border-radius: 28px; background: var(--surface); }
+  .hero-copy .display { font-size: 31px; }
+  .hero-art { min-height: 220px; }
+  .art-bars { height: 135px; }
+  .art-note-small { top: 8%; }
+  .art-note-goal { bottom: 0; }
+  .hero-points { margin-top: 12px; }
+  .hero-actions { margin-top: 20px; }
+  .hero-actions form { display: block; }
+  .hero-actions form .btn { display: inline-flex; width: 100%; min-height: 34px; padding: 6px; background: transparent; color: var(--body); font-size: 12px; }
+}
+@media (min-width: 600px) and (max-width: 959px) {
+  .hero-shell { padding: 28px; border: 1px solid var(--hairline); border-radius: 28px; background: var(--surface); }
+  .hero-art { max-width: 500px; margin: 0 auto; }
+  .hero-actions > .btn { min-width: 280px; }
+}
+
+
+/* Onboarding stage rail and full-width action match the diagnosis mockup. */
+.ob-count { min-width: max-content; font-size: 13px; }
+.ob-steps li.is-current > span { background: var(--lime); color: #fff; }
+.ob-steps li.is-current strong { color: var(--lime); }
+.ob-actions { flex-direction: column; }
+.ob-actions .btn { width: 100%; }
+.ob-aside h2 { font-size: 24px; line-height: 1.35; }
+@media (min-width: 600px) { .ob-actions { flex-direction: column; } }

@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png?v={{ asset_version }}">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}">
+  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-fe03-purple-ui">
 </head>
 {% set nav_items = [
   ("/home", "홈", "home"),
@@ -26,12 +26,20 @@
   <header class="site-header">
     <div class="wrap header-row">
       <a class="brand" href="{{ '/home' if nav else '/' }}">{{ ui.logo_mark(30) }}<span>사다리</span></a>
-      {% if nav %}
+      {% if nav or page in ("landing", "onboarding") %}
       <nav class="top-nav" aria-label="주 메뉴">
+        {% if page in ("landing", "onboarding") %}
+        {% set landing_items = [("/", "서비스 소개"), ("/onboarding", "재무 진단"), ("/plan", "내 계획"), ("/benefits", "청년 혜택")] %}
+        {% for href, label in landing_items %}
+        {% set on = (href == "/" and request.url.path == "/") or (href != "/" and request.url.path.startswith(href)) %}
+        <a href="{{ href }}" class="{{ 'is-active' if on }}" {% if on %}aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
+        {% else %}
         {% for href, label, _ in nav_items %}
         {% set on = request.url.path.startswith(href) %}
         <a href="{{ href }}" class="{{ 'is-active' if on }}" {% if on %}aria-current="page"{% endif %}>{{ label }}</a>
         {% endfor %}
+        {% endif %}
       </nav>
       {% endif %}
       <div class="header-end">
@@ -77,6 +85,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   {% block dialogs %}{% endblock %}
-  <script src="/static/js/app.js?v={{ asset_version }}" defer></script>
+  <script src="/static/js/app.js?v={{ asset_version }}-fe03-purple-ui" defer></script>
 </body>
 </html>

@@ -1,17 +1,8 @@
 {# 로고와 아이콘. 로고: 위로 갈수록 길어지는 가로대 세 칸, 맨 위 칸이 다음 목표 #}
 {% macro logo_mark(size=28, variant="ink") -%}
 <svg class="logo-mark" width="{{ size }}" height="{{ size }}" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
-  {%- if variant == "lime" %}
-  <rect width="40" height="40" rx="11" fill="#9fe870"/>
-  <rect x="10" y="26" width="10" height="5" rx="2.5" fill="#163300"/>
-  <rect x="10" y="17.5" width="15" height="5" rx="2.5" fill="#163300"/>
-  <rect x="10" y="9" width="20" height="5" rx="2.5" fill="#163300"/>
-  {%- else %}
-  <rect width="40" height="40" rx="11" fill="#0e0f0c"/>
-  <rect x="10" y="26" width="10" height="5" rx="2.5" fill="#e8ebe6"/>
-  <rect x="10" y="17.5" width="15" height="5" rx="2.5" fill="#e8ebe6"/>
-  <rect x="10" y="9" width="20" height="5" rx="2.5" fill="#9fe870"/>
-  {%- endif %}
+  <rect width="40" height="40" rx="12" fill="#6d4be4"/>
+  <path d="M12 28 28 12M18 12h10v10" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 {%- endmacro %}
 
