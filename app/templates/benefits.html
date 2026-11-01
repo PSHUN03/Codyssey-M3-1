@@ -11,25 +11,40 @@
   </div>
 </div>
 
-<p class="benefit-notice">신청 전 자격 조건을 확인해 주세요</p>
-<div class="benefit-groups benefit-dashboard">
-  {% for status, items in groups.items() if items %}
-  <section class="benefit-group">
-    <h2 class="group-title"><span class="status status-{{ {'eligible': 'ok', 'check': 'warn', 'closed': 'muted', 'ineligible': 'bad'}[status] }}">{{ labels[status] }}</span><span class="group-count">{{ items | length }}</span></h2>
+<p class="benefit-notice"><span aria-hidden="true">☷</span> 신청 전 자격 조건을 확인해 주세요</p>
+<div class="benefit-layout">
+  <div class="benefit-results">
+    <h2 class="benefit-results-title">나에게 맞는 혜택</h2>
     <ul class="benefit-list">
-      {% for m in items %}
-      <li><a class="row-link" href="/benefits/{{ m.policy_id }}">
-        <span class="row-main">
-          <strong>{{ m.name }}</strong>
-          {% if m.estimate %}<span class="row-sub">{{ m.estimate.label }}</span>{% endif %}
-          {% if m.failed %}<span class="row-sub">맞지 않는 조건: {{ m.failed | map(attribute="label") | join(", ") }}</span>{% endif %}
-        </span>
-        {{ ui.icon("chevron-right") }}
+      {% for m in benefit_matches %}{% set policy = policies_by_id.get(m.policy_id, {}) %}
+      <li><a class="benefit-card {{ 'is-selected' if selected_match and m.policy_id == selected_match.policy_id }}" href="/benefits/{{ m.policy_id }}" {% if selected_match and m.policy_id == selected_match.policy_id %}aria-current="page"{% endif %}>
+        <span class="benefit-card-top"><span class="benefit-category">{{ policy.get('category', '정책') }}</span><span class="benefit-kind">{{ m.status_label }}</span></span>
+        <strong>{{ m.name }}</strong>
+        {% if m.estimate %}<span class="row-sub">{{ m.estimate.label }}</span>{% elif m.failed %}<span class="row-sub">맞지 않는 조건: {{ m.failed | map(attribute="label") | join(", ") }}</span>{% else %}<span class="row-sub">{{ m.status_label }}</span>{% endif %}
+        <span class="benefit-card-more">자세히 보기 {{ ui.icon("chevron-right", 16) }}</span>
       </a></li>
       {% endfor %}
     </ul>
-  </section>
-  {% endfor %}
+  </div>
+  {% if selected_policy and selected_match %}
+  <aside class="benefit-selected card" aria-label="선택한 혜택 상세">
+    <div class="benefit-selected-icon" aria-hidden="true">{{ ui.icon("external", 20) }}</div>
+    <span class="benefit-category">{{ selected_policy.category }}</span>
+    <p class="label">선택한 혜택</p>
+    <h2>{{ selected_policy.name }}</h2>
+    <p class="benefit-selected-summary">{{ selected_policy.summary }}</p>
+    <div class="benefit-conditions"><b>신청 전 확인할 조건</b><p>{{ selected_policy.eligibility_text }}</p></div>
+    <dl class="facts benefit-facts">
+      <div><dt>지원 내용</dt><dd>{{ selected_policy.benefit }}</dd></div>
+      <div><dt>신청 기간</dt><dd>{{ selected_policy.apply_period }}</dd></div>
+      <div><dt>출처·기준일</dt><dd>{{ meta.as_of }} 기준 · 공식 공고 확인</dd></div>
+    </dl>
+    <p class="benefit-example-note">화면 구성을 위한 정책 정보 예시예요. 신청 전 공식 공고를 확인해 주세요.</p>
+    <a class="btn btn-secondary btn-block" href="/benefits/{{ selected_policy.id }}">혜택 자세히 보기 {{ ui.icon("arrow-right", 16) }}</a>
+  </aside>
+  {% else %}
+  <aside class="benefit-selected card"><h2>혜택을 찾고 있어요</h2><p>진단 정보를 입력하면 나에게 맞는 지원을 보여드릴게요.</p><a class="btn btn-primary" href="/onboarding">진단 시작하기</a></aside>
+  {% endif %}
 </div>
 
 <p class="source-line">{{ meta.as_of }} 기준. 신청 전에는 공식 공고를 한 번 더 확인해 주세요.</p>

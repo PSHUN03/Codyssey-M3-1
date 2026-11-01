@@ -131,6 +131,12 @@ function initOnboarding() {
   let questions = [], answers = {}, current = 0, view = "question", editing = false;
 
   const has = (key) => Object.prototype.hasOwnProperty.call(answers, key);
+  const stages = [
+    { label: "내 수입 알아보기", keys: new Set(["age", "employment_type", "company_size", "monthly_income", "annual_income"]) },
+    { label: "내 지출 살펴보기", keys: new Set(["housing_type", "rent", "fixed_costs", "has_debt", "debt_total", "debt_monthly", "savings", "saving_monthly"]) },
+    { label: "저축 목표 정하기", keys: new Set(["region", "goal"]) },
+  ];
+  const stageIndex = (q) => Math.max(0, stages.findIndex((stage) => stage.keys.has(q.key)));
   const byKey = (key) => questions.find((q) => q.key === key);
   const isVisible = (q) => !q.when || Object.entries(q.when).every(([k, vals]) => vals.includes(answers[k]));
   const visible = () => questions.filter(isVisible);
@@ -144,9 +150,19 @@ function initOnboarding() {
       back.classList.remove("is-hidden");
       return;
     }
-    const pos = list.indexOf(questions[current]);
-    bar.style.width = `${(pos / list.length) * 100}%`;
-    count.textContent = `${pos + 1} / ${list.length}`;
+    const q = questions[current];
+    const pos = list.indexOf(q);
+    const stage = stageIndex(q);
+    const inStage = list.filter((item) => stageIndex(item) === stage);
+    const stagePos = Math.max(0, inStage.indexOf(q));
+    const progress = (stage + (stagePos + 1) / Math.max(inStage.length, 1)) / stages.length;
+    bar.style.width = `${progress * 100}%`;
+    count.textContent = `${stages[stage].label} ${stage + 1}/3`;
+    document.querySelectorAll(".ob-steps li").forEach((item, index) => {
+      item.classList.toggle("is-current", index === stage);
+      if (index === stage) item.setAttribute("aria-current", "step");
+      else item.removeAttribute("aria-current");
+    });
     back.classList.toggle("is-hidden", pos === 0 && view === "question");
   }
 
