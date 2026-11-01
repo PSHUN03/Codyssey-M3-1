@@ -39,8 +39,10 @@
       <span>매달 {{ goal.monthly_planned | won }} · {{ goal.target_months }}개월 목표</span>
     </div>
     {% endif %}
-    <a class="btn btn-primary btn-block card-action" href="/benefits">청년 혜택 살펴보기 {{ ui.icon("arrow-right", 16) }}</a>
-    <a class="plan-edit-link" href="/settings">입력한 정보 수정하기</a>
+    <div class="plan-actions">
+      <a class="btn btn-primary btn-block btn-arrow" href="/benefits">청년 혜택 살펴보기 {{ ui.icon("arrow-right", 16) }}</a>
+      <a class="plan-edit-link" href="/settings">입력한 정보 수정하기</a>
+    </div>
   </section>
 
   <section class="card span-7 plan-breakdown">

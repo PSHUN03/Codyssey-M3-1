@@ -223,6 +223,8 @@ body.has-nav { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
 .btn-lg { min-height: 56px; padding: 16px 28px; font-size: 17px; }
 .btn-sm { min-height: 44px; padding: 8px 16px; font-size: 14px; }
 .btn-block { width: 100%; }
+.btn-arrow { position: relative; padding-inline: 44px; text-align: center; }
+.btn-arrow > .icon { position: absolute; inset-inline-end: 16px; }
 .icon-btn {
   display: grid; place-items: center; width: 44px; height: 44px; flex: none;
   border: 0; border-radius: 50%; background: var(--surface); color: var(--ink); cursor: pointer;
@@ -718,7 +720,7 @@ body.no-nav .toast { bottom: 24px; }
 .goal-mini { display: grid; gap: 6px; margin-top: 16px; padding: 18px; border-radius: 20px; background: var(--surface); }
 .goal-mini strong { color: var(--ink); font-size: 17px; }
 .goal-mini > span { color: var(--body); font-size: 14px; }
-.plan-edit-link { display: block; margin-top: 14px; color: var(--body); font-size: 14px; text-align: center; text-decoration: none; text-underline-offset: 3px; }
+.plan-edit-link { display: flex; align-items: center; justify-content: center; min-height: 44px; color: var(--body); font-size: 14px; text-align: center; text-decoration: none; text-underline-offset: 3px; }
 .plan-edit-link:hover { text-decoration: underline; }
 .plan-breakdown { padding: clamp(24px, 3vw, 36px); }
 .plan-breakdown-head { margin-bottom: 16px; }
@@ -995,16 +997,14 @@ body { background: var(--canvas); }
 .goal-mini-icon { grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #d9f0e7; color: #287963; }
 .goal-mini .label { margin: 0; }
 .goal-mini strong, .goal-mini > span:last-child { grid-column: 2; }
-.plan-savings .card-action { margin-top: 18px; }
+.plan-actions { display: grid; gap: 4px; margin-top: 18px; }
 @media (max-width: 899px) {
   .plan-savings { display: contents; }
   .plan-savings-total { margin: 0; }
   .plan-savings-total { order: 1; }
   .plan-breakdown { order: 2; }
   .goal-mini { order: 3; margin-top: 0; }
-  .plan-savings .card-action { margin-top: 0; }
-  .plan-savings .card-action { order: 4; }
-  .plan-edit-link { order: 5; }
+  .plan-actions { order: 4; margin-top: 0; }
   .plan-dashboard > .plan-goal { order: 6; }
   .plan-dashboard > .plan-explanation { order: 7; }
   .plan-dashboard > .segment { order: 8; }
