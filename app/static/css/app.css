@@ -959,7 +959,7 @@ body { background: var(--canvas); }
   .page-head { align-items: flex-start; margin: 16px 0 22px; }
   .hero { padding: 18px 0 42px; }
   .hero-grid { gap: 20px; }
-  .hero-copy { max-width: 420px; padding: 26px 22px; border: 1px solid var(--hairline); border-radius: 28px; background: var(--surface); }
+  .hero-copy { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
   .hero-copy .display { font-size: 34px; }
   .hero-copy .lead { margin-top: 14px; font-size: 15px; }
   .hero-points { gap: 8px; margin-top: 18px; font-size: 14px; }
