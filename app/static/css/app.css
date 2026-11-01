@@ -721,6 +721,7 @@ body.no-nav .toast { bottom: 24px; }
   .top-nav a.is-active { background: transparent; color: var(--ink-deep); }
 }
 .home-dashboard { align-items: start; }
+.home-title-topic { white-space: nowrap; }
 .home-savings { padding: clamp(24px, 4vw, 40px); border-radius: 32px; }
 .home-savings-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .home-savings .big-num { margin-top: 10px; font-size: clamp(48px, 7vw, 72px); }
@@ -957,6 +958,8 @@ body { background: var(--canvas); }
   .wrap { padding-left: 20px; padding-right: 20px; }
   .main { padding-top: 8px; padding-bottom: 32px; }
   .page-head { align-items: flex-start; margin: 16px 0 22px; }
+  body[data-page="home"] .page-head { flex-direction: column; gap: 12px; }
+  body[data-page="home"] .page-head > div { width: 100%; }
   .hero { padding: 18px 0 42px; }
   .hero-grid { gap: 20px; }
   .hero-copy { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
