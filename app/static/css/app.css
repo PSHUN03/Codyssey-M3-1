@@ -971,6 +971,46 @@ body { background: var(--canvas); }
   .tab-bar a { font-size: 12px; }
 }
 
+.benefit-mobile-item { display: none; }
+@media (max-width: 899px) {
+  .benefit-desktop-item { display: none; }
+  .benefit-mobile-item { display: block; }
+  .benefit-accordion { overflow: hidden; border: 1px solid var(--hairline); border-radius: 20px; background: var(--surface); }
+  .benefit-accordion[open] { border-color: var(--lime); }
+  .benefit-accordion summary { display: grid; gap: 8px; padding: 16px 18px; list-style: none; cursor: pointer; }
+  .benefit-accordion summary::-webkit-details-marker { display: none; }
+  .benefit-accordion summary > strong { color: var(--ink); font-size: 16px; }
+  .benefit-accordion .benefit-card-more { padding-top: 12px; }
+  .benefit-accordion[open] .benefit-card-more svg { transform: rotate(90deg); }
+  .benefit-accordion-body { display: grid; gap: 12px; padding: 0 18px 18px; color: var(--body); font-size: 14px; }
+  .benefit-accordion-eligibility { padding: 10px 12px; border-radius: 12px; background: var(--lime-pale); color: var(--ink-deep); font-weight: 700; }
+  .benefit-accordion-body .link-more { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-deep); font-weight: 600; }
+}
+
+/* Plan mockup: make the savings total and goal a pair of distinct cards. */
+.plan-savings { padding: 0; background: transparent; }
+.plan-savings-total { margin: 0 0 16px; background: var(--lime-pale); }
+.plan-savings-total .label { color: var(--body); }
+.goal-mini { grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 14px; padding: 18px; border: 1px solid var(--hairline); border-radius: 22px; }
+.goal-mini-icon { grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #d9f0e7; color: #287963; }
+.goal-mini .label { margin: 0; }
+.goal-mini strong, .goal-mini > span:last-child { grid-column: 2; }
+.plan-savings .card-action { margin-top: 18px; }
+@media (max-width: 899px) {
+  .plan-savings { display: contents; }
+  .plan-savings-total { margin: 0; }
+  .plan-savings-total { order: 1; }
+  .plan-breakdown { order: 2; }
+  .goal-mini { order: 3; margin-top: 0; }
+  .plan-savings .card-action { margin-top: 0; }
+  .plan-savings .card-action { order: 4; }
+  .plan-edit-link { order: 5; }
+  .plan-dashboard > .plan-goal { order: 6; }
+  .plan-dashboard > .plan-explanation { order: 7; }
+  .plan-dashboard > .segment { order: 8; }
+  .plan-dashboard > .card:not(.plan-savings):not(.plan-breakdown):not(.plan-goal):not(.plan-explanation):not(.segment) { order: 9; }
+}
+
 
 /* Mockup composition: the mobile welcome screen keeps the illustration inside one card. */
 .hero-shell { display: grid; gap: 0 32px; }

@@ -17,12 +17,29 @@
     <h2 class="benefit-results-title">나에게 맞는 혜택</h2>
     <ul class="benefit-list">
       {% for m in benefit_matches %}{% set policy = policies_by_id.get(m.policy_id, {}) %}
-      <li><a class="benefit-card {{ 'is-selected' if selected_match and m.policy_id == selected_match.policy_id }}" href="/benefits/{{ m.policy_id }}" {% if selected_match and m.policy_id == selected_match.policy_id %}aria-current="page"{% endif %}>
+      <li class="benefit-desktop-item"><a class="benefit-card {{ 'is-selected' if selected_match and m.policy_id == selected_match.policy_id }}" href="/benefits/{{ m.policy_id }}" {% if selected_match and m.policy_id == selected_match.policy_id %}aria-current="page"{% endif %}>
         <span class="benefit-card-top"><span class="benefit-category">{{ policy.get('category', '정책') }}</span><span class="benefit-kind">{{ m.status_label }}</span></span>
         <strong>{{ m.name }}</strong>
         {% if m.estimate %}<span class="row-sub">{{ m.estimate.label }}</span>{% elif m.failed %}<span class="row-sub">맞지 않는 조건: {{ m.failed | map(attribute="label") | join(", ") }}</span>{% else %}<span class="row-sub">{{ m.status_label }}</span>{% endif %}
         <span class="benefit-card-more">자세히 보기 {{ ui.icon("chevron-right", 16) }}</span>
       </a></li>
+      <li class="benefit-mobile-item">
+        <details class="benefit-accordion" {% if selected_match and m.policy_id == selected_match.policy_id %}open{% endif %}>
+          <summary>
+            <span class="benefit-card-top"><span class="benefit-category">{{ policy.get('category', '정책') }}</span><span class="benefit-kind">정책 예시</span></span>
+            <strong>{{ m.name }}</strong>
+            <span class="row-sub">{{ policy.get('summary', m.status_label) }}</span>
+            <span class="benefit-card-more">자세히 보기 {{ ui.icon("chevron-right", 16) }}</span>
+          </summary>
+          <div class="benefit-accordion-body">
+            <p class="benefit-accordion-eligibility">신청 전 자격 조건을 확인해 주세요</p>
+            <p>{{ policy.get('eligibility_text', '공식 공고에서 자격 조건을 확인해 주세요.') }}</p>
+            <p><b>지원 내용</b><br>{{ policy.get('benefit', '공식 공고에서 확인해 주세요.') }}</p>
+            <p><b>신청 기간</b><br>{{ policy.get('apply_period', '공식 공고에서 확인해 주세요.') }}</p>
+            <a class="link-more" href="/benefits/{{ m.policy_id }}">지원 내용과 신청 기간 보기 {{ ui.icon("arrow-right", 16) }}</a>
+          </div>
+        </details>
+      </li>
       {% endfor %}
     </ul>
   </div>

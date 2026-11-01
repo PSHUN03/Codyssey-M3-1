@@ -25,14 +25,15 @@
 {% set goal_total = plan.allocations | selectattr("key", "equalto", "goal") | sum(attribute="amount") %}
 {% set unallocated_total = plan.summary.monthly_income - (plan.allocations | sum(attribute="amount")) %}
 <div class="grid plan-dashboard">
-  <section class="card span-5 plan-savings">
+  <section class="card span-5 plan-savings" role="group" aria-label="저축 요약과 목표">
     <div class="plan-savings-total">
-      <p class="label">이번 달 저축</p>
+      <p class="label">매달 남는 돈</p>
       <p class="big-num">{{ plan.summary.total_saving | won }}</p>
       <p class="muted-line">월급 {{ plan.summary.monthly_income | won }}의 {{ (plan.summary.savings_rate * 100) | round | int }}%</p>
     </div>
     {% if goal %}
     <div class="goal-mini">
+      <span class="goal-mini-icon" aria-hidden="true">{{ ui.icon("flag", 18) }}</span>
       <p class="label">나의 저축 목표</p>
       <strong>{{ user.profile.goal_text }}</strong>
       <span>매달 {{ goal.monthly_planned | won }} · {{ goal.target_months }}개월 목표</span>
