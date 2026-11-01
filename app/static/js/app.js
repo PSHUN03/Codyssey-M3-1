@@ -845,6 +845,8 @@ function initCoach() {
 
   async function send(text) {
     if (busy || !text) return;
+    $(".coach")?.classList.remove("coach-is-empty");
+    setFeedback($("#coach-feedback"), "");
     busy = true;
     sendBtn.disabled = true;
     coachStatus.textContent = "코치가 답변을 준비하고 있어요";
@@ -852,7 +854,10 @@ function initCoach() {
     addMessage(chat, "user", escapeHtml(text));
     const bubble = addMessage(chat, "bot", "");
     try { await streamChat(text, bubble); }
-    catch { bubble.innerHTML = `<div class="body">${renderMd("연결이 끊겼어요. 다시 시도해 주세요.")}</div>`; }
+    catch {
+      bubble.innerHTML = `<div class="body">${renderMd("연결이 끊겼어요. 다시 시도해 주세요.")}</div>`;
+      setFeedback($("#coach-feedback"), "답변을 받지 못했어요. 연결을 확인한 뒤 질문을 다시 보내 주세요.", "error");
+    }
     finally {
       busy = false;
       sendBtn.disabled = false;
@@ -865,6 +870,7 @@ function initCoach() {
     ev.preventDefault();
     if (busy) return;
     const text = input.value.trim();
+    if (!text) { setFeedback($("#coach-feedback"), "질문을 입력해 주세요.", "error"); input.focus(); return; }
     input.value = "";
     autosize();
     send(text);
@@ -925,12 +931,27 @@ function initPlan() {
     ev.preventDefault();
     const product = form.elements.product.value;
     const monthly = Number(digits(form.elements.monthly_amount.value));
-    if (!monthly) { out.innerHTML = '<p class="ob-error">매달 넣을 돈을 적어 주세요.</p>'; return; }
+    if (!monthly || monthly > 1000) {
+      out.innerHTML = '<p class="ob-error" role="alert">매달 넣을 돈을 1~1,000만 원으로 적어 주세요.</p>';
+      form.elements.monthly_amount.focus();
+      return;
+    }
     const body = { monthly_amount: toWon(monthly), product };
-    if (product === "general") body.months = Number(digits(form.elements.months.value)) || 12;
+    if (product === "general") {
+      body.months = Number(digits(form.elements.months.value));
+      if (!body.months || body.months > 240) {
+        out.innerHTML = '<p class="ob-error" role="alert">기간을 1~240개월로 적어 주세요.</p>';
+        form.elements.months.focus();
+        return;
+      }
+    }
     const button = $('button[type="submit"]', form);
+    if (button.disabled) return;
+    const label = button.textContent;
     button.disabled = true;
+    button.textContent = "계산 중…";
     form.setAttribute("aria-busy", "true");
+    out.setAttribute("aria-busy", "true");
     out.innerHTML = '<p role="status">계산하고 있어요</p>';
     try {
       const d = await api("/api/goals/simulate", { method: "POST", body });
@@ -941,7 +962,7 @@ function initPlan() {
         <dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("")}</dl>
         <p class="card-foot">${renderMd(d.notes.join(" "))}</p>`;
     } catch (e) { out.innerHTML = `<p class="ob-error" role="alert">${escapeHtml(e.message)}</p>`; }
-    finally { button.disabled = false; form.setAttribute("aria-busy", "false"); }
+    finally { button.disabled = false; button.textContent = label; form.setAttribute("aria-busy", "false"); out.setAttribute("aria-busy", "false"); }
   });
   syncProduct();
 }
@@ -952,8 +973,9 @@ async function regenerate(button) {
   button.disabled = true;
   button.textContent = "계산 중이에요";
   button.setAttribute("aria-busy", "true");
+  setFeedback($("#page-feedback"), "플랜을 다시 계산하고 있어요.");
   try { await api("/api/plans/generate", { method: "POST" }); location.reload(); }
-  catch (e) { toast(e.message); }
+  catch (e) { setFeedback($("#page-feedback"), `${e.message} 다시 계산을 눌러 주세요.`, "error"); }
   finally { button.disabled = false; button.textContent = label; button.setAttribute("aria-busy", "false"); }
 }
 

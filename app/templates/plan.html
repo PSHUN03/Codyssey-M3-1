@@ -25,7 +25,7 @@
 {% set goal_total = plan.allocations | selectattr("key", "equalto", "goal") | sum(attribute="amount") %}
 {% set unallocated_total = plan.summary.monthly_income - (plan.allocations | sum(attribute="amount")) %}
 <div class="grid plan-dashboard">
-  <section class="card span-5 plan-savings" role="group" aria-label="저축 요약과 목표">
+  <section class="card plan-savings" role="group" aria-label="저축 요약과 목표">
     <div class="plan-savings-total">
       <p class="label">매달 남는 돈</p>
       <p class="big-num">{{ plan.summary.total_saving | won }}</p>
@@ -45,7 +45,7 @@
     </div>
   </section>
 
-  <section class="card span-7 plan-breakdown">
+  <section class="card plan-breakdown">
     <div class="card-head plan-breakdown-head">
       <h2 class="card-title">이번 달 월급 나누기</h2>
       <span class="card-sub">입력값 기준 · 만 원</span>
@@ -68,7 +68,7 @@
     <p class="card-foot">금액은 AI가 아니라 계산 엔진이 정해진 규칙({{ plan.rule_version }})으로 계산해요.</p>
   </section>
 
-  <section class="card span-5 plan-goal">
+  <section class="card plan-goal">
     {% if goal %}
     <p class="label">나의 저축 목표</p>
     <h2 class="goal-name">{{ user.profile.goal_text }}</h2>
@@ -96,7 +96,7 @@
     {% endif %}
   </section>
 
-  <section class="card span-7 plan-explanation">
+  <section class="card plan-explanation">
     <div class="card-head">
       <h2 class="card-title">이렇게 나눈 이유</h2>
       {% if plan.explanation_by_ai %}<span class="ai-label">AI 설명</span>{% endif %}
@@ -122,7 +122,7 @@
   </section>
   {% endif %}
 
-  <section class="card {{ 'span-7' if goal else 'span-12' }}">
+  <section class="card span-12 plan-simulator">
     <h2 class="card-title">적금으로 모으면</h2>
     <form id="simulate-form" class="sim-form" novalidate>
       <div class="seg" role="radiogroup" aria-label="상품">
@@ -142,7 +142,7 @@
       <p class="field-help" id="sim-help">연 3.5% 단리, 이자소득세 15.4%를 가정해요.</p>
       <button class="btn btn-secondary" type="submit">계산하기</button>
     </form>
-    <div id="simulate-result" class="sim-result" aria-live="polite"></div>
+    <div id="simulate-result" class="sim-result" aria-live="polite"><p class="field-help">매달 넣을 돈과 기간을 입력하고 계산하기를 눌러 주세요.</p></div>
   </section>
 
   <section class="card span-12">

@@ -3,7 +3,7 @@
 {% extends "base.html" %}
 {% block title %}코치{% endblock %}
 {% block content %}
-<div class="coach">
+<div class="coach{{ ' coach-is-empty' if not messages else '' }}">
   <div class="coach-head">
     <h1 class="page-title coach-title">
       <span class="coach-title-mascot" aria-hidden="true">{% include "_coach_mascot.html" %}</span>
@@ -15,9 +15,6 @@
 
   <p id="coach-status" class="sr-only" role="status" aria-live="polite"></p>
   <div class="chat" id="chat" role="log" aria-live="polite" aria-label="코치 대화">
-    {% if not messages %}
-    <div class="msg bot"><div class="body">{{ user.nickname }}님 플랜을 보고 답해 드려요. 월급, 저축, 청년 혜택 중 궁금한 걸 물어보세요.</div></div>
-    {% endif %}
     {% for m in messages %}
       {% if m.role == "user" %}
       <div class="msg user">{{ m.content }}</div>
@@ -45,11 +42,13 @@
       {% for s in suggestions %}<button type="button" class="suggestion">{{ s }}</button>{% endfor %}
     </div>
     {% endif %}
-    <form class="chat-form" id="chat-form" autocomplete="off">
+    <form class="chat-form" id="chat-form" autocomplete="off" data-feedback-target="coach-feedback">
       <label for="chat-input" class="sr-only">질문</label>
-      <textarea id="chat-input" rows="1" maxlength="1000" placeholder="궁금한 걸 적어 주세요" required></textarea>
+      <textarea id="chat-input" rows="2" maxlength="1000" placeholder="{{ user.nickname }}님 플랜을 보고 답해 드려요. 월급, 저축, 청년 혜택 중 궁금한 걸 물어보세요." aria-describedby="coach-input-help" required></textarea>
       <button class="send-btn" type="submit" aria-label="보내기">{{ ui.icon("arrow-up") }}</button>
     </form>
+    <p id="coach-feedback" class="field-help form-status" role="status"></p>
+    <p id="coach-input-help" class="sr-only">{{ user.nickname }}님 플랜을 보고 답해 드려요. 월급, 저축, 청년 혜택 중 궁금한 걸 물어보세요. Enter로 보내고 Shift+Enter로 줄을 바꿔요.</p>
   </div>
 </div>
 {% endblock %}
