@@ -2,7 +2,7 @@
 
 첫 월급을 받은 사회초년생(만 19~34세, 취업 0~3년 차)이 월급을 어떻게 나눌지, 받을 수 있는 청년 혜택은 무엇인지 자기 숫자로 확인하고, 그 계획을 AI 코치와 함께 지켜 가도록 돕는 반응형 웹 서비스(PWA)입니다.
 
-- 배포 URL: _(배포 후 기재)_
+- - 배포 URL: https://codyssey-m3-1.onrender.com/
 - 시연 영상: _(촬영 후 기재)_
 - 발표 자료: [docs/presentation](docs/presentation)
 - 코디세이 AI 네이티브 과정 Final-Project, 도메인: 금융
@@ -170,7 +170,27 @@ docs/                  기획, 요구사항, ADR, 과제, 사용자 테스트, �
 
 ## 배포
 
-`render.yaml` Blueprint로 Render 무료 플랜에 배포합니다. 절차는 [배포 가이드](docs/05_배포가이드.md)에 있습니다.
+Render 무료 플랜으로 배포하며, GitHub의 `main` 브랜치와 연동해 자동 배포합니다.
+
+- **서비스 URL:** https://codyssey-m3-1.onrender.com/
+- **웹 서비스:** `Codyssey-M3-1`
+- **데이터베이스:** PostgreSQL
+- **데이터베이스 플랜:** Render Free
+- **데이터베이스 만료 예정일:** 2026년 12월 1일
+
+운영 환경에서는 Render의 환경변수 `DATABASE_URL`을 사용해 PostgreSQL에 연결합니다. 데이터베이스 접속 정보와 API 키는 저장소에 올리지 않습니다.
+
+### 데이터베이스 백업
+
+PostgreSQL 백업은 `pg_dump`를 사용합니다.
+
+```bash
+pg_dump "$DATABASE_URL" -Fc -f backup.dump
+```
+
+백업 파일에는 사용자 데이터가 포함될 수 있으므로 GitHub 저장소에 커밋하지 않습니다.
+
+자세한 배포 절차는 [배포 가이드](docs/05_배포가이드.md)를 참고하세요.
 
 ## 사용자 테스트 결과
 
