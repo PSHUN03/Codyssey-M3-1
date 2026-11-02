@@ -55,11 +55,12 @@
 
 {% block dialogs %}
 <dialog class="modal" id="feedback-dialog" aria-labelledby="feedback-title">
-  <form method="dialog" class="modal-body">
+  <form method="dialog" class="modal-body" novalidate>
     <h2 id="feedback-title">어떤 점이 아쉬웠나요?</h2>
-    <p>적어 주시면 답변을 고치는 데 씁니다. 비워 둬도 괜찮아요.</p>
+    <p>아쉬웠던 점을 적어 주세요. 답변을 고치는 데 쓸게요.</p>
     <label class="sr-only" for="feedback-comment">아쉬운 점</label>
-    <textarea id="feedback-comment" name="comment" rows="3" maxlength="500"></textarea>
+    <textarea id="feedback-comment" name="comment" rows="3" maxlength="500" required aria-describedby="feedback-comment-error"></textarea>
+    <p id="feedback-comment-error" class="field-help form-status" role="alert"></p>
     <div class="modal-actions">
       <button class="btn btn-ghost" value="cancel" formnovalidate>취소</button>
       <button class="btn btn-primary" value="send">보내기</button>

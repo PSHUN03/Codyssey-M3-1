@@ -863,6 +863,25 @@ function initCoach() {
   const dialog = $("#feedback-dialog");
   const coachStatus = $("#coach-status");
   let busy = false;
+  const feedbackComment = dialog && $("textarea", dialog);
+  const feedbackError = $("#feedback-comment-error");
+  if (dialog) {
+    $("form", dialog).addEventListener("submit", (event) => {
+      if (event.submitter?.value === "cancel") return;
+      if (!feedbackComment.value.trim()) {
+        event.preventDefault();
+        feedbackComment.setAttribute("aria-invalid", "true");
+        setFeedback(feedbackError, "아쉬웠던 점을 입력해 주세요.", "error");
+        feedbackComment.focus();
+      }
+    });
+    feedbackComment.addEventListener("input", () => {
+      if (feedbackComment.value.trim()) {
+        feedbackComment.removeAttribute("aria-invalid");
+        setFeedback(feedbackError, "");
+      }
+    });
+  }
 
   const autosize = () => { input.style.height = "auto"; input.style.height = `${Math.min(input.scrollHeight, 160)}px`; };
 
@@ -911,7 +930,7 @@ function initCoach() {
         body: { message_id: Number(bubble.dataset.messageId), rating: Number(btn.dataset.rating), comment },
       });
       $$(".fb-btn", bubble).forEach((b) => b.classList.toggle("on", b === btn));
-      toast("의견 고마워요. 답변을 고치는 데 쓸게요.");
+      toast("의견 고마워요!");
     } catch (e) { toast(e.message); }
   }
 
@@ -923,9 +942,11 @@ function initCoach() {
     if (Number(btn.dataset.rating) > 0 || !dialog?.showModal) { sendFeedback(bubble, btn); return; }
     const comment = $("textarea", dialog);
     comment.value = "";
+    comment.removeAttribute("aria-invalid");
+    setFeedback(feedbackError, "");
     dialog.returnValue = "";
     dialog.onclose = () => {
-      if (dialog.returnValue === "send") sendFeedback(bubble, btn, comment.value.trim() || null);
+      if (dialog.returnValue === "send" && comment.value.trim()) sendFeedback(bubble, btn, comment.value.trim());
     };
     dialog.showModal();
   });
