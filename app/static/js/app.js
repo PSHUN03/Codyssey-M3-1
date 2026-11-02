@@ -706,11 +706,16 @@ function createReplyRenderer(body, bubble, preparation = null) {
   const charactersPerSecond = 55;
   let preparationUntil = preparation ? performance.now() + 650 : 0;
   let characters = [], visible = 0, frame = 0, previousTime = 0, characterCredit = 0, finished = null;
+  const chat = bubble.parentElement;
+  let followReply = true;
+  const onUserScroll = () => { followReply = chat.scrollHeight - chat.clientHeight - chat.scrollTop < 80; };
+  chat.addEventListener("scroll", onUserScroll, { passive: true });
 
   function render() {
     if (visible > 0) { preparation?.remove(); preparationUntil = 0; }
+    const previousHeight = chat.scrollHeight;
     body.innerHTML = renderMd(characters.slice(0, visible).join(""));
-    bubble.scrollIntoView({ behavior: "auto", block: "end" });
+    if (followReply && chat.scrollHeight !== previousHeight) chat.scrollTop = chat.scrollHeight;
   }
 
   function settle() {
@@ -763,6 +768,7 @@ function createReplyRenderer(body, bubble, preparation = null) {
     },
     dispose() {
       cancelAnimationFrame(frame);
+      chat.removeEventListener("scroll", onUserScroll);
       motion.removeEventListener("change", onMotionChange);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       settle();
@@ -775,8 +781,7 @@ function addMessage(chat, role, html) {
   div.className = `msg ${role} is-new`;
   div.innerHTML = html;
   chat.appendChild(div);
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  div.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
+  chat.scrollTop = chat.scrollHeight;
   return div;
 }
 
@@ -845,7 +850,6 @@ async function streamChat(message, bubble) {
     if (completed) {
       bubble.dataset.messageId = completed.message_id;
       bubble.insertAdjacentHTML("beforeend", sourcesHtml(completed.sources) + metaHtml());
-      bubble.scrollIntoView({ behavior: "auto", block: "end" });
     }
   } finally {
     status.remove();
@@ -881,7 +885,7 @@ function initCoach() {
       busy = false;
       sendBtn.disabled = false;
       coachStatus.textContent = "";
-      input.focus();
+      input.focus({ preventScroll: true });
     }
   }
 
