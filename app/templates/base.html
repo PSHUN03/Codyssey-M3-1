@@ -43,6 +43,7 @@
       </nav>
       {% endif %}
       <div class="header-end">
+        <button class="btn btn-secondary btn-sm" type="button" id="pwa-install-button" hidden>앱 설치</button>
         {% if user and user.is_demo %}<span class="demo-tag">예시 계정</span>{% endif %}
         {% block header_end %}{% endblock %}
       </div>
@@ -98,6 +99,21 @@
   {% endif %}
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="modal" id="pwa-install-dialog" aria-labelledby="pwa-install-title">
+  <form method="dialog" class="modal-body">
+    <h2 id="pwa-install-title">홈 화면에 사다리 추가하기</h2>
+    <p>아이폰의 Safari에서 아래 순서로 추가해 주세요.</p>
+    <ol>
+      <li>Safari 메뉴에서 ‘공유’를 선택해 주세요.</li>
+      <li>‘홈 화면에 추가’를 선택해 주세요.</li>
+      <li>안내를 확인하고 ‘추가’를 눌러 주세요.</li>
+    </ol>
+    <p>추가한 사다리 아이콘을 누르면 앱처럼 열 수 있어요.</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="submit">확인</button>
+    </div>
+  </form>
+</dialog>
   {% block dialogs %}{% endblock %}
   <script src="/static/js/app.js?v={{ asset_version }}-fe03-coach-follow-v16" defer></script>
 </body>
