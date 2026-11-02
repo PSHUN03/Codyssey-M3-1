@@ -1256,8 +1256,15 @@ body { background: var(--canvas); }
 
 /* Settings: softer controls and aligned secondary actions. */
 .settings-layout > #profile-form { display: flex; flex-direction: column; }
-.settings-layout input, .settings-layout select, .settings-layout .profile-select-trigger { border-color: #9b86c3; }
-.settings-layout input:focus, .settings-layout select:focus, .settings-layout .profile-select-trigger[aria-expanded="true"] { border-color: var(--lime); }
+.settings-layout :is(input, select, textarea, .profile-select-trigger) {
+  border-color: #9b86c3;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.settings-layout :is(input, select, textarea, .profile-select-trigger):focus,
+.settings-layout .profile-select-trigger[aria-expanded="true"] {
+  border-color: var(--lime); outline: none;
+  box-shadow: 0 0 0 2px rgba(109, 75, 228, .16);
+}
 .settings-layout #profile-status { margin-top: auto; padding-top: 16px; }
 .settings-side { align-self: stretch; min-width: 0; }
 .settings-memory, .settings-consent { background: var(--lime-pale); }
