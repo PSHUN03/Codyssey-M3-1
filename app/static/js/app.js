@@ -708,14 +708,21 @@ function createReplyRenderer(body, bubble, preparation = null) {
   let characters = [], visible = 0, frame = 0, previousTime = 0, characterCredit = 0, finished = null;
   const chat = bubble.parentElement;
   let followReply = true;
-  const onUserScroll = () => { followReply = chat.scrollHeight - chat.clientHeight - chat.scrollTop < 80; };
+  let lastFollow = 0;
+  const onUserScroll = () => { if (chat.scrollHeight - chat.clientHeight - chat.scrollTop < 80) followReply = true; };
+  const pauseFollow = () => { followReply = false; };
   chat.addEventListener("scroll", onUserScroll, { passive: true });
+  chat.addEventListener("wheel", pauseFollow, { passive: true });
+  chat.addEventListener("touchmove", pauseFollow, { passive: true });
 
   function render() {
     if (visible > 0) { preparation?.remove(); preparationUntil = 0; }
     const previousHeight = chat.scrollHeight;
     body.innerHTML = renderMd(characters.slice(0, visible).join(""));
-    if (followReply && chat.scrollHeight !== previousHeight) chat.scrollTop = chat.scrollHeight;
+    if (followReply && chat.scrollHeight !== previousHeight && performance.now() - lastFollow > 150) {
+      lastFollow = performance.now();
+      chat.scrollTo({ top: chat.scrollHeight, behavior: motion.matches ? "auto" : "smooth" });
+    }
   }
 
   function settle() {
@@ -769,6 +776,8 @@ function createReplyRenderer(body, bubble, preparation = null) {
     dispose() {
       cancelAnimationFrame(frame);
       chat.removeEventListener("scroll", onUserScroll);
+      chat.removeEventListener("wheel", pauseFollow);
+      chat.removeEventListener("touchmove", pauseFollow);
       motion.removeEventListener("change", onMotionChange);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       settle();
