@@ -60,7 +60,9 @@
 
   <div class="{{ 'span-5' if profile and profile.onboarding_done else 'span-12' }} stack settings-side">
     <section class="card settings-memory">
-      <h2 class="card-title">코치가 기억하는 내용</h2>
+      <div class="card-head settings-section-head">
+        <h2 class="card-title">코치가 기억하는 내용</h2>
+      </div>
       <p class="card-sub">다음 대화에서 참고해요. 원하지 않으면 지워 주세요.</p>
       <ul class="row-list" id="memory-list">
         {% for m in memories %}
@@ -76,7 +78,7 @@
     </section>
 
     <section class="card settings-consent">
-      <div class="card-head">
+      <div class="card-head settings-section-head">
         <h2 class="card-title">동의 내역</h2>
         <a class="settings-action" href="/consent">수정</a>
       </div>
@@ -87,10 +89,12 @@
       </dl>
     </section>
 
-    <section class="card settings-account">
-      <h2 class="card-title">계정</h2>
+    <section class="card settings-account" aria-label="계정 관리">
       <div class="account-actions">
-        <form method="post" action="/logout"><button class="btn btn-secondary btn-block" type="submit">로그아웃</button></form>
+        <form method="post" action="/logout" data-feedback-target="logout-status">
+          <p id="logout-status" class="field-help form-status" role="status"></p>
+          <button class="btn btn-secondary btn-block" type="submit">로그아웃</button>
+        </form>
         <button class="btn btn-danger btn-block" type="button" data-action="delete-account">탈퇴하기</button>
       </div>
     </section>
