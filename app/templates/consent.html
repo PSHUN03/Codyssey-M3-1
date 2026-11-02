@@ -29,7 +29,7 @@
     <div class="check-list">
       {% for kind, label in required.items() %}
       <label class="check-row">
-        <input type="checkbox" name="{{ kind }}" data-consent {% if status.get(kind) %}checked{% endif %}>
+        <input type="checkbox" name="{{ kind }}" data-consent required {% if status.get(kind) %}checked{% endif %}>
         <span><span class="req">필수</span> {{ label }}</span>
       </label>
       {% endfor %}
