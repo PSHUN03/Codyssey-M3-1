@@ -62,6 +62,7 @@ function initPageFeedback() {
   document.addEventListener("invalid", (event) => {
     const control = event.target;
     if (!control.form) return;
+    event.preventDefault(); // Keep the inline error instead of a second browser popup.
     const label = $(".field-label", control.closest(".field") || control.form)?.textContent || control.labels?.[0]?.textContent || "필수 항목";
     const message = control.validity.valueMissing
       ? control.type === "checkbox" ? "필수 동의를 확인해 주세요." : `${label.trim()} 항목을 입력해 주세요.`
@@ -69,6 +70,8 @@ function initPageFeedback() {
         : control.title || "입력 형식과 범위를 확인해 주세요.";
     fieldError(control, message);
     formFeedback(control.form, message, "error");
+    const first = Array.from(control.form.elements).find((el) => el.willValidate && !el.validity.valid);
+    if (control === first) control.focus();
   }, true);
   document.addEventListener("input", (event) => {
     const control = event.target;
@@ -239,6 +242,15 @@ function initLanding() {
     resultAnimation = null;
   }
 
+  function clearResult() {
+    hasResult = false;
+    appliedKey = "";
+    result.hidden = true;
+    amountEl.textContent = "—";
+    bar.innerHTML = legend.innerHTML = "";
+    extra.textContent = "";
+  }
+
   function revealResult() {
     stopResultMotion();
     if (resultMotion.matches || typeof result.animate !== "function") return;
@@ -265,6 +277,7 @@ function initLanding() {
   function syncLiving() {
     const withParents = form.elements.living.value === "parents";
     rentField.hidden = withParents;
+    form.elements.rent.disabled = withParents;
     row.classList.toggle("is-single", withParents);
   }
 
@@ -277,6 +290,7 @@ function initLanding() {
   function markDirty() {
     stopResultMotion();
     syncLiving();
+    form.elements.monthly_income.setCustomValidity("");
     settleMotion();
     const key = JSON.stringify(readValues());
     if (controller && key === pendingKey) return;
@@ -287,13 +301,15 @@ function initLanding() {
     applyButton.textContent = "적용하기";
     result.setAttribute("aria-busy", "false");
     status.classList.remove("ob-error");
-    const unchanged = hasResult && key === appliedKey;
+    const valid = Array.from(form.elements).every((el) => !el.willValidate || el.validity.valid) && Number(read("monthly_income")) > 0;
+    const unchanged = valid && hasResult && key === appliedKey;
     resultLabel.textContent = hasResult && !unchanged ? "매달 저축할 수 있는 돈 (적용 전)" : "매달 저축할 수 있는 돈";
-    status.textContent = unchanged ? "입력한 값으로 계산했어요." : "값을 바꿨어요. 적용하기를 눌러 주세요.";
+    setFeedback(status, unchanged ? "입력한 값으로 계산했어요." : "값을 바꿨어요. 적용하기를 눌러 주세요.");
   }
 
   function render(d) {
     hasResult = true;
+    result.hidden = false;
     resultLabel.textContent = "매달 저축할 수 있는 돈";
     amountEl.textContent = won(d.total_saving);
     bar.innerHTML = d.groups.filter((g) => g.amount > 0)
@@ -313,9 +329,11 @@ function initLanding() {
     controller = null;
     pendingKey = "";
     syncLiving();
-    const income = read("monthly_income");
-    if (!income) {
-      status.textContent = "월급을 적어 주세요";
+    const incomeControl = form.elements.monthly_income;
+    incomeControl.setCustomValidity(incomeControl.value !== "" && Number(read("monthly_income")) <= 0
+      ? "월급은 0보다 큰 금액을 입력해 주세요." : "");
+    if (!form.checkValidity()) {
+      clearResult();
       status.classList.add("ob-error");
       result.setAttribute("aria-busy", "false");
       return;
@@ -325,7 +343,7 @@ function initLanding() {
     const values = readValues();
     const requestKey = JSON.stringify(values);
     pendingKey = requestKey;
-    status.textContent = "계산하고 있어요";
+    setFeedback(status, "계산하고 있어요");
     status.classList.remove("ob-error");
     result.setAttribute("aria-busy", "true");
     applyButton.disabled = true;
@@ -340,11 +358,12 @@ function initLanding() {
       render(d);
       if (!initial) revealResult();
       appliedKey = requestKey;
-      status.textContent = initial ? "값을 바꾸고 적용하기를 눌러 보세요." : "입력한 값으로 계산했어요.";
+      setFeedback(status, initial ? "값을 바꾸고 적용하기를 눌러 보세요." : "입력한 값으로 계산했어요.");
     } catch (e) {
       if (e.name !== "AbortError" && controller === request) {
+        clearResult();
         status.classList.add("ob-error");
-        status.textContent = "계산하지 못했어요. 다시 적용해 주세요.";
+        setFeedback(status, "계산하지 못했어요. 다시 적용해 주세요.", "error");
       }
     } finally {
       if (controller === request) {
@@ -955,7 +974,13 @@ function initPlan() {
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const product = form.elements.product.value;
-    const monthly = Number(digits(form.elements.monthly_amount.value));
+    const monthlyValue = digits(form.elements.monthly_amount.value);
+    if (!monthlyValue) {
+      out.innerHTML = '<p class="ob-error" role="alert">매달 넣을 돈을 입력해 주세요.</p>';
+      form.elements.monthly_amount.focus();
+      return;
+    }
+    const monthly = Number(monthlyValue);
     if (!monthly || monthly > 1000) {
       out.innerHTML = '<p class="ob-error" role="alert">매달 넣을 돈을 1~1,000만 원으로 적어 주세요.</p>';
       form.elements.monthly_amount.focus();
@@ -963,7 +988,13 @@ function initPlan() {
     }
     const body = { monthly_amount: toWon(monthly), product };
     if (product === "general") {
-      body.months = Number(digits(form.elements.months.value));
+      const monthsValue = digits(form.elements.months.value);
+      if (!monthsValue) {
+        out.innerHTML = '<p class="ob-error" role="alert">기간을 입력해 주세요.</p>';
+        form.elements.months.focus();
+        return;
+      }
+      body.months = Number(monthsValue);
       if (!body.months || body.months > 240) {
         out.innerHTML = '<p class="ob-error" role="alert">기간을 1~240개월로 적어 주세요.</p>';
         form.elements.months.focus();
@@ -1156,7 +1187,7 @@ function initSettings() {
   form?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     if (form.getAttribute("aria-busy") === "true") return;
-    if (!form.checkValidity()) { form.reportValidity(); return; }
+    if (!form.checkValidity()) return;
     const body = {};
     for (const el of form.elements) {
       if (!el.name) continue;

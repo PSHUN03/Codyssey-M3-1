@@ -75,3 +75,13 @@ def test_common_page_feedback_is_available_for_public_and_member_pages(client):
         response = client.get(route)
         assert response.status_code == 200
         assert 'id="page-feedback"' in response.text
+
+
+def test_quick_calculator_requires_explicit_visible_amounts(client):
+    html = client.get("/").text
+    assert 'id="calc-form" data-feedback-target="calc-status"' in html
+    for name in ("monthly_income", "rent", "fixed_costs"):
+        control = re.search(rf'<input[^>]+name="{name}"[^>]*>', html).group(0)
+        assert "required" in control
+        assert 'pattern="[0-9]+"' in control
+    assert "지출이 없으면 0을 입력해 주세요." in html

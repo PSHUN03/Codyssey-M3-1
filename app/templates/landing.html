@@ -46,10 +46,10 @@
       </div>
       <div class="card calc" aria-labelledby="calc-title" data-landing-reveal data-landing-delay="380" data-landing-duration="1100">
         <h2 class="calc-title" id="calc-title">내 월급으로 바로 계산해 보기</h2>
-        <form class="calc-form" id="calc-form" novalidate>
+        <form class="calc-form" id="calc-form" data-feedback-target="calc-status" novalidate>
           <label class="field">
             <span class="field-label">한 달에 받는 돈 (실수령액)</span>
-            <span class="money-input"><input name="monthly_income" inputmode="numeric" autocomplete="off" value="245" aria-describedby="calc-unit"><span class="unit" id="calc-unit">만 원</span></span>
+            <span class="money-input"><input name="monthly_income" inputmode="numeric" autocomplete="off" required pattern="[0-9]+" title="월급은 0보다 큰 금액을 입력해 주세요." value="245" aria-describedby="calc-unit"><span class="unit" id="calc-unit">만 원</span></span>
           </label>
           <div class="seg" role="radiogroup" aria-label="사는 곳">
             <label><input type="radio" name="living" value="alone" checked><span>혼자 살아요</span></label>
@@ -58,16 +58,17 @@
           <div class="calc-row" id="calc-row">
             <label class="field" id="calc-rent">
               <span class="field-label">월세</span>
-              <span class="money-input"><input name="rent" inputmode="numeric" autocomplete="off" value="50"><span class="unit">만 원</span></span>
+              <span class="money-input"><input name="rent" inputmode="numeric" autocomplete="off" required pattern="[0-9]+" value="50" aria-describedby="calc-input-help"><span class="unit">만 원</span></span>
             </label>
             <label class="field">
               <span class="field-label">통신비·교통비 등</span>
-              <span class="money-input"><input name="fixed_costs" inputmode="numeric" autocomplete="off" value="35"><span class="unit">만 원</span></span>
+              <span class="money-input"><input name="fixed_costs" inputmode="numeric" autocomplete="off" required pattern="[0-9]+" value="35" aria-describedby="calc-input-help"><span class="unit">만 원</span></span>
             </label>
           </div>
+          <p id="calc-input-help" class="field-help">지출이 없으면 0을 입력해 주세요.</p>
           <button class="btn btn-primary calc-apply" id="calc-apply" type="submit">적용하기</button>
         </form>
-        <p id="calc-status" class="field-help" role="status"></p>
+        <p id="calc-status" class="field-help form-status" role="status"></p>
         <div class="calc-result" id="calc-result" aria-live="polite">
           <p class="calc-label">매달 저축할 수 있는 돈</p>
           <p class="calc-amount" id="calc-amount">—</p>
