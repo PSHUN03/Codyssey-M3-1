@@ -1046,6 +1046,8 @@ function initProfileSelects(form) {
       check.textContent = "✓";
       check.setAttribute("aria-hidden", "true");
       item.append(text, check);
+      // Keep focus on the combobox until its option click is committed.
+      item.addEventListener("mousedown", (event) => event.preventDefault());
       item.addEventListener("click", () => choose(index));
       menu.append(item);
       return item;
@@ -1091,7 +1093,7 @@ function initProfileSelects(form) {
       select.selectedIndex = index;
       sync();
       close();
-      trigger.focus();
+      trigger.focus({ preventScroll: true });
       if (changed) {
         select.dispatchEvent(new Event("input", { bubbles: true }));
         select.dispatchEvent(new Event("change", { bubbles: true }));
@@ -1133,7 +1135,8 @@ function initProfileSelects(form) {
     document.addEventListener("pointerdown", (event) => { if (!wrapper.contains(event.target)) close(); });
     document.addEventListener("focusin", (event) => { if (!wrapper.contains(event.target)) close(); });
     window.addEventListener("resize", close);
-    window.addEventListener("scroll", (event) => { if (!menu.contains(event.target)) close(); }, true);
+    // The menu is anchored to its field and moves with it. Closing on scroll
+    // cancels clicks when the browser scrolls an option into view first.
     select.addEventListener("change", sync);
     form.addEventListener("reset", () => setTimeout(sync, 0));
     trigger.append(value);

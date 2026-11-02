@@ -61,8 +61,21 @@ function setup() {
   function key(control, key) {
     control.trigger.dispatchEvent({ type: 'keydown', key, preventDefault() {}, stopPropagation() {} });
   }
-  function click(element) { element.dispatchEvent({ type: 'click', target: element }); }
-  return { form, document, controls, key, click };
+  function click(element) {
+    const down = { type: 'mousedown', target: element, defaultPrevented: false,
+      preventDefault() { this.defaultPrevented = true; } };
+    element.dispatchEvent(down);
+    // A non-focusable option otherwise moves focus to its outside ancestor
+    // before click, which must not close the menu and discard that click.
+    if (element.getAttribute('role') === 'option' && !down.defaultPrevented) {
+      document.activeElement = document;
+      document.dispatchEvent({ type: 'focusin', target: document });
+    }
+    if (element.getAttribute('role') !== 'option' || !element.parent.hidden) {
+      element.dispatchEvent({ type: 'click', target: element });
+    }
+  }
+  return { form, document, window, controls, key, click };
 }
 
 test('exposes one labelled combobox and selected check per native value', () => {
@@ -115,6 +128,17 @@ test('pointer selection and external value changes keep the label and check in s
   control.select.dispatchEvent({ type: 'change' });
   assert.equal(control.trigger.children[0].textContent, '공공기관');
   assert.equal(control.menu.children[4].getAttribute('aria-selected'), 'true');
+});
+
+test('page scrolling while reaching an option does not cancel pointer selection', () => {
+  const { controls: [control], click, window, document } = setup();
+  click(control.trigger);
+  window.dispatchEvent({ type: 'scroll', target: document });
+  assert.equal(control.menu.hidden, false);
+  click(control.menu.children[3]);
+  assert.equal(control.select.value, '대기업');
+  assert.equal(control.trigger.children[0].textContent, '대기업');
+  assert.equal(control.menu.hidden, true);
 });
 
 test('only one menu opens and outside click or Tab closes it', () => {
