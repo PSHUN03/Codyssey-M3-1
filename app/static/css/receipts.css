@@ -104,3 +104,12 @@
   #receipt-page .receipt-success-check.receipt-celebrate::after,
   #receipt-page .receipt-success-check.receipt-celebrate svg :is(path,polyline) { animation: none; }
 }
+
+/* Keep the common page entrance and let the two receipt panels follow in order. */
+@media (prefers-reduced-motion: no-preference) {
+  #receipt-page .receipt-workspace > .receipt-panel {
+    animation: page-enter 360ms cubic-bezier(.2, .7, .3, 1) both;
+  }
+  #receipt-page .receipt-workspace > .receipt-panel:first-child { animation-delay: 40ms; }
+  #receipt-page .receipt-workspace > .receipt-panel:nth-child(2) { animation-delay: 100ms; }
+}
