@@ -1,6 +1,8 @@
 /* FE-05: local sample preview only. This adapter never sends a receipt or saves a transaction. */
 (() => {
   "use strict";
+  const contract = typeof module !== "undefined" && module.exports
+    ? require("./receipt-contract.js") : globalThis.SadariReceiptContract;
   const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
   function validateFile(file) {
@@ -34,7 +36,8 @@
   }
 
   function sampleResult(config) {
-    return { date: config.sample_date, merchant: "사다리 커피", amount: config.example === "missing" ? null : 15500 };
+    return contract.fromScanResponse({ date: config.sample_date, merchant_name: "사다리 커피",
+      total_amount: config.example === "missing" ? null : 15500, currency: "KRW" });
   }
 
   function toDraft(result) {

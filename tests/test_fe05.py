@@ -69,6 +69,6 @@ def test_receipt_assets_are_not_loaded_on_unrelated_pages(client):
 @pytest.mark.skipif(shutil.which('node') is None, reason='Node is needed for frontend regressions')
 def test_receipt_frontend_validation():
     root = Path(__file__).resolve().parents[1]
-    result = subprocess.run([shutil.which('node'),'--test','tests/frontend/receipts.test.cjs'],
+    result = subprocess.run([shutil.which('node'),'--test','tests/frontend/receipts.test.cjs','tests/frontend/receipt-contract.test.cjs'],
                             cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=20, check=False)
     assert result.returncode == 0, result.stdout + result.stderr

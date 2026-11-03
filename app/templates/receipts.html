@@ -4,7 +4,7 @@
 {% extends "base.html" %}
 {% block title %}영수증 기록하기{% endblock %}
 {% block page_styles %}<link rel="stylesheet" href="/static/css/receipts.css?v={{ asset_version }}">{% endblock %}
-{% block page_scripts %}<script src="/static/js/receipts.js?v={{ asset_version }}" defer></script>{% endblock %}
+{% block page_scripts %}<script src="/static/js/receipt-contract.js?v={{ asset_version }}" defer></script><script src="/static/js/receipts.js?v={{ asset_version }}" defer></script>{% endblock %}
 {% block content %}
 <div id="receipt-page">
   <div class="page-head receipt-page-head">
