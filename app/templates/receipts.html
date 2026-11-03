@@ -1,0 +1,73 @@
+{% import "_macros.html" as ui %}
+{% import "_receipt_icons.html" as receipt %}
+{% set page = "receipts" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}영수증 기록하기{% endblock %}
+{% block page_styles %}<link rel="stylesheet" href="/static/css/receipts.css?v={{ asset_version }}">{% endblock %}
+{% block page_scripts %}<script src="/static/js/receipts.js?v={{ asset_version }}" defer></script>{% endblock %}
+{% block content %}
+<div id="receipt-page">
+  <div class="page-head receipt-page-head">
+    <div><p class="kicker">작은 지출도 놓치지 않게</p><h1 class="page-title">영수증 기록하기</h1><p class="page-sub">사진 한 장으로 지출 기록을 시작해요.</p></div>
+    <a class="btn btn-secondary receipt-back" href="/plan" aria-label="뒤로가기, 플랜 페이지로 이동">{{ ui.icon("arrow-left", 14) }}뒤로가기</a>
+  </div>
+  <p class="receipt-sample-line"><span class="receipt-sample-tag">샘플 모드</span><span>사진은 전송되지 않고, 예시 결과로 체험해요.</span></p>
+
+        <ol class="receipt-steps" aria-label="영수증 기록 순서">
+          <li data-step="photo"><span class="receipt-step-number">1</span><span>사진 선택</span></li>
+          <li data-step="review"><span class="receipt-step-number">2</span><span>결과 확인</span></li>
+          <li data-step="saved"><span class="receipt-step-number">3</span><span>수정·저장</span></li>
+        </ol>
+        <div class="receipt-workspace">
+          <section class="receipt-panel" aria-label="영수증 사진 선택과 미리보기">
+            <div class="receipt-panel-head"><div><h2>영수증 사진</h2><p class="receipt-panel-sub">글자가 선명하게 보이는 사진 한 장이면 돼요.</p></div><span class="receipt-panel-icon">{{ receipt.icon("receipt-text") }}</span></div>
+            <div class="receipt-photo-stage">
+              <div class="receipt-paper" data-sample-paper role="img" aria-label="가상의 사다리 커피 영수증. 아메리카노 9,000원과 샌드위치 6,500원, 합계 15,500원.">
+                <p class="receipt-paper-shop">SADARI COFFEE</p><p class="receipt-paper-meta">샘플 영수증 · 예시 매장</p>
+                <hr class="receipt-paper-rule"><p class="receipt-paper-meta">{{ receipt_config.sample_date | replace('-', '.') }}　12:34</p><hr class="receipt-paper-rule">
+                <div class="receipt-paper-row"><span>아메리카노 × 2</span><span>9,000</span></div><div class="receipt-paper-row"><span>샌드위치 × 1</span><span>6,500</span></div>
+                <hr class="receipt-paper-rule"><div class="receipt-paper-row receipt-paper-total"><span>합계</span><strong>15,500원</strong></div>
+                <div class="receipt-barcode" aria-hidden="true"></div><p class="receipt-paper-note">화면 확인을 위한 가상의 영수증이에요.</p>
+              </div>
+              <img class="receipt-photo" data-local-photo alt="선택한 영수증 사진 미리보기" hidden>
+              <div class="receipt-empty" data-empty-photo hidden>{{ receipt.icon("image-plus") }}<span>미리볼 사진을 다시 선택해 주세요.</span></div>
+            </div>
+            <div class="receipt-file-caption"><span class="receipt-file-name" data-file-name>샘플 영수증</span><span class="receipt-format">JPG · PNG</span></div>
+            <div class="receipt-upload-actions">
+              <button type="button" class="receipt-button receipt-button-primary" data-camera-button>{{ receipt.icon("camera") }}촬영하기</button>
+              <button type="button" class="receipt-button" data-photo-button>{{ receipt.icon("image-plus") }}사진 선택</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" data-camera-input hidden aria-label="영수증 카메라 촬영">
+            <input type="file" accept="image/*" data-photo-input hidden aria-label="영수증 사진 파일 선택">
+            <p class="receipt-error" data-file-error role="alert" hidden></p>
+            <p class="receipt-upload-note">{{ receipt.icon("info") }}<span>한 장당 최대 5MB · JPG 또는 PNG<br>영수증의 날짜와 합계가 잘 보이게 찍어 주세요.</span></p>
+            <div class="receipt-sample-action"><button type="button" class="receipt-link" data-use-sample>샘플 흐름 다시 보기</button></div>
+          </section>
+          <section class="receipt-panel" aria-label="인식 결과 확인과 샘플 기록" data-result-panel>
+            <div class="receipt-panel-head"><div><h2 data-result-title>인식 결과 확인</h2><p class="receipt-panel-sub" data-result-sub>확인하고, 틀린 부분은 바로 고쳐요.</p></div><span class="receipt-ai-badge" data-ai-badge>{{ receipt.icon("sparkles") }}AI 인식 · 샘플</span></div>
+            <div class="receipt-pending" data-pending hidden>
+              <span class="receipt-state-icon">{{ receipt.icon("scan-line") }}</span><h3>사진이 준비됐어요</h3><p>지금은 샘플 인식 결과로<br>확인·수정 과정을 체험할 수 있어요.</p>
+              <button type="button" class="receipt-button receipt-button-primary receipt-button-block" data-scan>{{ receipt.icon("sparkles") }}샘플 결과 보기</button>
+            </div>
+            <div class="receipt-pending" data-loading hidden role="status" aria-live="polite"><span class="receipt-state-icon"><span class="receipt-spinner"></span></span><h3>샘플 결과를 준비해요</h3><p>실제 사진 인식은 진행하지 않아요.</p></div>
+            <form data-receipt-form novalidate>
+              <p class="receipt-result-note" data-result-note>아래는 샘플 영수증의 예시 값이에요.<br>날짜·가맹점·금액을 확인해 주세요.</p>
+              <div class="receipt-notice" data-missing-notice hidden>{{ receipt.icon("circle-alert") }}<span>금액을 읽지 못한 상황의 예시예요. 영수증을 보고 직접 입력해 주세요.</span></div>
+              <div class="receipt-fields">
+                <div class="receipt-field"><label class="receipt-field-label" for="receipt-date">결제 날짜</label><input class="receipt-input" id="receipt-date" type="date" name="date" required value="{{ receipt_config.sample_date }}" aria-describedby="receipt-date-error"><p class="receipt-error" id="receipt-date-error" data-error="date" role="alert" hidden></p></div>
+                <div class="receipt-field"><label class="receipt-field-label" for="receipt-merchant">가맹점</label><input class="receipt-input" id="receipt-merchant" type="text" name="merchant" maxlength="80" autocomplete="off" required value="사다리 커피" aria-describedby="receipt-merchant-error"><p class="receipt-error" id="receipt-merchant-error" data-error="merchant" role="alert" hidden></p></div>
+                <div class="receipt-field"><label class="receipt-field-label" for="receipt-amount">결제 금액</label><span class="receipt-money"><input id="receipt-amount" type="text" inputmode="numeric" name="amount" autocomplete="off" required value="15500" placeholder="금액을 입력해 주세요" aria-describedby="receipt-amount-error"><span>원</span></span><p class="receipt-error" id="receipt-amount-error" data-error="amount" role="alert" hidden></p></div>
+              </div>
+              <div class="receipt-save-area"><button type="button" data-save class="receipt-button receipt-button-primary receipt-button-block">{{ receipt.icon("check") }}확인하고 샘플 저장</button><p class="receipt-save-note">이 미리보기에서만 반영돼요.<br>실제 지출 내역으로 저장되지 않아요.</p></div>
+            </form>
+            <div data-saved hidden>
+              <div class="receipt-saved-intro"><span class="receipt-state-icon receipt-success-check" data-success-check>{{ receipt.icon("check") }}</span><h3>샘플 기록을 남겼어요</h3><p>직접 확인한 내용으로 반영했어요.</p></div>
+              <dl class="receipt-saved-details"><div><dt>결제 날짜</dt><dd data-saved-date></dd></div><div><dt>가맹점</dt><dd data-saved-merchant></dd></div><div><dt>결제 금액</dt><dd class="receipt-saved-amount" data-saved-amount></dd></div></dl>
+              <button type="button" class="receipt-button receipt-button-block" data-edit>{{ receipt.icon("pencil") }}내용 다시 수정하기</button><p class="receipt-save-note">샘플 저장 결과이며 실제 지출 내역은 바뀌지 않아요.</p>
+            </div>
+            <p data-live role="status" aria-live="polite" class="receipt-save-note"></p>
+          </section>
+        </div>
+</div>
+<script id="receipt-preview-config" type="application/json">{{ receipt_config | tojson }}</script>
+{% endblock %}
