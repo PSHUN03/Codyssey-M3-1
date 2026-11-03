@@ -101,6 +101,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   {% block dialogs %}{% endblock %}
   <script src="/static/js/app.js?v={{ asset_version }}-fe03-coach-follow-v16" defer></script>
-  {% if page in ("home", "progress") %}<script src="/static/js/fe01.js?v={{ asset_version }}" defer></script>{% endif %}
+  {% if page in ("home", "progress") %}<script src="/static/js/checkin-contract.js?v={{ asset_version }}" defer></script><script src="/static/js/fe01.js?v={{ asset_version }}" defer></script>{% endif %}
 </body>
 </html>

@@ -83,7 +83,7 @@ def test_new_assets_do_not_change_other_pages(client):
 def test_sample_adapter_frontend_regressions():
     root = Path(__file__).resolve().parents[1]
     result = subprocess.run(
-        [shutil.which("node"), "--test", "tests/frontend/fe01-sample.test.cjs"],
+        [shutil.which("node"), "--test", "tests/frontend/fe01-sample.test.cjs", "tests/frontend/checkin-contract.test.cjs"],
         cwd=root, capture_output=True, text=True, encoding="utf-8", timeout=20, check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr

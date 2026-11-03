@@ -1,6 +1,8 @@
 /* FE-01: explicit sample adapter only. No financial API calls or database writes. */
 (() => {
   "use strict";
+  const contract = typeof module !== "undefined" && module.exports
+    ? require("./checkin-contract.js") : globalThis.SadariCheckinContract;
 
   const MAX_AMOUNT = 10_000_000_000;
   const validAmount = value => Number.isSafeInteger(value) && value >= 0 && value <= MAX_AMOUNT;
@@ -51,16 +53,17 @@
       reload() { load(); return clone(state); },
       isPersistent: () => persistent,
       recordWeekly(paid) {
-        if (typeof paid !== "boolean") throw new TypeError("Weekly check must be boolean.");
-        state.paid = paid;
+        const request = contract.weeklyRequest(config.week, paid);
+        state.paid = request.body.paid;
         persist();
         return clone(state);
       },
       recordSavings(amount) {
         if (!validAmount(amount)) throw new RangeError("Invalid sample savings amount.");
+        const request = contract.savingsRequest(config.month, amount);
         const record = state.records.find(item => item.month === config.month);
         if (!record) throw new Error("Current sample month is missing.");
-        record.amount = amount;
+        record.amount = request.body.amount;
         persist();
         return clone(state);
       },
