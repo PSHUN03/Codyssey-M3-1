@@ -1,0 +1,19 @@
+{
+  "dataset": "golden_policy_qa.jsonl",
+  "n": 12,
+  "hit@1": 0.9166666666666666,
+  "hit@3": 1.0,
+  "retrieved_evidence_coverage": 0.9166666666666666,
+  "failures": [
+    {
+      "id": "q10",
+      "question": "연말정산 때 돈 돌려받는 방법",
+      "ranked": [
+        "rent-tax-credit",
+        "pension-tax-credit",
+        "sme-youth-tax-cut"
+      ]
+    }
+  ],
+  "review_status": "legacy_or_pm"
+}
