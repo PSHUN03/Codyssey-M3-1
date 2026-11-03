@@ -1333,6 +1333,8 @@ function initPwaInstall() {
   const isIOS =
     /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isMobileDevice = isIOS || /Android/.test(navigator.userAgent);
+  const needsInstallRow = !!document.querySelector(".header-end a, .header-end button");
 
   let installPrompt = null;
 
@@ -1341,11 +1343,15 @@ function initPwaInstall() {
 
   function updateButton() {
     button.hidden =
+      !isMobileDevice ||
       isInstalled() ||
       !window.isSecureContext ||
       (!isIOS && !installPrompt);
 
-    button.textContent = isIOS ? "홈 화면에 추가" : "앱 설치";
+    document.documentElement.classList.toggle("has-pwa-install", !button.hidden);
+    document.documentElement.classList.toggle("has-pwa-install-secondary", !button.hidden && needsInstallRow);
+    button.textContent = isIOS ? "설치 안내" : "앱 설치";
+    button.setAttribute("aria-label", isIOS ? "홈 화면에 추가하는 방법 보기" : "사다리 앱 설치");
   }
 
   window.addEventListener("beforeinstallprompt", (event) => {

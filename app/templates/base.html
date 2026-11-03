@@ -43,10 +43,10 @@
       </nav>
       {% endif %}
       <div class="header-end">
-        <button class="btn btn-secondary btn-sm" type="button" id="pwa-install-button" hidden>앱 설치</button>
         {% if user and user.is_demo %}<span class="demo-tag">예시 계정</span>{% endif %}
         {% block header_end %}{% endblock %}
       </div>
+      <button class="btn btn-secondary btn-sm" type="button" id="pwa-install-button" hidden>앱 설치</button>
     </div>
   </header>
 
@@ -99,21 +99,25 @@
   {% endif %}
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <dialog class="modal" id="pwa-install-dialog" aria-labelledby="pwa-install-title">
-  <form method="dialog" class="modal-body">
-    <h2 id="pwa-install-title">홈 화면에 사다리 추가하기</h2>
-    <p>아이폰의 Safari에서 아래 순서로 추가해 주세요.</p>
-    <ol>
-      <li>Safari 메뉴에서 ‘공유’를 선택해 주세요.</li>
-      <li>‘홈 화면에 추가’를 선택해 주세요.</li>
-      <li>안내를 확인하고 ‘추가’를 눌러 주세요.</li>
-    </ol>
-    <p>추가한 사다리 아이콘을 누르면 앱처럼 열 수 있어요.</p>
-    <div class="modal-actions">
-      <button class="btn btn-primary" type="submit">확인</button>
-    </div>
-  </form>
-</dialog>
+  <dialog class="modal pwa-install-dialog" id="pwa-install-dialog" aria-labelledby="pwa-install-title" aria-describedby="pwa-install-description">
+    <form method="dialog" class="modal-body pwa-install-body">
+      <div class="pwa-install-brand-row">
+        <span class="pwa-install-brand">{{ ui.logo_mark(30) }}<span>사다리</span></span>
+        <button class="icon-btn" type="submit" value="cancel" aria-label="설치 안내 닫기">{{ ui.icon("x", 20) }}</button>
+      </div>
+      <div class="pwa-install-heading">
+        <h2 id="pwa-install-title">홈 화면에 추가해요</h2>
+        <p id="pwa-install-description">Safari에서 간단히 추가해요.</p>
+      </div>
+      <ol class="pwa-install-steps">
+        <li><span class="pwa-install-step-number" aria-hidden="true">1</span><div><strong>공유 메뉴 열기</strong><p>Safari에서 ‘공유’를 눌러요.</p></div></li>
+        <li><span class="pwa-install-step-number" aria-hidden="true">2</span><div><strong>홈 화면에 추가</strong><p>목록에서 선택해 주세요.</p></div></li>
+        <li><span class="pwa-install-step-number" aria-hidden="true">3</span><div><strong>‘추가’ 누르기</strong><p>홈 화면에 아이콘이 생겨요.</p></div></li>
+      </ol>
+      <p class="pwa-install-tip">사다리 아이콘으로 열면<br>앱처럼 편하게 이용할 수 있어요.</p>
+      <button class="btn btn-primary btn-block" type="submit">확인했어요</button>
+    </form>
+  </dialog>
   {% block dialogs %}{% endblock %}
   <script src="/static/js/app.js?v={{ asset_version }}-fe03-coach-follow-v16" defer></script>
 </body>
