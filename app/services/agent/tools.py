@@ -209,7 +209,26 @@ def set_goal(args: dict, ctx: ToolContext) -> dict:
     }
 
 
+def compare_savings_products(args: dict, ctx: ToolContext) -> dict:
+    from app.services.savings_products import ProductAPIError
+    from app.services.savings_products import compare_savings_products as compare
+
+    months = _int(args, "term_months", 1, 120)
+    product = _str(args, "product_type", 20, {"savings", "deposit"}, required=False) or "savings"
+    try:
+        result = compare(months, product)
+    except ProductAPIError as exc:
+        raise ToolError(str(exc)) from None
+    source = {"url": "https://finlife.fss.or.kr/", "name": "금감원 금융상품한눈에",
+              "as_of": result["fetched_on"]}
+    if not any(s["url"] == source["url"] for s in ctx.sources):
+        ctx.sources.append(source)
+    return result
+
+
+
 _REGISTRY: dict[str, Callable[[dict, ToolContext], dict]] = {
+    "compare_savings_products": compare_savings_products,
     "get_my_finances": get_my_finances,
     "simulate_savings": simulate_savings,
     "check_extra_spending": check_extra_spending,
@@ -220,6 +239,7 @@ _REGISTRY: dict[str, Callable[[dict, ToolContext], dict]] = {
 }
 
 TOOL_LABELS = {
+    "compare_savings_products": "공시 금리를 비교하고 있어요",
     "get_my_finances": "내 재무 정보를 확인하고 있어요",
     "simulate_savings": "저축 결과를 계산하고 있어요",
     "check_extra_spending": "지출 영향을 계산하고 있어요",
@@ -329,6 +349,15 @@ TOOL_SPECS: list[dict] = [
         },
     },
 ]
+
+TOOL_SPECS.append({
+    "name": "compare_savings_products",
+    "description": "금감원 은행 예·적금 공시를 기본금리 순으로 최대 5개 비교합니다. 가입 권유가 아닌 정보입니다.",
+    "input_schema": {"type": "object", "properties": {
+        "term_months": {"type": "integer", "minimum": 1, "maximum": 120},
+        "product_type": {"type": "string", "enum": ["savings", "deposit"]}},
+        "required": ["term_months"], "additionalProperties": False},
+})
 
 for _spec in TOOL_SPECS:
     _spec["eager_input_streaming"] = True

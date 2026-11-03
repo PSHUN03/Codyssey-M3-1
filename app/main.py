@@ -14,6 +14,7 @@ from app.config import BASE_DIR, get_settings
 from app.db import init_engine
 from app.deps import ConsentRequired, LoginRequired, OnboardingRequired
 from app.routers import api, auth, coach, internal, onboarding, pages, public
+from app.routers.products import router as products_router
 from app.web import render
 
 STATIC_DIR = BASE_DIR / "static"
@@ -54,6 +55,8 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     for module in (auth, pages, onboarding, public, coach, api, internal):
         app.include_router(module.router)
+
+    app.include_router(products_router)
 
     @app.get("/health")
     def health():
