@@ -1,0 +1,115 @@
+/* FE-02: page-scoped purple sample preview. */
+#spending-page { --s-ink:var(--ink); --s-deep:var(--ink-deep); --s-body:var(--body); --s-muted:var(--mute); --s-canvas:var(--canvas); --s-white:var(--surface); --s-purple:var(--lime); --s-active:var(--lime-active); --s-pale:var(--lime-pale); --s-line:#e8e1f5; --s-error:var(--negative-deep); }
+#spending-page [hidden] { display:none!important; }
+.fe02-plan-entry { display:flex; justify-content:flex-end; margin:-10px 0 24px; }
+#spending-page .spending-page-head { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:12px; }
+#spending-page .spending-back { align-self:start; min-height:44px; padding:8px 10px; font-size:12px; line-height:1.5; border-radius:16px; gap:4px; white-space:nowrap; }
+#spending-page .s-sample-line{font-size:13px;line-height:1.7;margin:-6px 0 20px}
+#spending-page .s-sample-tag{color:var(--s-deep);white-space:nowrap;margin-right:8px;font:inherit}
+#spending-page .s-sample-tag::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--s-purple);margin-right:5px;vertical-align:.1em}
+#spending-page .s-panel{min-width:0;padding:24px 20px;border-radius:28px;background:var(--s-white);color:var(--s-ink)}
+#spending-page .s-panel h2{font-size:18px;font-weight:700;line-height:1.4;letter-spacing:-.025em}
+#spending-page .s-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+#spending-page .s-panel-sub{margin-top:5px;font-size:12px;color:var(--s-muted);line-height:1.7}
+#spending-page .s-icon{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:14px;background:var(--s-pale);color:var(--s-purple)}
+#spending-page .s-icon svg{width:20px;height:20px}
+#spending-page .s-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:46px;border:0;border-radius:24px;padding:11px 16px;font-size:14px;font-weight:600;line-height:1.5;background:var(--s-pale);color:var(--s-deep)}
+#spending-page .s-button svg{width:17px;height:17px;flex:none}
+#spending-page .s-primary{background:var(--s-purple);color:var(--s-white)}
+#spending-page .s-primary:hover{background:var(--s-active)}
+#spending-page .s-button:disabled{opacity:.6}
+#spending-page .s-file-box{display:flex;align-items:center;gap:12px;padding:16px;border-radius:18px;background:var(--s-canvas)}
+#spending-page .s-file-box>div{min-width:0}
+#spending-page .s-file-box>svg{color:var(--s-purple);width:25px;height:25px;flex:none}
+#spending-page .s-file-name{font-size:14px;font-weight:600;color:var(--s-ink);overflow-wrap:anywhere}
+#spending-page .s-file-help{margin-top:3px;font-size:12px;color:var(--s-muted)}
+#spending-page .s-upload-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+#spending-page .s-upload-note{font-size:12px;color:var(--s-muted);margin-top:12px;line-height:1.8}
+#spending-page .s-error{font-size:13px;color:var(--s-error);margin-top:10px;line-height:1.7}
+#spending-page .s-progress-area{margin-top:18px;font-size:13px;color:var(--s-deep)}
+#spending-page .s-progress-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}
+#spending-page .s-progress{height:8px;border-radius:10px;background:var(--s-pale);overflow:hidden}
+#spending-page .s-progress span{display:block;height:100%;width:0;background:var(--s-purple);border-radius:inherit;transition:width .2s ease}
+#spending-page .s-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+#spending-page .s-metric{min-width:0;padding:20px 16px;border-radius:24px;background:var(--s-white)}
+#spending-page .s-metric-total{grid-column:1/-1;background:var(--s-pale);padding:24px}
+#spending-page .s-metric-label{font-size:13px;font-weight:600;color:var(--s-body)}
+#spending-page .s-number{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px;margin-top:8px;color:var(--s-deep)}
+#spending-page .s-number strong{font-family:var(--font-display);font-size:20px;line-height:1.25;letter-spacing:-.04em;font-weight:800;overflow-wrap:anywhere;color:var(--s-deep)}
+#spending-page .s-number>span{font-size:12px;color:var(--s-body)}
+#spending-page .s-metric-total .s-number strong{font-size:38px}
+#spending-page .s-metric-note{font-size:11px;color:var(--s-muted);margin-top:8px;line-height:1.7}
+#spending-page .s-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+#spending-page .s-chart{width:100%;min-width:0}
+#spending-page .s-chart svg{width:100%;height:auto;display:block}
+#spending-page .s-chart text{font-family:inherit;font-size:12px;fill:var(--s-body)}
+#spending-page .s-chart .s-chart-amount{fill:var(--s-ink);font-weight:600}
+#spending-page .s-rank-row{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid var(--s-line)}
+#spending-page .s-rank-row:last-child{border:0;padding-bottom:0}
+#spending-page .s-rank{display:grid;place-items:center;width:24px;height:24px;flex:none;border-radius:8px;color:var(--s-deep);background:var(--s-pale);font-size:12px;font-weight:600}
+#spending-page .s-rank-main{min-width:0;flex:1}
+#spending-page .s-rank-main strong{font-size:14px;color:var(--s-ink);font-weight:600;display:block}
+#spending-page .s-rank-main small{display:block;color:var(--s-muted);font-size:11px;margin-top:3px}
+#spending-page .s-rank-amount{font-size:13px;font-weight:600;white-space:nowrap;color:var(--s-ink)}
+#spending-page .s-transactions-panel{margin-top:18px}
+#spending-page .s-count{font-size:12px;color:var(--s-muted);white-space:nowrap;padding-top:4px}
+#spending-page .s-transactions{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px}
+#spending-page .s-transactions th{text-align:left;color:var(--s-muted);font-size:12px;font-weight:500;padding:10px 8px;border-bottom:1px solid var(--s-line)}
+#spending-page .s-transactions td{padding:14px 8px;border-bottom:1px solid var(--s-line);vertical-align:middle;overflow-wrap:anywhere}
+#spending-page .s-transactions th:nth-child(1){width:15%}
+#spending-page .s-transactions th:nth-child(2){width:30%}
+#spending-page .s-transactions th:nth-child(3){width:23%}
+#spending-page .s-transactions th:nth-child(4){width:32%}
+#spending-page .s-date{font-size:12px;color:var(--s-muted)}
+#spending-page .s-merchant{font-weight:600;color:var(--s-ink)}
+#spending-page .s-fixed-label{display:block;color:var(--s-muted);font-size:11px;font-weight:400;margin-top:2px}
+#spending-page .s-amount{text-align:right;font-weight:600;color:var(--s-ink);white-space:nowrap}
+#spending-page .s-category{width:100%;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--s-line);border-radius:12px;background:var(--s-canvas);color:var(--s-deep);font-size:16px}
+#spending-page .s-category[data-changed="true"]{border-color:var(--s-purple);background:var(--s-pale)}
+#spending-page .s-more-row{text-align:center;margin-top:16px}
+#spending-page .s-live{margin-top:12px;font-size:12px;line-height:1.7;color:var(--s-deep)}
+#spending-page .s-empty{display:grid;justify-items:center;gap:12px;text-align:center;margin-top:18px;padding:32px 20px}
+#spending-page .s-empty h2{font-size:18px}
+#spending-page .s-empty p{font-size:13px;line-height:1.8;color:var(--s-body)}
+#spending-page .s-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#spending-page .s-button { cursor:pointer; }
+#spending-page .s-button:disabled { cursor:wait; }
+#spending-page .profile-select-trigger { min-height:44px; padding:8px 12px; border-color:var(--s-line); background:var(--s-canvas); color:var(--s-deep); font-size:16px; }
+#spending-page .profile-select-menu { border-color:var(--s-line); background:var(--s-white); border-radius:16px; padding:6px; box-shadow:0 8px 24px rgba(33,26,56,.12); }
+#spending-page .profile-select-option { border-radius:10px; min-height:44px; font-size:14px; }
+#spending-page .profile-select-option:is(:hover,.is-active) { background:#f3f1f7; }
+#spending-page .profile-select-check { color:var(--s-deep); }
+#spending-page .s-category[data-changed="true"] + .profile-select .profile-select-trigger { border-color:var(--s-purple); background:var(--s-pale); }
+@keyframes spending-row-enter {
+  from { opacity:0; transform:translateY(6px); }
+  to { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion:no-preference) {
+  #spending-page .s-upload-panel { animation:page-enter 360ms cubic-bezier(.2,.7,.3,1) 40ms both; }
+  #spending-page .s-chart.is-motion-ready:not(.is-revealed) [data-chart-row] { opacity:0; }
+  #spending-page .s-chart.is-motion-ready.is-revealed:not(.is-settled) [data-chart-row] { animation:spending-row-enter 420ms cubic-bezier(.2,.7,.3,1) var(--row-delay) both; }
+}
+@media (prefers-reduced-motion:reduce) { #spending-page .s-progress span { transition:none; } }
+@media (max-width:599px) {
+  #spending-page .s-transactions thead { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+  #spending-page .s-transactions tbody,#spending-page .s-transactions tr { display:block; width:100%; }
+  #spending-page .s-transactions tbody tr { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:12px; padding:16px 0; border-bottom:1px solid var(--s-line); }
+  #spending-page .s-transactions td { display:block; padding:0; border:0; min-width:0; }
+  #spending-page .s-transactions td:nth-child(1) { grid-column:1; grid-row:1; }
+  #spending-page .s-transactions td:nth-child(2) { grid-column:1; grid-row:2; margin-top:3px; }
+  #spending-page .s-transactions td:nth-child(3) { grid-column:2; grid-row:1/3; align-self:center; }
+  #spending-page .s-transactions td:nth-child(4) { grid-column:1/-1; grid-row:3; display:flex; align-items:center; gap:12px; margin-top:12px; }
+  #spending-page .s-transactions td:nth-child(4)::before { content:"분류"; font-size:12px; color:var(--s-muted); flex:none; }
+  #spending-page .profile-select { flex:1; }
+}
+@media (min-width:900px) {
+  #spending-page .s-panel { padding:28px; }
+  #spending-page .s-grid { grid-template-columns:minmax(0,7fr) minmax(0,5fr); gap:24px; margin-top:24px; }
+  #spending-page .s-metrics { grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); gap:24px; margin-top:24px; }
+  #spending-page .s-metric-total { grid-column:auto; }
+  #spending-page .s-metric { padding:24px; }
+  #spending-page .s-number strong { font-size:26px; }
+  #spending-page .s-metric-total .s-number strong { font-size:38px; }
+  #spending-page .s-transactions-panel { margin-top:24px; }
+  #spending-page .s-upload-actions { display:flex; justify-content:flex-end; }
+}

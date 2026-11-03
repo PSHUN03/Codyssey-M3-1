@@ -1,0 +1,58 @@
+{% import "_macros.html" as ui %}
+{% set page = "spending" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}소비 분석{% endblock %}
+{% block page_styles %}<link rel="stylesheet" href="/static/css/spending.css?v={{ asset_version }}">{% endblock %}
+{% block content %}
+<div id="spending-page">
+  <div class="page-head spending-page-head"><div><p class="kicker">어디에 썼는지 한눈에</p><h1 class="page-title">소비 분석</h1><p class="page-sub">거래내역에서 돈의 흐름을 살펴봐요.</p></div><a class="btn btn-secondary spending-back" href="/plan">{{ ui.icon("arrow-left", 14) }}뒤로가기</a></div>
+  <p class="s-sample-line"><span class="s-sample-tag">샘플 모드</span><span>가상의 거래내역으로 분석을 체험해요.</span></p>
+  <noscript><p class="note">샘플 분석과 분류 수정은 JavaScript를 켜면 체험할 수 있어요. 실제 파일은 전송하지 않아요.</p></noscript>
+        <section class="s-panel s-upload-panel" aria-label="거래내역 파일 선택">
+          <div class="s-panel-head"><div><h2>거래내역 추가</h2><p class="s-panel-sub">엑셀(.xlsx)·CSV · 최대 2MB</p></div><span class="s-icon">{{ ui.icon("document", 20) }}</span></div>
+          <div class="s-file-box">{{ ui.icon("document", 20) }}<div><p class="s-file-name" data-file-name>샘플_거래내역.csv</p><p class="s-file-help" data-file-help>가상의 거래 10건이 준비돼 있어요.</p></div></div>
+          <input type="file" accept=".xlsx,.csv" data-file-input hidden aria-label="소비 분석용 엑셀 또는 CSV 파일 선택">
+          <div class="s-upload-actions"><button type="button" class="s-button " data-pick>{{ ui.icon("arrow-up", 20) }}파일 선택</button><button type="button" class="s-button s-primary " data-analyze>{{ ui.icon("plan", 20) }}샘플 분석하기</button></div>
+          <p class="s-upload-note">선택한 파일은 읽거나 전송하지 않아요.<br>분석 결과는 파일과 관계없는 샘플 거래예요.</p>
+          <p class="s-error" data-file-error role="alert" hidden></p>
+          <div class="s-progress-area" data-loading hidden role="status" aria-live="polite"><div class="s-progress-top"><span>샘플 분석을 준비하고 있어요</span><span data-progress-text>0%</span></div><div class="s-progress" role="progressbar" aria-label="샘플 분석 진행" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span data-progress-fill></span></div></div>
+        </section>
+        <section class="s-panel s-empty" data-await hidden><span class="s-icon">{{ ui.icon("document", 20) }}</span><h2>파일 선택이 끝났어요</h2><p>‘샘플 분석하기’를 누르면<br>분석 화면을 체험할 수 있어요.</p></section>
+        <section class="s-panel s-empty" data-empty hidden><span class="s-icon">{{ ui.icon("document", 20) }}</span><h2>아직 분석할 거래가 없어요</h2><p>거래내역 파일을 선택하거나<br>샘플 분석으로 먼저 살펴보세요.</p></section>
+        <section class="s-panel s-empty" data-load-error hidden role="alert"><span class="s-icon">{{ ui.icon("question", 20) }}</span><h2>분석 결과를 불러오지 못했어요</h2><p>불러오기 실패 상황의 예시예요.<br>샘플 분석을 다시 시작할 수 있어요.</p><button type="button" class="s-button s-primary " data-retry>다시 분석하기</button></section>
+        <div data-analysis>
+          <div class="s-metrics">
+            <section class="s-metric s-metric-total"><p class="s-metric-label">{{ sample.month_label }} 총 지출</p><div class="s-number"><strong data-total>891,800</strong><span>원</span></div><p class="s-metric-note">샘플 거래 10건의 합계예요.</p></section>
+            <section class="s-metric"><p class="s-metric-label">고정비 · 예시</p><div class="s-number"><strong data-fixed>627,800</strong><span>원</span></div><p class="s-metric-note">정기결제 2건 포함</p></section>
+            <section class="s-metric"><p class="s-metric-label">변동비 · 예시</p><div class="s-number"><strong data-variable>264,000</strong><span>원</span></div><p class="s-metric-note">식비·쇼핑 등 생활 지출</p></section>
+          </div>
+          <div class="s-grid">
+            <section class="s-panel" aria-label="카테고리별 샘플 지출"><div class="s-panel-head"><div><h2>어디에 많이 썼을까요?</h2><p class="s-panel-sub">카테고리별 지출 · 단위: 원</p></div><span class="s-icon">{{ ui.icon("plan", 20) }}</span></div><div class="s-chart" data-chart></div></section>
+            <section class="s-panel"><div class="s-panel-head"><div><h2>상위 지출</h2><p class="s-panel-sub">금액이 큰 거래부터 5건</p></div><span class="s-icon">{{ ui.icon("plan", 20) }}</span></div><div data-top-list></div></section>
+          </div>
+          <section class="s-panel s-transactions-panel" aria-label="거래별 카테고리 수정">
+            <div class="s-panel-head"><div><h2>거래별 분류 확인</h2><p class="s-panel-sub">분류를 바꾸면 차트에 바로 반영돼요.</p></div><span class="s-count" data-row-count>최근 5건</span></div>
+            <table class="s-transactions"><caption class="s-sr">샘플 거래의 날짜, 가맹점, 금액과 수정 가능한 분류</caption><thead><tr><th scope="col">날짜</th><th scope="col">가맹점</th><th scope="col">금액</th><th scope="col">분류</th></tr></thead><tbody data-rows>
+{% for row in sample.rows | reverse %}
+<tr data-transaction-row="{{ row.id }}" {% if loop.index > 5 %}hidden{% endif %}>
+  <td class="s-date">{{ row.date[5:] | replace('-', '.') }}</td>
+  <td class="s-merchant">{{ row.merchant }}{% if row.fixed %}<small class="s-fixed-label">{% if row.category == '구독' %}정기결제{% else %}고정비{% endif %} · 예시</small>{% endif %}</td>
+  <td class="s-amount">{{ '{:,}'.format(row.amount) }}원</td>
+  <td><label class="sr-only" for="spending-category-{{ row.id }}">{{ row.merchant }} 거래 분류</label>
+    <select id="spending-category-{{ row.id }}" class="s-category" data-profile-select data-transaction="{{ row.id }}" data-changed="false">
+      {% for category in sample.categories %}<option value="{{ category }}" {% if row.category == category %}selected{% endif %}>{{ category }}</option>{% endfor %}
+    </select>
+  </td>
+</tr>
+{% endfor %}
+</tbody></table>
+            <div class="s-more-row"><button type="button" class="s-button " data-more>나머지 5건 보기</button></div>
+            <p class="s-live" data-change-status role="status" aria-live="polite">분류 수정은 이 샘플에만 반영돼요.</p>
+          </section>
+        </div>
+        <p class="s-live" data-live role="status" aria-live="polite"></p>
+
+</div>
+<script id="spending-preview-config" type="application/json">{{ sample | tojson }}</script>
+{% endblock %}
+{% block page_scripts %}<script src="/static/js/spending.js?v={{ asset_version }}" defer></script>{% endblock %}
