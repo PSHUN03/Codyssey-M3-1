@@ -2,6 +2,7 @@
 .fe05-plan-entry { display: flex; justify-content: flex-end; margin: -10px 0 24px; }
 #receipt-page { --r-ink: var(--ink); --r-deep: var(--ink-deep); --r-body: var(--body); --r-muted: var(--mute); --r-canvas: var(--canvas); --r-white: var(--surface); --r-purple: var(--lime); --r-active: var(--lime-active); --r-pale: var(--lime-pale); --r-line: #e8e1f5; --r-paper-line: #e1dbea; --r-error: var(--negative-deep); --r-warning: #855000; --r-warning-bg: #fff6e8; }
 #receipt-page [hidden] { display: none !important; }
+#receipt-page input { font-family: var(--font-body); }
 #receipt-page .receipt-page-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; }
 #receipt-page .receipt-back { align-self: start; min-height: 44px; padding: 8px 10px; font-size: 12px; line-height: 1.5; border-radius: 16px; gap: 4px; }
 #receipt-page .receipt-sample-line { margin: -6px 0 20px; font-size: 13px; font-weight: 500; line-height: 1.7; }
