@@ -1,0 +1,30 @@
+<section class="card fe01-card fe01-weekly" aria-labelledby="fe01-week-title">
+  <div class="fe01-card-head">
+    <div><p class="label">한 번만 눌러 기록해요 <span class="fe01-sample">샘플 데이터</span></p><h2 class="card-title" id="fe01-week-title">이번 주 냈나요?</h2><p class="fe01-date">{{ fe01_config.week_label }}</p></div>
+    <span class="fe01-icon" aria-hidden="true">{{ ui.icon("check", 20) }}</span>
+  </div>
+  <div class="fe01-answers" role="group" aria-label="이번 주 납입 여부">
+    <button class="fe01-answer" type="button" data-fe01-weekly="paid" aria-pressed="false">냈어요</button>
+    <button class="fe01-answer" type="button" data-fe01-weekly="missed" aria-pressed="false">못 냈어요</button>
+  </div>
+  <p class="fe01-status" data-fe01-week-status role="status" aria-live="polite">이번 주 저축 여부를 알려 주세요.</p>
+  <a class="btn btn-secondary btn-sm" href="/coach" data-fe01-coach hidden>코치와 이야기하기 {{ ui.icon("arrow-right", 16) }}</a>
+  <p class="field-help fe01-disclaimer">연습용 기록이며 실제 저축 내역으로 저장되지 않아요.</p>
+</section>
+<section class="card fe01-card fe01-monthly" aria-labelledby="fe01-month-title">
+  <div class="fe01-card-head">
+    <div><p class="label">실제로 모은 금액 <span class="fe01-sample">샘플 데이터</span></p><h2 class="card-title" id="fe01-month-title">이번 달 얼마 모았나요?</h2><p class="fe01-date">{{ fe01_config.month_label }}</p></div>
+    <span class="fe01-icon" aria-hidden="true">{{ ui.icon("plan", 20) }}</span>
+  </div>
+  <form data-fe01-month-form novalidate>
+    <label class="field-label fe01-amount-label" for="fe01-amount">{{ fe01_config.month_label }} 저축 금액</label>
+    <div class="fe01-input-row">
+      <span class="fe01-money-input"><input id="fe01-amount" name="sample_amount" type="number" inputmode="numeric" min="0" max="1000000" step="1" required value="65" aria-describedby="fe01-amount-help fe01-amount-error"><span>만 원</span></span>
+      <button class="btn btn-primary" type="submit">샘플 기록하기</button>
+    </div>
+    <p class="field-help" id="fe01-amount-help">같은 달 기록은 입력한 금액으로 바뀌어요.</p>
+    <p class="field-error" id="fe01-amount-error" role="alert" hidden></p>
+    <p class="fe01-status" data-fe01-month-status role="status" aria-live="polite">샘플 데이터를 불러오고 있어요.</p>
+  </form>
+  <a class="link-more" href="/progress">월별 저축 기록 보기 {{ ui.icon("chevron-right", 16) }}</a>
+</section>

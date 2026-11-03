@@ -1,0 +1,35 @@
+{% import "_macros.html" as ui %}
+{% set page = "progress" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}저축 기록과 진행률{% endblock %}
+{% block content %}
+<div data-fe01>
+  <div class="page-head fe01-page-head">
+    <div><p class="kicker">작은 기록이 목표에 가까워져요</p><h1 class="page-title">저축 기록과 진행률</h1><p class="page-sub">기록한 저축 금액을 모아 보여드려요.</p></div>
+    <a class="btn btn-secondary btn-sm" href="/home#fe01-month-title">이번 달 기록 수정 {{ ui.icon("arrow-right", 16) }}</a>
+  </div>
+  <p class="fe01-sample-notice"><span class="fe01-sample">샘플 데이터</span> 연습용 목표·기록이에요. 실제 내 저축 내역과 연결되지 않아요.</p>
+  <div class="fe01-progress-grid">
+    <section class="card" aria-labelledby="fe01-goal-title">
+      <p class="label">샘플 목표</p><h2 class="card-title" id="fe01-goal-title">{{ fe01_config.goal.name }}</h2>
+      <p class="fe01-progress-amount"><strong data-fe01-total>320만 원</strong><span>/ {{ fe01_config.goal.amount | won }}</span></p>
+      <div class="progress fe01-progress-track" data-fe01-progress role="progressbar" aria-label="샘플 목표 저축 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10.7"><span data-fe01-fill style="width:10.7%"></span></div>
+      <div class="fe01-progress-meta"><strong data-fe01-percent>10.7% 달성</strong><span data-fe01-remaining>샘플 데이터를 불러오고 있어요.</span></div>
+      <p class="card-foot">아래 월별 샘플 기록의 합계를 기준으로 해요.</p>
+    </section>
+    <section class="card">
+      <p class="label">{{ fe01_config.month_label }} 샘플 기록</p><h2 class="card-title">이번 달 모은 금액</h2>
+      <p class="fe01-current"><strong data-fe01-current>65만 원</strong><span data-fe01-comparison></span></p>
+      <a class="link-more" href="/home#fe01-month-title">금액 수정하기 {{ ui.icon("chevron-right", 16) }}</a>
+    </section>
+  </div>
+  <div class="fe01-progress-grid fe01-progress-lower">
+    <section class="card" aria-labelledby="fe01-chart-title">
+      <div class="fe01-card-head"><div><h2 class="card-title" id="fe01-chart-title">월별 저축 추이</h2><p class="fe01-date">최근 6개월 샘플 기록 · 단위: 만 원</p></div><span class="fe01-icon" aria-hidden="true">{{ ui.icon("plan", 20) }}</span></div>
+      <div class="fe01-chart" data-fe01-chart aria-live="polite"></div>
+    </section>
+    <section class="card" aria-labelledby="fe01-records-title"><h2 class="card-title" id="fe01-records-title">최근 저축 기록</h2><p class="card-sub">월별로 마지막에 기록한 샘플 금액이에요.</p><div data-fe01-records class="fe01-records"></div></section>
+  </div>
+</div>
+{% include "_fe01_config.html" %}
+{% endblock %}
