@@ -37,7 +37,7 @@ function initPageFeedback() {
   const pendingForms = new Map();
   const fieldError = (control, message) => {
     const field = control.closest(".field");
-    if (!field) return;
+    if (!field) return false;
     if (!control.id) control.id = `feedback-field-${++fieldId}`;
     const label = $(".field-label", field);
     if (label) {
@@ -58,6 +58,7 @@ function initPageFeedback() {
     else { control.removeAttribute("aria-invalid"); describedBy.delete(id); }
     if (describedBy.size) control.setAttribute("aria-describedby", [...describedBy].join(" "));
     else control.removeAttribute("aria-describedby");
+    return true;
   };
   document.addEventListener("invalid", (event) => {
     const control = event.target;
@@ -68,8 +69,8 @@ function initPageFeedback() {
       ? control.type === "checkbox" ? "필수 동의를 확인해 주세요." : `${label.trim()} 항목을 입력해 주세요.`
       : control.type === "email" ? "이메일 주소 형식을 확인해 주세요."
         : control.title || "입력 형식과 범위를 확인해 주세요.";
-    fieldError(control, message);
-    formFeedback(control.form, message, "error");
+    // A field-level error is enough; controls without one keep the form fallback.
+    if (!fieldError(control, message)) formFeedback(control.form, message, "error");
     const first = Array.from(control.form.elements).find((el) => el.willValidate && !el.validity.valid);
     if (control === first) control.focus();
   }, true);
