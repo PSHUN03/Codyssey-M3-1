@@ -85,6 +85,14 @@
   </section>
   </div>
 
+  {% if weekly %}
+  <section class="card span-12">
+    <h2 class="card-title">이번 주 리포트</h2>
+    <p class="muted-line">{{ weekly.week }} 주 · 저장된 계획 기준</p>
+    <p style="white-space: pre-line">{{ weekly.body }}</p>
+  </section>
+  {% endif %}
+
   <section class="card span-7">
     <div class="card-head">
       <h2 class="card-title">챙길 수 있는 혜택</h2>
