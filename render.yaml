@@ -1,0 +1,28 @@
+# Render Blueprint — 대시보드 New > Blueprint 에서 이 저장소를 선택하면 아래 구성으로 배포됩니다.
+# SECRET_KEY·INTERNAL_API_KEY는 Render가 임의 값을 생성하므로 사람이 비밀값을 다룰 필요가 없습니다.
+# ANTHROPIC_API_KEY는 sync: false 이므로 배포 후 대시보드에서 직접 입력하세요.
+services:
+  - type: web
+    name: sadari
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: INTERNAL_API_KEY
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: COACH_MODEL
+        value: claude-opus-5-5
+      - key: FAST_MODEL
+        value: claude-haiku-4-5
+      # 사용자 테스트 전(10/20 전후)에 Render PostgreSQL을 만들고 DATABASE_URL을 연결하세요.
+      # 무료 DB는 생성 30일 후 만료되므로 발표일(11/12~13) 이후에 만료되도록 늦게 만드는 것이 좋습니다.
+      # 연결 전에는 SQLite를 쓰며, 무료 인스턴스가 재시작되면 데이터가 초기화됩니다.

@@ -1,0 +1,64 @@
+{% import "_macros.html" as ui %}
+{% set page = "benefit" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}{{ policy.name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="/benefits">{{ ui.icon("arrow-left", 18) }}혜택 목록</a>
+
+<div class="page-head detail-head">
+  <div>
+    <p class="kicker">{{ policy.category }} · {{ policy.agency }}</p>
+    <h1 class="page-title">{{ policy.name }}</h1>
+    <p class="status status-{{ {'eligible': 'ok', 'check': 'warn', 'closed': 'muted', 'ineligible': 'bad'}[result.status] }}">{{ result.status_label }}</p>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="span-7 stack">
+    <section class="card">
+      <p class="lead-text">{{ policy.summary }}</p>
+      {% if result.estimate %}<p class="estimate-box">{{ result.estimate.label }}</p>{% endif %}
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">내 조건과 비교</h2>
+      <ul class="checks">
+        {% for c in result.checks %}
+        <li>
+          {% if c.ok %}<span class="check-icon is-ok">{{ ui.icon("check") }}</span>
+          {% elif c.ok == false %}<span class="check-icon is-no">{{ ui.icon("x") }}</span>
+          {% else %}<span class="check-icon is-unknown">{{ ui.icon("question") }}</span>{% endif %}
+          <div><strong>{{ c.label }}</strong><span>{{ c.detail }}</span></div>
+        </li>
+        {% endfor %}
+        {% for u in result.unknown %}
+        <li><span class="check-icon is-unknown">{{ ui.icon("question") }}</span><div><strong>따로 확인</strong><span>{{ u }}</span></div></li>
+        {% endfor %}
+      </ul>
+      <span class="sr-only">초록 체크는 맞는 조건, 빨간 표시는 맞지 않는 조건, 물음표는 확인이 필요한 조건이에요.</span>
+    </section>
+  </div>
+
+  <div class="span-5 stack">
+    <section class="card detail-sections">
+      <div><h2>혜택</h2><p>{{ policy.benefit }}</p></div>
+      <div><h2>자격 요건</h2><p>{{ policy.eligibility_text }}</p></div>
+      <div><h2>신청 방법</h2><p>{{ policy.how_to_apply }}</p></div>
+      <div><h2>신청 기간</h2><p>{{ policy.apply_period }}</p></div>
+      {% if policy.caution %}<p class="note note-warn"><strong>알아 둘 점</strong> {{ policy.caution }}</p>{% endif %}
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">출처</h2>
+      <ul class="source-list">
+        {% for s in policy.sources %}
+        <li><a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.name }}{{ ui.icon("external", 14) }}</a></li>
+        {% endfor %}
+      </ul>
+      <p class="card-foot">{{ meta.as_of }} 기준으로 정리했어요. 공식 공고와 다르면 공고가 맞아요.</p>
+    </section>
+
+    <a class="btn btn-primary btn-block" href="/coach?q={{ (policy.name ~ ' 저한테 맞는지, 얼마씩 넣으면 좋을지 알려주세요') | urlencode }}">코치에게 물어보기</a>
+  </div>
+</div>
+{% endblock %}

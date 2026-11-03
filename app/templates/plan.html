@@ -1,0 +1,157 @@
+{% import "_macros.html" as ui %}
+{% set page = "plan" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}월급 배분{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="kicker">내 돈 관리 계획</p>
+    <h1 class="page-title">목표 저축을<br class="plan-title-break"> 시작할 수 있어요.</h1>
+    {% if plan %}<p class="page-sub">입력한 금액으로 살펴본 결과예요.</p>{% endif %}
+  </div>
+  {% if plan %}<button class="btn btn-ghost btn-sm" data-action="regenerate">다시 계산</button>{% endif %}
+</div>
+
+{% if not plan %}
+<section class="card">
+  <p>아직 플랜이 없어요.</p>
+  <button class="btn btn-primary" data-action="regenerate">플랜 만들기</button>
+</section>
+{% else %}
+{% set goal = plan.summary.goal %}
+{% set fixed_total = plan.allocations | selectattr("kind", "equalto", "fixed") | sum(attribute="amount") %}
+{% set living_total = plan.allocations | selectattr("kind", "equalto", "living") | sum(attribute="amount") %}
+{% set emergency_total = plan.allocations | selectattr("key", "equalto", "emergency") | sum(attribute="amount") %}
+{% set goal_total = plan.allocations | selectattr("key", "equalto", "goal") | sum(attribute="amount") %}
+{% set unallocated_total = plan.summary.monthly_income - (plan.allocations | sum(attribute="amount")) %}
+<div class="grid plan-dashboard">
+  <section class="card plan-savings" role="group" aria-label="저축 요약과 목표">
+    <div class="plan-savings-total">
+      <p class="label">매달 남는 돈</p>
+      <p class="big-num">{{ plan.summary.total_saving | won }}</p>
+      <p class="muted-line">월급 {{ plan.summary.monthly_income | won }}의 {{ (plan.summary.savings_rate * 100) | round | int }}%</p>
+    </div>
+    {% if goal %}
+    <div class="goal-mini">
+      <span class="goal-mini-icon" aria-hidden="true">{{ ui.icon("flag", 18) }}</span>
+      <p class="label">나의 저축 목표</p>
+      <strong>{{ user.profile.goal_text }}</strong>
+      <span>매달 {{ goal.monthly_planned | won }} · {{ goal.target_months }}개월 목표</span>
+    </div>
+    {% endif %}
+    <div class="plan-actions">
+      <a class="btn btn-primary btn-block btn-arrow" href="/benefits">청년 혜택 살펴보기 {{ ui.icon("arrow-right", 16) }}</a>
+      <a class="plan-edit-link" href="/settings">입력한 정보 수정하기</a>
+    </div>
+  </section>
+
+  <section class="card plan-breakdown">
+    <div class="card-head plan-breakdown-head">
+      <h2 class="card-title">이번 달 월급 나누기</h2>
+      <span class="card-sub">입력값 기준 · 만 원</span>
+    </div>
+    <p class="plan-income">한 달 수입 <strong>{{ plan.summary.monthly_income | won }}</strong></p>
+    <div class="stack-bar" role="img" aria-label="월급 배분">
+      {% if fixed_total %}<span class="k-fixed" style="flex:{{ fixed_total }}" title="고정비·상환"></span>{% endif %}
+      {% if living_total %}<span class="k-living" style="flex:{{ living_total }}" title="생활비"></span>{% endif %}
+      {% if emergency_total %}<span class="k-emergency" style="flex:{{ emergency_total }}" title="비상금"></span>{% endif %}
+      {% if goal_total %}<span class="k-saving" style="flex:{{ goal_total }}" title="목표 저축"></span>{% endif %}
+      {% if unallocated_total > 0 %}<span class="k-unallocated" style="flex:{{ unallocated_total }}" title="남은 금액"></span>{% endif %}
+    </div>
+    <ul class="alloc plan-alloc">
+      {% if fixed_total %}<li><span class="dot k-fixed"></span><span class="alloc-name">고정비·상환</span><span class="alloc-amt">{{ fixed_total | won }}</span><span class="alloc-pct">{{ ((fixed_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if living_total %}<li><span class="dot k-living"></span><span class="alloc-name">생활비</span><span class="alloc-amt">{{ living_total | won }}</span><span class="alloc-pct">{{ ((living_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if emergency_total %}<li><span class="dot k-emergency"></span><span class="alloc-name">비상금</span><span class="alloc-amt">{{ emergency_total | won }}</span><span class="alloc-pct">{{ ((emergency_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if goal_total %}<li><span class="dot k-saving"></span><span class="alloc-name">목표 저축</span><span class="alloc-amt">{{ goal_total | won }}</span><span class="alloc-pct">{{ ((goal_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+      {% if unallocated_total > 0 %}<li><span class="dot k-unallocated"></span><span class="alloc-name">남은 금액</span><span class="alloc-amt">{{ unallocated_total | won }}</span><span class="alloc-pct">{{ ((unallocated_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
+    </ul>
+    <p class="card-foot">금액은 AI가 아니라 계산 엔진이 정해진 규칙({{ plan.rule_version }})으로 계산해요.</p>
+  </section>
+
+  <section class="card plan-goal">
+    {% if goal %}
+    <p class="label">나의 저축 목표</p>
+    <h2 class="goal-name">{{ user.profile.goal_text }}</h2>
+    <p class="goal-target">
+      {% if goal.feasible %}{{ goal.target_months }}개월 안에 목표를 이룰 수 있어요.
+      {% elif goal.months_needed %}현재 계획대로면 약 {{ goal.months_needed }}개월 걸려요.
+      {% else %}기간 안에 모으려면 월 {{ goal.monthly_needed | won }}이 필요해요.{% endif %}
+    </p>
+    <dl class="kv">
+      <dt>목표 기간</dt><dd>{{ goal.target_months }}개월</dd>
+      <dt>필요한 저축</dt><dd>월 {{ goal.monthly_needed | won }}</dd>
+      <dt>지금 계획</dt><dd>월 {{ goal.monthly_planned | won }}</dd>
+    </dl>
+    {% if goal.feasible %}
+    <p class="status status-ok">계획대로면 기간 안에 모을 수 있어요</p>
+    {% else %}
+    <p class="note note-warn">현재 계획으로는 목표 기간보다 더 걸릴 수 있어요. 생활비나 기간을 코치와 조정할 수 있어요.</p>
+    <a class="btn btn-secondary btn-sm card-action" href="/coach?q={{ '목표를 현실적으로 조정하고 싶어요' | urlencode }}">코치와 조정하기</a>
+    {% endif %}
+    {% else %}
+    <p class="label">나의 저축 목표</p>
+    <h2 class="card-title">목표를 정해 볼까요?</h2>
+    <p class="page-sub">진단 정보를 수정하면 목표에 맞는 저축 계획을 계산할 수 있어요.</p>
+    <a class="btn btn-secondary btn-sm card-action" href="/settings">내 정보 수정하기</a>
+    {% endif %}
+  </section>
+
+  <section class="card plan-explanation">
+    <div class="card-head">
+      <h2 class="card-title">이렇게 나눈 이유</h2>
+      {% if plan.explanation_by_ai %}<span class="ai-label">AI 설명</span>{% endif %}
+    </div>
+    <p class="prose">{{ plan.explanation | md }}</p>
+  </section>
+
+  {% if segment %}
+  <section class="card span-12 segment" aria-labelledby="segment-name">
+    <p class="label">진단 결과</p>
+    <h2 class="segment-name" id="segment-name"><span class="segment-code">{{ segment.code }}</span>{{ segment.name }}</h2>
+    <p class="segment-reason">{{ segment.reason }}</p>
+    <h3 class="segment-sub">먼저 할 일</h3>
+    <ol class="segment-actions">{% for a in segment.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+    <div class="segment-links">
+      {% for link in segment.links %}<a class="btn btn-sm {{ 'btn-primary' if loop.first else 'btn-secondary' }}" href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
+    </div>
+    <details class="segment-rules">
+      <summary>유형을 나누는 기준</summary>
+      <ul>{% for code, s in segments.items() | sort %}<li{% if code == segment.code %} class="is-current"{% endif %}><b>{{ code }} {{ s.name }}</b> {{ s.rule }}</li>{% endfor %}</ul>
+      <p class="card-foot">A, D, B, C 순서로 확인해요. 적자라면 적자 대응이, 이미 넣고 있는 돈이 있다면 유지가 먼저라서예요. AI가 아니라 계산 엔진이 규칙({{ segment_rule_version }})으로 정해요.</p>
+    </details>
+  </section>
+  {% endif %}
+
+  <section class="card span-12 plan-simulator">
+    <h2 class="card-title">적금으로 모으면</h2>
+    <form id="simulate-form" class="sim-form" novalidate>
+      <div class="seg" role="radiogroup" aria-label="상품">
+        <label><input type="radio" name="product" value="general" checked><span>일반 적금</span></label>
+        <label><input type="radio" name="product" value="youth_future_savings"><span>청년미래적금</span></label>
+      </div>
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">매달 넣을 돈</span>
+          <span class="money-input"><input name="monthly_amount" inputmode="numeric" autocomplete="off" value="{{ ((plan.allocations | selectattr('key', 'equalto', 'goal') | sum(attribute='amount')) // 10000) or 30 }}"><span class="unit">만 원</span></span>
+        </label>
+        <label class="field" id="sim-months-field">
+          <span class="field-label">기간</span>
+          <span class="money-input"><input name="months" inputmode="numeric" autocomplete="off" value="24"><span class="unit">개월</span></span>
+        </label>
+      </div>
+      <p class="field-help" id="sim-help">연 3.5% 단리, 이자소득세 15.4%를 가정해요.</p>
+      <button class="btn btn-secondary" type="submit">계산하기</button>
+    </form>
+    <div id="simulate-result" class="sim-result" aria-live="polite"><p class="field-help">매달 넣을 돈과 기간을 입력하고 계산하기를 눌러 주세요.</p></div>
+  </section>
+
+  <section class="card span-12">
+    <div class="card-head">
+      <h2 class="card-title">계산에 쓴 내 정보</h2>
+      <a class="link-more" href="/settings">고치기</a>
+    </div>
+    <dl class="facts">{% for label, value in facts %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>
+  </section>
+</div>
+{% endif %}
+{% endblock %}
