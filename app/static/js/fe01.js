@@ -240,7 +240,9 @@
         error.hidden = false; input.setAttribute("aria-invalid", "true"); input.focus();
       }
     });
-    input?.addEventListener("input", () => {
+    input?.addEventListener("input", event => {
+      // This field validates the full value; the legacy numeric filter strips signs and decimals.
+      event.stopPropagation();
       try { parseMan(input.value); input.removeAttribute("aria-invalid"); root.querySelector("#fe01-amount-error").hidden = true; } catch { /* Keep the inline error until the value is valid. */ }
     });
     window.addEventListener("pageshow", event => {
