@@ -7,7 +7,6 @@ from types import SimpleNamespace
 
 from app.services.account import DEMO_PROFILE
 from app.services.policies import eligibility, repository
-
 from tests.conftest import agree, onboard, signup
 
 
