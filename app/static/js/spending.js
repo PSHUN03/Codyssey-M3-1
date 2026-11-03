@@ -1,6 +1,8 @@
 /* FE-02 sample adapter: never reads a file, calls an API, or persists financial data. */
 (function () {
   "use strict";
+  const contract = typeof module !== "undefined" && module.exports
+    ? require("./spending-contract.js") : globalThis.SadariSpendingContract;
   const MAX_BYTES = 2 * 1024 * 1024;
   function validateFile(file) {
     if (!file) return "";
@@ -22,6 +24,7 @@
   if (!root) return;
   const config = JSON.parse(document.getElementById("spending-preview-config").textContent);
   if (config.mode !== "sample") return;
+  const { rows: sampleRows, categories: sampleCategories } = contract.createSampleSource(config).read();
   const find = selector => root.querySelector(selector), all = selector => [...root.querySelectorAll(selector)];
   const format = value => new Intl.NumberFormat("ko-KR").format(value), won = value => format(value) + "원";
   const state = { stage: config.example, categories: {}, expanded: false, fileName: "", progress: 0 };
@@ -37,7 +40,7 @@
   function drawChart() {
     const chart = find("[data-chart]"), width = Math.floor(chart.getBoundingClientRect().width);
     if (state.stage !== "result" || width < 100) return;
-    const groups = summarize(config.rows, state.categories, config.categories).groups;
+    const groups = summarize(sampleRows, state.categories, sampleCategories).groups;
     const key = width + JSON.stringify(groups);
     if (key === chartKey) return;
     chartKey = key;
@@ -57,7 +60,7 @@
     if (chartSeen) chart.classList.add("is-settled");
   }
   function renderResults() {
-    const data = summarize(config.rows, state.categories, config.categories);
+    const data = summarize(sampleRows, state.categories, sampleCategories);
     find("[data-total]").textContent = format(data.total);
     find("[data-fixed]").textContent = format(data.fixed);
     find("[data-variable]").textContent = format(data.variable);
@@ -99,7 +102,7 @@
       if (token !== generation) return;
       state.stage = "result"; state.categories = {}; state.expanded = false;
       resetting = true;
-      all("[data-transaction]").forEach(select => { select.value = config.rows.find(row => String(row.id) === select.dataset.transaction).category; select.dataset.changed = "false"; select.dispatchEvent(new Event("change")); });
+      all("[data-transaction]").forEach(select => { select.value = sampleRows.find(row => String(row.id) === select.dataset.transaction).category; select.dataset.changed = "false"; select.dispatchEvent(new Event("change")); });
       resetting = false;
       render(); find("[data-change-status]").textContent = "분류 수정은 이 샘플에만 반영돼요.";
       find("[data-live]").textContent = "샘플 거래 10건의 분석 결과를 준비했어요. 선택한 파일의 실제 분석 결과는 아니에요.";
@@ -107,7 +110,7 @@
   }
   all("[data-transaction]").forEach(select => select.addEventListener("change", () => {
     if (resetting) return;
-    const original = config.rows.find(row => String(row.id) === select.dataset.transaction);
+    const original = sampleRows.find(row => String(row.id) === select.dataset.transaction);
     if (select.value === original.category) delete state.categories[original.id]; else state.categories[original.id] = select.value;
     select.dataset.changed = String(select.value !== original.category);
     renderResults();

@@ -65,6 +65,6 @@ def test_sample_page_does_not_supply_a_fake_transaction_api(client):
 @pytest.mark.skipif(shutil.which('node') is None, reason='Node is needed for frontend regressions')
 def test_spending_frontend_validation_and_summary():
     root = Path(__file__).resolve().parents[1]
-    result = subprocess.run([shutil.which('node'), '--test', 'tests/frontend/spending.test.cjs'],
+    result = subprocess.run([shutil.which('node'), '--test', 'tests/frontend/spending.test.cjs', 'tests/frontend/spending-contract.test.cjs'],
                             cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=20, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
