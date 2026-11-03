@@ -45,7 +45,8 @@
 .fe01-record strong { color: var(--ink); font-weight: 600; white-space: nowrap; }
 .fe01-record:first-child strong { color: var(--lime); }
 @media (min-width: 900px) {
-  .fe01-card { grid-column: span 6; }
+  .fe01-weekly { grid-column: span 7; }
+  .fe01-monthly { grid-column: span 5; }
   .fe01-checkins { grid-template-columns: repeat(12, minmax(0, 1fr)); margin-top: 24px; }
   .fe01-progress-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 24px; }
   .fe01-progress-lower { margin-top: 24px; }
