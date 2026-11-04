@@ -902,6 +902,7 @@ function initCoach() {
   const chat = $("#chat"), form = $("#chat-form"), input = $("#chat-input"), sendBtn = $(".send-btn", form);
   const dialog = $("#feedback-dialog");
   const coachStatus = $("#coach-status");
+  const newConversationButton = $("#coach-new-conversation");
   let busy = false;
   const feedbackComment = dialog && $("textarea", dialog);
   const feedbackError = $("#feedback-comment-error");
@@ -946,6 +947,7 @@ function initCoach() {
     setFeedback($("#coach-feedback"), "");
     busy = true;
     sendBtn.disabled = true;
+    if (newConversationButton) newConversationButton.disabled = true;
     coachStatus.textContent = "코치가 답변을 준비하고 있어요";
     $("#suggestions")?.remove();
     const question = addMessage(chat, "user", escapeHtml(text));
@@ -963,6 +965,7 @@ function initCoach() {
     finally {
       busy = false;
       sendBtn.disabled = false;
+      if (newConversationButton) newConversationButton.disabled = false;
       coachStatus.textContent = "";
       input.focus({ preventScroll: true });
     }

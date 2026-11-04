@@ -2,6 +2,11 @@
 {% set page = "coach" %}{% set nav = true %}{% set body_class = "page-coach" %}
 {% extends "base.html" %}
 {% block title %}코치{% endblock %}
+{% block header_end %}
+<form method="post" action="/api/coach/new-session" class="coach-new-form" data-feedback-target="coach-feedback">
+  <button type="submit" class="btn btn-secondary btn-sm" id="coach-new-conversation">새 대화</button>
+</form>
+{% endblock %}
 {% block content %}
 <div class="coach{{ ' coach-is-empty' if not messages else '' }}">
   <div class="coach-welcome">
