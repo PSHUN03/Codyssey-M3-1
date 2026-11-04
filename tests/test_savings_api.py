@@ -1,4 +1,3 @@
-
 from tests.conftest import agree, onboard, signup
 
 
@@ -11,29 +10,40 @@ def setup_user(client, email):
 def test_weekly_savings_check_create_and_update(client):
     setup_user(client, "weekly@test.com")
 
-    response = client.post(
+    response = client.put(
         "/api/savings/weekly-check",
-        json={"week": "2026-W45", "deposited": True},
+        json={"week": "2026-W45", "paid": True},
     )
 
     assert response.status_code == 200
-    assert response.json()["deposited"] is True
+    assert response.json()["paid"] is True
 
-    response = client.post(
+    response = client.put(
         "/api/savings/weekly-check",
-        json={"week": "2026-W45", "deposited": False},
+        json={"week": "2026-W45", "paid": False},
     )
 
     assert response.status_code == 200
-    assert response.json()["deposited"] is False
+    assert response.json()["paid"] is False
 
 
 def test_weekly_savings_check_invalid_week(client):
     setup_user(client, "weekly-invalid@test.com")
 
-    response = client.post(
+    response = client.put(
         "/api/savings/weekly-check",
-        json={"week": "2026-99", "deposited": True},
+        json={"week": "2026-99", "paid": True},
+    )
+
+    assert response.status_code == 422
+
+
+def test_weekly_savings_check_nonexistent_week(client):
+    setup_user(client, "weekly-nonexistent@test.com")
+
+    response = client.put(
+        "/api/savings/weekly-check",
+        json={"week": "2025-W53", "paid": True},
     )
 
     assert response.status_code == 422

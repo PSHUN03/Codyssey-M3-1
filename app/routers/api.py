@@ -77,10 +77,10 @@ def simulate(payload: SimulateIn, user: User = Depends(require_onboarded), db: S
 
 class WeeklySavingsIn(BaseModel):
     week: str
-    deposited: bool
+    paid: bool
 
 
-@router.post("/savings/weekly-check")
+@router.put("/savings/weekly-check")
 def save_weekly_check(
     payload: WeeklySavingsIn,
     user: User = Depends(require_onboarded),
@@ -88,6 +88,16 @@ def save_weekly_check(
 ):
     if not re.fullmatch(r"\d{4}-W(?:0[1-9]|[1-4]\d|5[0-3])", payload.week):
         raise HTTPException(status_code=422, detail="Invalid week")
+
+    year = int(payload.week[:4])
+    week = int(payload.week[6:])
+
+    try:
+        from datetime import date
+
+        date.fromisocalendar(year, week, 1)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid week") from None
 
     record = db.scalar(
         select(WeeklySavingsCheck).where(
@@ -100,18 +110,18 @@ def save_weekly_check(
         record = WeeklySavingsCheck(
             user_id=user.id,
             week=payload.week,
-            deposited=payload.deposited,
+            deposited=payload.paid,
         )
         db.add(record)
     else:
-        record.deposited = payload.deposited
+        record.deposited = payload.paid
 
     db.commit()
 
     return {
         "ok": True,
         "week": record.week,
-        "deposited": record.deposited,
+        "paid": record.deposited,
     }
 
 
