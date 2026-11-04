@@ -1,4 +1,4 @@
-/* FE-01: 기존 보라색 토큰·카드를 재사용하는 샘플 체크인과 저축 기록. */
+/* FE-01: 기존 보라색 토큰·카드를 재사용하는 실제 기록과 명시적인 샘플. */
 [data-fe01] [hidden] { display: none !important; }
 .page-head.fe01-page-head { align-items: flex-start; flex-wrap: wrap; }
 .fe01-header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
@@ -14,6 +14,11 @@
 .fe01-answer[aria-pressed="true"] { background: var(--lime-pale); border-color: var(--lime); box-shadow: inset 0 0 0 1px var(--lime); color: var(--ink-deep); }
 .fe01-status { margin: 12px 0; min-height: 22px; color: var(--ink-deep); font-size: 13px; }
 .fe01-disclaimer { margin-top: 12px; }
+.fe01-reload { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.fe01-reload > .btn { font-size:12px; }
+.fe01-load-status { margin:-6px 0 20px; }
+.fe01-status.is-error { color:var(--negative-deep); }
+.fe01-answer:disabled { opacity:.6; cursor:wait; }
 .fe01-amount-label { display: block; margin-bottom: 8px; }
 .fe01-input-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .fe01-money-input { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 100px; min-height: 48px; border: 1px solid #b6a1e0; border-radius: 14px; padding: 8px 12px; background: var(--surface); }

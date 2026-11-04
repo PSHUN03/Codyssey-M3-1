@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from app.services.checkin_preview import sample_config
+from app.services.checkin_preview import api_config, sample_config
 
 
 def config_from(html):
@@ -36,15 +36,15 @@ def test_progress_requires_an_onboarded_session(client):
 
 def test_home_and_progress_share_sample_scope_and_show_explicit_labels(client):
     client.post("/demo")
-    home = client.get("/home")
-    progress = client.get("/progress")
+    home = client.get("/home?example=sample")
+    progress = client.get("/progress?example=sample")
     assert home.status_code == progress.status_code == 200
     assert config_from(home.text) == config_from(progress.text)
     assert "이번 주 냈나요?" in home.text
     assert "이번 달 얼마 모았나요?" in home.text
     assert "실제 저축 내역으로 저장되지 않아요" in home.text
     assert 'data-fe01-coach hidden' in home.text
-    assert 'href="/progress"' in home.text
+    assert 'href="/progress?example=sample"' in home.text
     assert "샘플 데이터" in progress.text
     assert "실제 내 저축 내역과 연결되지 않아요" in progress.text
     assert 'data-fe01-chart' in progress.text
@@ -54,11 +54,33 @@ def test_home_and_progress_share_sample_scope_and_show_explicit_labels(client):
 
 def test_new_demo_session_uses_a_different_sample_storage_scope(client):
     client.post("/demo")
-    first = config_from(client.get("/home").text)
+    first = config_from(client.get("/home?example=sample").text)
     client.post("/demo")
-    second = config_from(client.get("/home").text)
+    second = config_from(client.get("/home?example=sample").text)
     assert first["scope"] != second["scope"]
     assert first["records"] == second["records"]
+
+
+def test_default_home_progress_use_live_periods_without_sample_records(client):
+    client.post('/demo')
+    home = client.get('/home').text
+    progress = client.get('/progress').text
+    config = config_from(home)
+    assert config == config_from(progress) and config['mode'] == 'api'
+    assert 'records' not in config and 'goal' not in config
+    assert '/static/js/fe01-live.js' in home and '/static/js/fe01-live.js' in progress
+    assert '진행률 연결 준비 중' in progress and 'data-fe01-total>—' in progress
+    assert '샘플 목표' not in progress
+    assert 'href="/home#fe01-month-title"' in progress
+    assert 'data-fe01-reload="weekly"' in home
+    assert 'data-fe01-reload="savings"' in progress
+    assert '/static/js/fe01-live.js' not in client.get('/home?example=sample').text
+
+
+def test_live_period_config_crosses_iso_year_without_any_fake_financial_data():
+    config = api_config(7, date(2027, 1, 1))
+    assert config['week'] == '2026-W53' and config['month'] == '2027-01'
+    assert 'records' not in config and 'goal' not in config
 
 
 def test_plan_keeps_calculator_and_regeneration_next_to_progress_entry(client):

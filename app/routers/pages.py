@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
@@ -10,7 +12,7 @@ from app.models import User
 from app.routers.auth import next_step
 from app.services import account, planner
 from app.services.agent.memory import KINDS
-from app.services.checkin_preview import sample_config
+from app.services.checkin_preview import api_config, sample_config
 from app.services.finance.segment import SEGMENT_RULE_VERSION, SEGMENTS
 from app.services.onboarding.flow import REGIONS
 from app.services.policies import eligibility, repository
@@ -45,18 +47,19 @@ def _matches(user: User) -> list[eligibility.Eligibility]:
 
 
 @router.get("/home")
-def home(request: Request, user: User = Depends(require_onboarded)):
+def home(request: Request, example: Literal["sample"] | None = None, user: User = Depends(require_onboarded)):
     matches = [m for m in _matches(user) if m.status in ("eligible", "check")][:3]
     commitment = next((m for m in reversed(user.memories) if m.kind == "commitment"), None)
     plan = planner.latest_plan(user)
     return render(request, "home.html", user=user, plan=plan, matches=matches, commitment=commitment,
                   goal=user.goals[-1] if user.goals else None, segment=planner.plan_segment(plan, user.profile),
-                  fe01_config=sample_config(user.id))
+                  fe01_config=sample_config(user.id) if example else api_config(user.id))
 
 
 @router.get("/progress")
-def progress_page(request: Request, user: User = Depends(require_onboarded)):
-    return render(request, "progress.html", user=user, fe01_config=sample_config(user.id))
+def progress_page(request: Request, example: Literal["sample"] | None = None, user: User = Depends(require_onboarded)):
+    return render(request, "progress.html", user=user,
+                  fe01_config=sample_config(user.id) if example else api_config(user.id))
 
 
 @router.get("/plan")

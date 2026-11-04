@@ -1,5 +1,7 @@
 # FE-01: BE-04 연결 준비
 
+후속 상태: 사용자의 요청으로 현재 BE-04 구현의 저장·기록 조회를 연결했다. 이 문서는 준비 단계의 기록이며 현재 범위는 [실제 연결 기록](2026-11-04-fe01-live-api.md)을 참고한다.
+
 관련: [#14 담당자 답변](https://github.com/PSHUN03/Codyssey-M3-1/issues/14#issuecomment-6614467318), #22. 브랜치: `feature/FE-01-weekly-check`, 기존 Draft PR #52.
 
 ## 반영

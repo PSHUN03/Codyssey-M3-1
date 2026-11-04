@@ -1,7 +1,21 @@
-"""FE-01 전용 가상 데이터. 실제 프로필·계좌·저축 DB를 읽거나 변경하지 않는다."""
+"""FE-01 기간 설정과 명시적인 샘플 데이터. DB를 읽거나 변경하지 않는다."""
 
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
+
+
+def api_config(user_id: int, today: date | None = None) -> dict:
+    today = today or datetime.now(ZoneInfo("Asia/Seoul")).date()
+    monday = today - timedelta(days=today.weekday())
+    sunday = monday + timedelta(days=6)
+    iso = today.isocalendar()
+    return {
+        "mode": "api", "scope": str(user_id),
+        "month": f"{today.year:04d}-{today.month:02d}",
+        "month_label": f"{today.year}년 {today.month}월",
+        "week": f"{iso.year}-W{iso.week:02d}",
+        "week_label": f"{monday.month}월 {monday.day}일 ~ {sunday.month}월 {sunday.day}일",
+    }
 
 
 def sample_config(user_id: int, today: date | None = None) -> dict:

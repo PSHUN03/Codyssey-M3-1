@@ -60,17 +60,16 @@
       },
       recordSavings(amount) {
         if (!validAmount(amount)) throw new RangeError("Invalid sample savings amount.");
-        const request = contract.savingsRequest(config.month, amount);
         const record = state.records.find(item => item.month === config.month);
         if (!record) throw new Error("Current sample month is missing.");
-        record.amount = request.body.amount;
+        record.amount = amount;
         persist();
         return clone(state);
       },
     };
   }
 
-  function createChart(container) {
+  function createChart(container, sample = true) {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const ns = "http://www.w3.org/2000/svg";
     const format = value => new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 4 }).format(value);
@@ -125,7 +124,8 @@
     }, { threshold: .18 }) : null;
     function draw() {
       const nextWidth = Math.floor(container.getBoundingClientRect().width);
-      if (nextWidth < 100 || !records.length) return;
+      if (!records.length) { stop(); targets = []; signature = ""; container.replaceChildren(); return; }
+      if (nextWidth < 100) return;
       const nextSignature = JSON.stringify(records);
       if (nextWidth === width && nextSignature === signature && (seen || armed)) return;
       const changed = nextSignature !== signature;
@@ -136,8 +136,8 @@
       const left = Math.max(64, Math.min(88, format(upper).length * 7 + 14));
       const height = 240, top = 30, bottom = 38, right = 12;
       const plotWidth = nextWidth - left - right, plotHeight = height - top - bottom;
-      const svg = make("svg", { viewBox: `0 0 ${nextWidth} ${height}`, role: "img", "aria-label": `월별 샘플 저축: ${records.map(record => `${record.month} ${format(record.amount / 10000)}만 원`).join(", ")}` });
-      svg.append(make("title", {}, "월별 저축 추이 — 샘플 데이터"));
+      const svg = make("svg", { viewBox: `0 0 ${nextWidth} ${height}`, role: "img", "aria-label": `월별 ${sample ? "샘플 " : ""}저축: ${records.map(record => `${record.month} ${format(record.amount / 10000)}만 원`).join(", ")}` });
+      svg.append(make("title", {}, sample ? "월별 저축 추이 — 샘플 데이터" : "월별 저축 기록"));
       for (let i = 0; i <= 4; i++) {
         const y = top + plotHeight - plotHeight * i / 4;
         svg.append(make("line", { x1: left, y1: y, x2: nextWidth - right, y2: y, stroke: "var(--hairline)", "stroke-width": 1 }));
@@ -151,7 +151,7 @@
         const valueLabel = amount >= 10000 ? `${format(Math.round(amount / 10000 * 10) / 10)}억` : format(amount);
         const label = make("text", { x, y: labelY, "text-anchor": "middle", class: "fe01-chart-value" }, valueLabel);
         svg.append(bar, label);
-        if (nextWidth >= 330 || [0, 2, values.length - 1].includes(index)) {
+        if (nextWidth >= 330 || (!sample && values.length <= 6) || [0, 2, values.length - 1].includes(index)) {
           svg.append(make("text", { x, y: height - 12, "text-anchor": "middle" }, `${Number(records[index].month.slice(5))}월`));
         }
         nextTargets.push({ bar, label, y, height: barHeight, labelY, baseline: top + plotHeight });
@@ -173,7 +173,8 @@
       } else finish();
     }
     motion.addEventListener("change", () => { if (motion.matches) { seen = true; armed = false; observer?.unobserve(container); finish(); } });
-    new ResizeObserver(draw).observe(container);
+    if ("ResizeObserver" in window) new ResizeObserver(draw).observe(container);
+    else window.addEventListener("resize", draw);
     return { render(nextRecords) { records = nextRecords; draw(); } };
   }
 
@@ -257,5 +258,6 @@
   }
 
   if (typeof module !== "undefined" && module.exports) module.exports = { parseMan, summarize, createSampleStore };
+  if (typeof window !== "undefined") window.SadariFe01Chart = createChart;
   if (typeof document !== "undefined") init();
 })();
