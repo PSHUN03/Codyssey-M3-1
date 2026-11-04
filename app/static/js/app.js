@@ -18,8 +18,30 @@ function setFeedback(element, message, state = "") {
   element.hidden = !message;
   element.classList.toggle("is-error", state === "error");
   element.classList.toggle("is-success", state === "success");
+  element.classList.toggle("is-loading", state === "loading");
   element.setAttribute("role", state === "error" ? "alert" : "status");
   element.textContent = message;
+}
+
+// Feedback stays readable; motion is a brief supplement and never moves the page.
+function shakeInvalidControl(control) {
+  if (!control || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const target = control.closest(".chat-form, .money-input, .big-input, .receipt-money, .fe01-money-input") || control;
+  if (!target.animate) return;
+  target.getAnimations().filter((animation) => animation.id === "input-error-shake").forEach((animation) => animation.cancel());
+  target.animate([
+    { translate: "0px" }, { translate: "-4px" }, { translate: "4px" },
+    { translate: "-3px" }, { translate: "3px" }, { translate: "0px" },
+  ], { id: "input-error-shake", duration: 280, easing: "ease-out" });
+}
+
+function initValidationMotion() {
+  document.addEventListener("invalid", (event) => shakeInvalidControl(event.target), true);
+  const observer = new MutationObserver((records) => {
+    const invalid = new Set(records.map((record) => record.target).filter((control) => control.getAttribute("aria-invalid") === "true"));
+    invalid.forEach(shakeInvalidControl);
+  });
+  observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["aria-invalid"] });
 }
 
 function formFeedback(form, message, state = "") {
@@ -94,7 +116,7 @@ function initPageFeedback() {
     const url = new URL(link.href, location.href);
     if (url.origin === location.origin && url.pathname + url.search !== location.pathname + location.search) {
       navigating = true;
-      setFeedback($("#page-feedback"), "화면을 불러오고 있어요.");
+      setFeedback($("#page-feedback"), "화면을 불러오고 있어요.", "loading");
     }
   });
   window.addEventListener("pageshow", (event) => {
@@ -922,7 +944,7 @@ function initCoach() {
     ev.preventDefault();
     if (busy) return;
     const text = input.value.trim();
-    if (!text) { setFeedback($("#coach-feedback"), "질문을 입력해 주세요.", "error"); input.focus(); return; }
+    if (!text) { setFeedback($("#coach-feedback"), "질문을 입력해 주세요.", "error"); shakeInvalidControl(input); input.focus(); return; }
     input.value = "";
     autosize();
     send(text);
@@ -1311,6 +1333,7 @@ function initCoachShortcut() {
 }
 
 initPageFeedback();
+initValidationMotion();
 initCoachShortcut();
 const page = document.body.dataset.page;
 if (page === "landing") { initLandingMotion(); initLanding(); }
