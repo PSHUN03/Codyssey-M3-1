@@ -113,9 +113,14 @@ function initPageFeedback() {
     if (pendingForms.has(form)) { event.preventDefault(); return; }
     const button = event.submitter || $("button[type='submit']", form);
     pendingForms.set(form, { button, label: button?.textContent });
-    if (button) { button.disabled = true; button.textContent = "처리하고 있어요…"; }
+    const loadingMessage = form.dataset.pageLoadingMessage;
+    if (button) {
+      button.disabled = true;
+      if (!loadingMessage) button.textContent = "처리하고 있어요…";
+    }
     form.setAttribute("aria-busy", "true");
-    formFeedback(form, "요청을 처리하고 있어요. 잠시 기다려 주세요.");
+    if (loadingMessage) setFeedback($("#page-feedback"), loadingMessage, "loading");
+    else formFeedback(form, "요청을 처리하고 있어요. 잠시 기다려 주세요.");
   }));
   document.addEventListener("click", (event) => {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button > 0) return;
@@ -134,7 +139,8 @@ function initPageFeedback() {
     for (const [form, { button, label }] of pendingForms) {
       if (button) { button.disabled = false; button.textContent = label; }
       form.setAttribute("aria-busy", "false");
-      formFeedback(form, "다시 입력하거나 제출할 수 있어요.");
+      if (form.dataset.pageLoadingMessage) setFeedback($("#page-feedback"), "");
+      else formFeedback(form, "다시 입력하거나 제출할 수 있어요.");
     }
     pendingForms.clear();
   });

@@ -3,7 +3,7 @@
 {% extends "base.html" %}
 {% block title %}코치{% endblock %}
 {% block header_before_demo %}
-<form method="post" action="/api/coach/new-session" class="coach-new-form" data-feedback-target="coach-feedback">
+<form method="post" action="/api/coach/new-session" class="coach-new-form" data-page-loading-message="새 대화 불러오는 중">
   <button type="submit" class="btn btn-secondary btn-sm" id="coach-new-conversation">새 대화</button>
 </form>
 {% endblock %}
