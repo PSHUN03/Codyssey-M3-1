@@ -64,6 +64,12 @@
     #receipt-page .receipt-money input{width:100%;min-width:0;border:0;background:transparent;color:var(--r-ink);font-size:20px;font-weight:700;line-height:1.4;padding:0}
     #receipt-page .receipt-money > span{flex:none;color:var(--r-muted);font-size:14px}
     #receipt-page .receipt-money:has([aria-invalid="true"]){border-color:var(--r-error)}
+    #receipt-page .receipt-input:focus,
+    #receipt-page .receipt-money input:focus{outline:none;box-shadow:none}
+    #receipt-page .receipt-input:focus,
+    #receipt-page .receipt-money:focus-within{border-color:var(--r-purple)}
+    #receipt-page .receipt-input:focus-visible,
+    #receipt-page .receipt-money:has(input:focus-visible){background:var(--r-pale)}
     #receipt-page .receipt-save-area{margin-top:26px}
     #receipt-page .receipt-save-note{margin-top:10px;text-align:center;color:var(--r-muted);font-size:11px;line-height:1.7}
     #receipt-page .receipt-pending{display:grid;justify-items:center;gap:12px;text-align:center;padding:32px 0 18px;color:var(--r-body)}
