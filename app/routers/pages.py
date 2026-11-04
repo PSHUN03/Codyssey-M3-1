@@ -64,9 +64,10 @@ def plan_page(request: Request, user: User = Depends(require_onboarded)):
 
 
 @router.get("/spending")
-def spending_page(request: Request, example: Literal["result", "empty", "error"] = "result",
+def spending_page(request: Request, example: Literal["result", "empty", "error"] | None = None,
                   user: User = Depends(require_onboarded)):
-    return render(request, "spending.html", user=user, sample=sample_spending(example))
+    config = sample_spending(example) if example else {"mode": "preview", "example": "idle", "rows": []}
+    return render(request, "spending.html", user=user, sample=config)
 
 
 @router.get("/benefits")

@@ -1,5 +1,7 @@
 # FE-02: DATA-06 미리보기 연결 준비
 
+후속 상태: 사용자의 연결 요청으로 실제 미리보기 UI를 활성화했다. 이 문서는 준비 단계의 기록이며 현재 범위는 [실제 연결 기록](2026-11-04-fe02-live-preview.md)을 참고한다.
+
 관련: [#15 담당자 답변](https://github.com/PSHUN03/Codyssey-M3-1/issues/15#issuecomment-6606918026), DATA-06 PR #56, BE-01 #19. 브랜치: `codex/FE-02-spending`, 기존 Draft PR #54.
 
 ## 반영

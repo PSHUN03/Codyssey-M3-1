@@ -1,4 +1,4 @@
-/* DATA-06 preview contract (#15/#56). The sample UI never activates this transport. */
+/* DATA-06 preview contract (#15/#56). Upload only after an explicit preview action. */
 (() => {
   "use strict";
   const CATEGORIES = Object.freeze(["식비", "교통", "쇼핑", "주거", "의료", "교육", "통신", "문화", "기타", "수입"]);
@@ -21,6 +21,8 @@
     for (const [key, value] of Object.entries(mapping)) {
       if (!MAPPING_KEYS.includes(key) || !Number.isInteger(value) || value < 0 || value >= 100) throw new TypeError("열 번호는 0부터 시작하는 정수여야 해요.");
     }
+    if (!("date" in mapping) || !("merchant" in mapping) || !["amount", "withdrawal", "deposit"].some(key => key in mapping)) throw new TypeError("거래일·거래처와 금액 열을 선택해 주세요.");
+    if (new Set(Object.values(mapping)).size !== Object.keys(mapping).length) throw new TypeError("같은 열을 중복해서 선택하지 말아 주세요.");
     return { mapping: { ...mapping }, headerRow };
   }
   function buildPreviewRequest(file, options = {}) {
@@ -32,7 +34,7 @@
       body.append("mapping", JSON.stringify(fields.mapping));
       body.append("header_row", String(fields.headerRow));
     }
-    return { url: "/api/transactions/preview", method: "POST", credentials: "same-origin", body };
+    return { url: "/api/transactions/preview", method: "POST", credentials: "same-origin", body, ...(options.signal ? { signal: options.signal } : {}) };
   }
   function normalizePreview(payload) {
     if (!isObject(payload) || typeof payload.needs_mapping !== "boolean" || !Array.isArray(payload.transactions) || !Array.isArray(payload.errors)) throw new TypeError("미리보기 응답 형식을 확인해 주세요.");
@@ -66,12 +68,15 @@
       const { url, ...init } = request;
       const response = await transport(url, init);
       if (!response.ok) {
-        const messages = { 401: "로그인이 필요해요.", 403: "필수 동의를 확인해 주세요.", 409: "재무 진단을 먼저 마쳐 주세요.", 422: "파일 크기·형식 또는 열 선택을 확인해 주세요." };
+        const messages = { 401: "로그인이 필요해요.", 403: "필수 동의를 확인해 주세요.", 404: "미리보기 기능이 아직 준비되지 않았어요. 잠시 후 다시 시도해 주세요.", 409: "재무 진단을 먼저 마쳐 주세요.", 413: "2MB 이하의 파일을 선택해 주세요.", 422: "파일 크기·형식 또는 열 선택을 확인해 주세요." };
         const error = new Error(messages[response.status] || "미리보기를 불러오지 못했어요. 다시 시도해 주세요.");
         error.status = response.status;
         throw error;
       }
-      return normalizePreview(await response.json());
+      let payload;
+      try { payload = await response.json(); }
+      catch { throw new Error("미리보기 응답을 읽지 못했어요. 잠시 후 다시 시도해 주세요."); }
+      return normalizePreview(payload);
     };
   }
   function createSampleSource(config) {

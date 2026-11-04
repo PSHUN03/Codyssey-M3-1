@@ -118,6 +118,7 @@
   }));
   if (typeof initProfileSelects === "function") initProfileSelects(root);
   find("[data-pick]").addEventListener("click", () => find("[data-file-input]").click());
+  all("[data-reselect]").forEach(button => button.addEventListener("click", () => find("[data-file-input]").click()));
   find("[data-file-input]").addEventListener("change", event => {
     const file = event.target.files?.[0]; event.target.value = ""; if (!file) return;
     const message = validateFile(file), error = find("[data-file-error]");
