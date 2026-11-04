@@ -1325,6 +1325,16 @@ body { background: var(--canvas); }
 .coach-is-empty .coach-title { justify-content: center; }
 .coach .coach-notice { margin: 10px 0 16px; line-height: 1.75; }
 .coach-is-empty .chat { flex: none; padding: 0; }
+/* Keep the composer anchored; only conversation content scrolls in the remaining space. */
+.page-coach { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.page-coach.has-nav { padding-bottom: 0; }
+.page-coach .site-header { flex: none; }
+.page-coach .main { display: flex; flex: 1; min-height: 0; padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); }
+.page-coach .coach { flex: 1; width: 100%; min-height: 0; height: 100%; }
+.page-coach .coach-welcome { min-height: 0; overflow-y: auto; }
+.page-coach .coach .chat { min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; }
+.page-coach .composer { position: static; flex: none; padding-bottom: 12px; }
+@media (min-width: 900px) { .page-coach .main { padding-bottom: 0; } }
 @keyframes coach-body-sway {
   0%, 100% { transform: translateX(-5px) rotate(-3deg); }
   50% { transform: translateX(5px) rotate(3deg); }
