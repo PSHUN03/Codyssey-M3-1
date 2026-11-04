@@ -12,6 +12,7 @@ import hmac
 from fastapi import APIRouter, Depends, Header, HTTPException
 
 from app.config import get_settings
+from app.services.policies import ingest, youthcenter
 
 router = APIRouter(prefix="/internal")
 
@@ -26,3 +27,11 @@ def require_internal_key(x_internal_key: str | None = Header(default=None)) -> N
 def ping():
     """n8n에서 연결을 확인할 때 쓴다."""
     return {"ok": True}
+
+
+@router.post("/policies/ingest", dependencies=[Depends(require_internal_key)])
+def ingest_policies():
+    try:
+        return ingest.ingest(youthcenter.fetch_policies())
+    except youthcenter.PolicyAPIError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
