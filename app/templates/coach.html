@@ -4,6 +4,7 @@
 {% block title %}코치{% endblock %}
 {% block content %}
 <div class="coach{{ ' coach-is-empty' if not messages else '' }}">
+  <div class="coach-welcome">
   <h1 class="page-title coach-greeting">무엇을 도와드릴까요?</h1>
   <p class="coach-notice">{{ AI_NOTICE }} 특정 주식이나 코인을 사고팔라는 조언은 하지 않아요.
     {%- if settings.is_mock %} 지금은 API 키 없이 정해진 규칙으로 답하는 모의 모드라 답할 수 있는 질문이 적어요.{% endif %}</p>
@@ -13,6 +14,7 @@
     </div>
   </div>
 
+  </div>
   <p id="coach-status" class="sr-only" role="status" aria-live="polite"></p>
   <div class="chat" id="chat" role="log" aria-live="polite" aria-label="코치 대화">
     {% for m in messages %}

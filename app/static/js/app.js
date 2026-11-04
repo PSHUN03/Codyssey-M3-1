@@ -919,13 +919,33 @@ function initCoach() {
 
   async function send(text) {
     if (busy || !text) return;
-    $(".coach")?.classList.remove("coach-is-empty");
+    const coach = $(".coach");
+    const welcome = $(".coach-welcome", coach);
+    const firstQuestion = coach.classList.contains("coach-is-empty");
+    const motionAllowed = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (firstQuestion && welcome && motionAllowed && welcome.animate) {
+      // Take the introduction out of flow while it leaves; chat can rise immediately.
+      welcome.style.height = `${welcome.getBoundingClientRect().height}px`;
+      welcome.classList.add("is-leaving");
+      welcome.setAttribute("aria-hidden", "true");
+      const exit = welcome.animate([
+        { opacity: 1, transform: "translateY(0)" },
+        { opacity: 0, transform: "translateY(-32px)" },
+      ], { duration: 320, easing: "ease-out" });
+      exit.onfinish = () => { welcome.classList.remove("is-leaving"); welcome.style.height = ""; };
+    }
+    coach.classList.remove("coach-is-empty");
     setFeedback($("#coach-feedback"), "");
     busy = true;
     sendBtn.disabled = true;
     coachStatus.textContent = "코치가 답변을 준비하고 있어요";
     $("#suggestions")?.remove();
-    addMessage(chat, "user", escapeHtml(text));
+    const question = addMessage(chat, "user", escapeHtml(text));
+    if (firstQuestion && motionAllowed && question.animate) {
+      question.animate([
+        { opacity: .25, translate: "0 80px" }, { opacity: 1, translate: "0 0" },
+      ], { duration: 360, easing: "cubic-bezier(.2,.7,.2,1)" });
+    }
     const bubble = addMessage(chat, "bot", "");
     try { await streamChat(text, bubble); }
     catch {

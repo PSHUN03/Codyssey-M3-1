@@ -524,14 +524,19 @@ body.no-nav .toast { bottom: 24px; }
 .source-list a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------------------------------------------------------------- 코치 */
-.coach { display: flex; flex-direction: column; min-height: calc(100dvh - var(--header-h) - var(--tab-h) - 16px); max-width: 760px; margin: 0 auto; }
+.coach { position: relative; display: flex; flex-direction: column; min-height: calc(100dvh - var(--header-h) - var(--tab-h) - 16px); max-width: 760px; margin: 0 auto; }
 @media (min-width: 900px) { .coach { min-height: calc(100dvh - var(--header-h) - 16px); } }
 .coach-head { margin: 8px 0 8px; }
 .coach-title { display: flex; align-items: center; gap: 12px; }
 .coach-title-mascot { display: block; flex: none; width: clamp(52px, 5vw, 64px); height: clamp(52px, 5vw, 64px); }
 .coach-title-mascot .coach-mascot { display: block; width: 100%; height: 100%; filter: drop-shadow(0 3px 6px rgba(67, 43, 145, .12)); }
 .coach-notice { margin-top: 8px; font-size: 14px; color: #756b86; }
-.coach-greeting { margin: 8px 0 0; font-size: clamp(24px, 3vw, 32px); }
+.coach-greeting { margin: 18px 0 0; font-size: clamp(24px, 3vw, 32px); }
+@media (max-width: 599px) { .coach-greeting { margin-top: 16px; } }
+.coach-welcome { display: flex; flex-direction: column; }
+.coach-is-empty .coach-welcome { flex: 1; }
+.coach:not(.coach-is-empty) .coach-welcome { display: none; }
+.coach:not(.coach-is-empty) .coach-welcome.is-leaving { display: flex; position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; }
 .coach-title { justify-content: center; }
 .coach-title-mascot { width: 112px; height: 112px; }
 .chat { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 16px 0 24px; }
