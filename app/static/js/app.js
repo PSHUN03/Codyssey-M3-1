@@ -1323,7 +1323,7 @@ if (page === "consent") initConsent();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
 }
-/* FE-04: 앱 설치와 아이폰 홈 화면 추가 안내 */
+/* FE-04: 모바일 설치 안내와 지원되는 브라우저의 설치창 */
 function initPwaInstall() {
   const button = document.querySelector("#pwa-install-button");
   const dialog = document.querySelector("#pwa-install-dialog");
@@ -1337,46 +1337,60 @@ function initPwaInstall() {
   const needsInstallRow = !!document.querySelector(".header-end a, .header-end button");
 
   let installPrompt = null;
+  let installedInThisPage = false;
 
   const isInstalled = () =>
-    standalone.matches || navigator.standalone === true;
+    installedInThisPage || standalone.matches || navigator.standalone === true;
 
   function updateButton() {
     button.hidden =
       !isMobileDevice ||
       isInstalled() ||
-      !window.isSecureContext ||
-      (!isIOS && !installPrompt);
+      !window.isSecureContext;
 
     document.documentElement.classList.toggle("has-pwa-install", !button.hidden);
     document.documentElement.classList.toggle("has-pwa-install-secondary", !button.hidden && needsInstallRow);
-    button.textContent = isIOS ? "설치 안내" : "앱 설치";
-    button.setAttribute("aria-label", isIOS ? "홈 화면에 추가하는 방법 보기" : "사다리 앱 설치");
+    const canPrompt = !isIOS && !!installPrompt;
+    button.textContent = canPrompt ? "앱 설치" : "설치 안내";
+    button.setAttribute("aria-label", canPrompt ? "사다리 앱 설치" : "홈 화면에 추가하는 방법 보기");
+  }
+
+  function showGuide() {
+    if (dialog) {
+      dialog.querySelector("#pwa-install-title").textContent = isIOS ? "홈 화면에 추가해요" : "Chrome에서 추가해요";
+      dialog.querySelector("#pwa-install-description").textContent = isIOS ? "Safari에서 간단히 추가해요." : "Chrome 메뉴에서 홈 화면에 추가할 수 있어요.";
+      dialog.querySelectorAll("[data-pwa-guide]").forEach(panel => { panel.hidden = panel.dataset.pwaGuide !== (isIOS ? "ios" : "android"); });
+    }
+    if (dialog?.showModal) {
+      if (!dialog.open) dialog.showModal();
+    } else {
+      toast(isIOS ? "Safari의 공유 메뉴에서 ‘홈 화면에 추가’를 선택해 주세요." : "Chrome으로 열고 ⋮ 메뉴에서 ‘설치 및 바로가기 만들기’ 또는 ‘홈 화면에 추가’를 선택해 주세요.");
+    }
   }
 
   window.addEventListener("beforeinstallprompt", (event) => {
+    if (!isMobileDevice || isIOS || isInstalled() || typeof event.prompt !== "function") return;
     event.preventDefault();
     installPrompt = event;
     updateButton();
   });
 
   window.addEventListener("appinstalled", () => {
+    installedInThisPage = true;
     installPrompt = null;
+    if (dialog?.open) dialog.close();
     updateButton();
   });
 
   standalone.addEventListener("change", updateButton);
 
   button.addEventListener("click", async () => {
-    if (isInstalled()) return;
+    if (button.disabled || !isMobileDevice || isInstalled() || !window.isSecureContext) return;
 
-    if (isIOS) {
-      if (dialog?.showModal) dialog.showModal();
-      else toast("Safari의 공유 메뉴에서 ‘홈 화면에 추가’를 선택해 주세요.");
+    if (isIOS || !installPrompt) {
+      showGuide();
       return;
     }
-
-    if (!installPrompt) return;
 
     const prompt = installPrompt;
     installPrompt = null;
@@ -1386,7 +1400,7 @@ function initPwaInstall() {
       await prompt.prompt();
       await prompt.userChoice;
     } catch {
-      toast("브라우저 메뉴에서 앱 설치를 다시 시도해 주세요.");
+      if (!isInstalled()) showGuide();
     } finally {
       button.disabled = false;
       updateButton();
