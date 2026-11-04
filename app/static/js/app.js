@@ -1323,3 +1323,77 @@ if (page === "consent") initConsent();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
 }
+/* FE-04: 앱 설치와 아이폰 홈 화면 추가 안내 */
+function initPwaInstall() {
+  const button = document.querySelector("#pwa-install-button");
+  const dialog = document.querySelector("#pwa-install-dialog");
+  if (!button) return;
+
+  const standalone = window.matchMedia("(display-mode: standalone)");
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isMobileDevice = isIOS || /Android/.test(navigator.userAgent);
+  const needsInstallRow = !!document.querySelector(".header-end a, .header-end button");
+
+  let installPrompt = null;
+
+  const isInstalled = () =>
+    standalone.matches || navigator.standalone === true;
+
+  function updateButton() {
+    button.hidden =
+      !isMobileDevice ||
+      isInstalled() ||
+      !window.isSecureContext ||
+      (!isIOS && !installPrompt);
+
+    document.documentElement.classList.toggle("has-pwa-install", !button.hidden);
+    document.documentElement.classList.toggle("has-pwa-install-secondary", !button.hidden && needsInstallRow);
+    button.textContent = isIOS ? "설치 안내" : "앱 설치";
+    button.setAttribute("aria-label", isIOS ? "홈 화면에 추가하는 방법 보기" : "사다리 앱 설치");
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    updateButton();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    updateButton();
+  });
+
+  standalone.addEventListener("change", updateButton);
+
+  button.addEventListener("click", async () => {
+    if (isInstalled()) return;
+
+    if (isIOS) {
+      if (dialog?.showModal) dialog.showModal();
+      else toast("Safari의 공유 메뉴에서 ‘홈 화면에 추가’를 선택해 주세요.");
+      return;
+    }
+
+    if (!installPrompt) return;
+
+    const prompt = installPrompt;
+    installPrompt = null;
+    button.disabled = true;
+
+    try {
+      await prompt.prompt();
+      await prompt.userChoice;
+    } catch {
+      toast("브라우저 메뉴에서 앱 설치를 다시 시도해 주세요.");
+    } finally {
+      button.disabled = false;
+      updateButton();
+    }
+  });
+
+  updateButton();
+}
+
+initPwaInstall();
