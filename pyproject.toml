@@ -17,5 +17,5 @@ select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501", "B008"]
 
 [tool.ruff.lint.isort]
-# 이관 중 아직 없는 모듈도 외부 라이브러리가 아니라 프로젝트 코드로 분류한다
+# app과 tests를 외부 라이브러리가 아니라 프로젝트 코드로 분류한다
 known-first-party = ["app", "tests"]
