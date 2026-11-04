@@ -21,6 +21,14 @@ function setFeedback(element, message, state = "") {
   element.classList.toggle("is-loading", state === "loading");
   element.setAttribute("role", state === "error" ? "alert" : "status");
   element.textContent = message;
+  if (state === "loading" && message) {
+    // Keep the status announcement stable; only the decorative dots animate.
+    const dots = document.createElement("span");
+    dots.className = "loading-dots";
+    dots.setAttribute("aria-hidden", "true");
+    dots.textContent = "...";
+    element.append(dots);
+  }
 }
 
 // Feedback stays readable; motion is a brief supplement and never moves the page.
@@ -116,7 +124,7 @@ function initPageFeedback() {
     const url = new URL(link.href, location.href);
     if (url.origin === location.origin && url.pathname + url.search !== location.pathname + location.search) {
       navigating = true;
-      setFeedback($("#page-feedback"), "화면을 불러오고 있어요.", "loading");
+      setFeedback($("#page-feedback"), "화면을 불러오고 있어요", "loading");
     }
   });
   window.addEventListener("pageshow", (event) => {
