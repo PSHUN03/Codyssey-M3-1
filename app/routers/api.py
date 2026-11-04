@@ -119,7 +119,48 @@ class MonthlySavingsIn(BaseModel):
     month: str
     amount: int = Field(ge=0, le=10_000_000)
 
+@router.get("/checkins")
+def get_checkins(
+    user: User = Depends(require_onboarded),
+    db: Session = Depends(get_db),
+):
+    records = db.scalars(
+        select(WeeklySavingsCheck)
+        .where(WeeklySavingsCheck.user_id == user.id)
+        .order_by(WeeklySavingsCheck.week.desc())
+    ).all()
 
+    return {
+        "checkins": [
+            {
+                "week": record.week,
+                "deposited": record.deposited,
+            }
+            for record in records
+        ]
+    }
+
+
+@router.get("/savings")
+def get_savings(
+    user: User = Depends(require_onboarded),
+    db: Session = Depends(get_db),
+):
+    records = db.scalars(
+        select(MonthlySavingsRecord)
+        .where(MonthlySavingsRecord.user_id == user.id)
+        .order_by(MonthlySavingsRecord.month.desc())
+    ).all()
+
+    return {
+        "savings": [
+            {
+                "month": record.month,
+                "amount": record.amount,
+            }
+            for record in records
+        ]
+    }
 @router.post("/savings/monthly")
 def save_monthly_savings(
     payload: MonthlySavingsIn,
