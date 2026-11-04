@@ -43,6 +43,7 @@
       </nav>
       {% endif %}
       <div class="header-end">
+        {% block header_before_demo %}{% endblock %}
         {% if user and user.is_demo %}<span class="demo-tag">예시 계정</span>{% endif %}
         {% block header_end %}{% endblock %}
       </div>
