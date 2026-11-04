@@ -1337,7 +1337,11 @@ body { background: var(--canvas); }
 .page-coach .main { display: flex; flex: 1; min-height: 0; padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); }
 .page-coach .coach { flex: 1; width: 100%; min-height: 0; height: 100%; }
 .page-coach .coach-welcome { min-height: 0; overflow-y: auto; }
-.page-coach .coach .chat { min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; }
+.page-coach .coach .chat { min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: transparent transparent; }
+.page-coach .chat::-webkit-scrollbar,
+.page-coach .chat::-webkit-scrollbar-thumb,
+.page-coach .chat::-webkit-scrollbar-track,
+.page-coach .chat::-webkit-scrollbar-button { background: transparent; border-color: transparent; }
 .page-coach .composer { position: static; flex: none; padding-bottom: 12px; }
 @media (min-width: 900px) { .page-coach .main { padding-bottom: 0; } }
 @keyframes coach-body-sway {
