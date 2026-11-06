@@ -19,10 +19,13 @@ services:
         generateValue: true
       - key: ANTHROPIC_API_KEY
         sync: false
+      # 팀 공용 키는 코디세이 중계 서버용이라 주소와 모델 이름이 Anthropic 기본값과 다르다
+      - key: ANTHROPIC_BASE_URL
+        value: https://copa.codyssey.kr
       - key: COACH_MODEL
-        value: claude-opus-5-5
+        value: claude-sonnet-4
       - key: FAST_MODEL
-        value: claude-haiku-4-5
+        value: claude-haiku-4
       # 사용자 테스트 전(10/20 전후)에 Render PostgreSQL을 만들고 DATABASE_URL을 연결하세요.
       # 무료 DB는 생성 30일 후 만료되므로 발표일(11/12~13) 이후에 만료되도록 늦게 만드는 것이 좋습니다.
       # 연결 전에는 SQLite를 쓰며, 무료 인스턴스가 재시작되면 데이터가 초기화됩니다.
