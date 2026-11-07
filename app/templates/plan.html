@@ -2,6 +2,7 @@
 {% set page = "plan" %}{% set nav = true %}
 {% extends "base.html" %}
 {% block title %}월급 배분{% endblock %}
+{% block page_styles %}<link rel="stylesheet" href="/static/css/receipts.css?v={{ asset_version }}">{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
@@ -11,6 +12,8 @@
   </div>
   {% if plan %}<button class="btn btn-ghost btn-sm" data-action="regenerate">다시 계산</button>{% endif %}
 </div>
+
+<div class="fe05-plan-entry"><a class="btn btn-secondary btn-sm" href="/plan/receipts">{{ ui.icon("document", 16) }}영수증 기록하기</a></div>
 
 {% if not plan %}
 <section class="card">

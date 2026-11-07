@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+from typing import Literal
+from zoneinfo import ZoneInfo
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
@@ -58,6 +62,14 @@ def plan_page(request: Request, user: User = Depends(require_onboarded)):
     return render(request, "plan.html", user=user, plan=plan, facts=planner.profile_facts(user.profile),
                   segment=planner.plan_segment(plan, user.profile), segments=SEGMENTS,
                   segment_rule_version=SEGMENT_RULE_VERSION)
+
+
+@router.get("/plan/receipts")
+def receipts_page(request: Request, example: Literal["complete", "missing"] = "complete",
+                  user: User = Depends(require_onboarded)):
+    config = {"mode": "sample", "example": example,
+              "sample_date": datetime.now(ZoneInfo("Asia/Seoul")).date().isoformat()}
+    return render(request, "receipts.html", user=user, receipt_config=config)
 
 
 @router.get("/benefits")
