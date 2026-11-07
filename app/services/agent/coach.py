@@ -24,7 +24,9 @@ from app.config import get_settings
 from app.services.agent import llm
 from app.services.agent.guardrails import (
     INVESTMENT_GUARD_REPLY,
+    collect_amounts,
     contains_investment_advice,
+    enforce_verified_amounts,
     is_investment_advice_request,
 )
 from app.services.agent.memory import recent_memories
@@ -84,6 +86,8 @@ class AnthropicCoach:
 
         json_retries = 0
         need_separator = False
+        allowed_amounts: set[int] = set() # 도구 결과 금액들을 모을 집합
+
         for _ in range(self.MAX_TURNS):
             wrote_text = False
             try:
@@ -101,8 +105,12 @@ class AnthropicCoach:
                         yield {"type": "delta", "text": INVESTMENT_GUARD_REPLY}
                         return
 
-                    # 3. 위반이 없으면 정상적인 누적 텍스트 전송
+                    # 3. 위반이 없으면 정상적인 누적 텍스트 전송 (도구 결과 금액이 있다면 환각 수치 보정 적용)
                     if accumulated_text:
+                        # [완료 기준 3 적용] 도구 결과로 검증된 금액(allowed_amounts)이 있다면 답변 내 금액 보정
+                        if allowed_amounts:
+                            accumulated_text = enforce_verified_amounts(accumulated_text, allowed_amounts)
+
                         if need_separator:
                             yield {"type": "delta", "text": "\n\n"}
                             need_separator = False
@@ -141,14 +149,30 @@ class AnthropicCoach:
             results = []
             for block in tool_uses:
                 yield {"type": "status", "text": TOOL_LABELS.get(block.name, "확인하고 있어요")}
+
+                # 완료 기준 2: 필수 데이터(실수령액/프로필) 누락 시 계산 대신 먼저 묻기
+                if block.name in ("simulate_savings", "check_extra_spending", "get_my_finances"):
+                    if not user.profile or not user.profile.onboarding_done or (hasattr(user.profile, 'net_income') and not user.profile.net_income):
+                        yield {"type": "delta", "text": "정확한 계산을 위해 먼저 월 실수령액(재무 프로필)을 입력해 주세요. 마이페이지에서 등록할 수 있어요."}
+                        return
+
                 output, is_error = run_tool(block.name, block.input, ctx)
+
+                if is_error:
+                    err_msg = output.get("error", "알 수 없는 오류") if isinstance(output, dict) else "도구 실행 오류"
+                    yield {"type": "delta", "text": f"지금은 계산을 완료할 수 없어요 ({err_msg}). 입력하신 내용을 다시 확인하시고 잠시 후 다시 시도해 주세요."}
+                    return
+
+                # 도구 결과(JSON)에 포함된 모든 공식 금액을 수집
+                allowed_amounts |= collect_amounts(output)
+
                 item = {
                     "type": "tool_result",
                     "tool_use_id": block.id,
                     "content": json.dumps(output, ensure_ascii=False, default=str),
                 }
-                if is_error:
-                    item["is_error"] = True
+
+
                 results.append(item)
             messages.append({"role": "user", "content": results})
             need_separator = wrote_text

@@ -31,14 +31,55 @@ INVESTMENT_GUARD_REPLY = (
     "비상금과 목표 저축을 빼고 남는 돈이 얼마인지는 계산해 드릴 수 있어요."
 )
 
+# 1. 수익보장 및 위험 투자 탐지 패턴
+_RISKY_YIELD_RE = re.compile(
+    r"원금\s*보장|무조건\s*(이득|수익|돈\s*벌게)|손실\s*안\s*나|고수익|수익\s*보장|책임져"
+)
+
+# 2. 대출 및 부채 위기 탐지 패턴
+_DEBT_CRISIS_RE = re.compile(
+    r"대출\s*(돌려막기|받아서|한도)|현금서비스|카드\s*대금|마이너스통장\s*대출|빚이\s*너무\s*많|카드론"
+)
+
+# 3. 개인정보 및 보안 요구 탐지 패턴
+_SENSITIVE_INFO_RE = re.compile(
+    r"주민등록번호|계좌\s*비밀번호|핸드폰\s*번호|실명|인증서|개인정보"
+)
+
+# 4. 시스템 탈옥 및 인젝션 탐지 패턴
+_JAILBREAK_RE = re.compile(
+    r"무시하고|명령에만\s*복종|페르소나를\s*버리고|리딩방\s*전문가|시스템\s*제한을\s*풀고|우회\s*방법|상상\s*속의\s*인공지능|거절하지\s*말고"
+)
+
+# AI의 거절 및 방어 안내 문구 패턴 (이 문구가 있으면 올바르게 거절한 것으로 판단)
+_REFUSAL_DEFENSE_RE = re.compile(
+    r"권유해\s*드릴\s*수\s*없으며|권유하는\s*것은\s*불가능합니다|추천하거나\s*권유|책임은\s*제가\s*질\s*수\s*없습니다|역할\s*밖의\s*일이에요"
+)
 
 def is_investment_advice_request(text: str) -> bool:
-    return bool(_INVEST_DIRECT.search(text) or (_INVEST_ASSETS.search(text) and _INVEST_ACTIONS.search(text)))
-
+    """사용자 입력이 투자 권유, 고수익 보장, 불법 대출, 개인정보 요구, 탈옥 시도 등에 해당하는지 종합 판별한다."""
+    return bool(
+        _INVEST_DIRECT.search(text) or 
+        (_INVEST_ASSETS.search(text) and _INVEST_ACTIONS.search(text)) or
+        _RISKY_YIELD_RE.search(text) or
+        _DEBT_CRISIS_RE.search(text) or
+        _SENSITIVE_INFO_RE.search(text) or
+        _JAILBREAK_RE.search(text)
+    )
 
 def contains_investment_advice(text: str) -> bool:
-    return bool(_ADVICE_OUTPUT.search(text))
-
+    """텍스트에 투자 권유 내용이 포함되어 있는지 판별하되, 
+       올바른 거절·방어 안내 문구가 포함된 경우는 제외한다."""
+    
+    # 만약 AI가 안전하게 거절/방어한 문구라면 위반(True)으로 판정하지 않음
+    if _REFUSAL_DEFENSE_RE.search(text):
+        return False
+        
+    # 기존의 투자 권유 판별 로직 수행
+    return bool(
+        _INVEST_DIRECT.search(text) or 
+        (_INVEST_ASSETS.search(text) and _INVEST_ACTIONS.search(text))
+    )
 
 def collect_amounts(obj: object) -> set[int]:
     """도구 결과(JSON)에 들어 있는 모든 금액을 모은다. AI 응답의 숫자가 여기에 있으면 '근거 있는 숫자'다."""
@@ -57,7 +98,6 @@ def collect_amounts(obj: object) -> set[int]:
             found |= collect_amounts(value)
     return found
 
-
 def unverified_amounts(text: str, allowed: Iterable[int], min_amount: int = 10_000) -> list[int]:
     """응답에 나온 금액 중 도구 결과로 뒷받침되지 않는 것 (0.5% 이내 반올림 차이는 허용)."""
     allowed = set(allowed)
@@ -69,3 +109,20 @@ def unverified_amounts(text: str, allowed: Iterable[int], min_amount: int = 10_0
             continue
         missing.append(amount)
     return missing
+
+def enforce_verified_amounts(text: str, allowed: Iterable[int]) -> str:
+    """근거 없는 금액이 포함된 경우 계산 결과(allowed) 기반의 안전한 문장으로 보정한다."""
+    allowed_list = list(allowed)
+    missing = unverified_amounts(text, allowed_list)
+    if not missing:
+        return text
+    
+    if not allowed_list:
+        return f"{text}\n\n(※ 계산된 정확한 금액 데이터를 확인하지 못해 안내를 조정했습니다.)"
+    
+    # 검증되지 않은 금액을 도구 결과의 가장 가까운 계산 금액으로 치환
+    res = text
+    for m in missing:
+        closest = min(allowed_list, key=lambda x: abs(x - m))
+        res = res.replace(f"{m:,}원", f"{closest:,}원").replace(f"{m}", f"{closest}")
+    return res
