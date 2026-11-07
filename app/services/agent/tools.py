@@ -266,7 +266,6 @@ def run_tool(name: str, args: object, ctx: ToolContext) -> tuple[dict, bool]:
     return result, False
 
 
-_POLICY_IDS = [p["id"] for p in repository.all_policies()]
 
 # Claude API 도구 정의. 입력을 스트리밍하므로 run_tool에서 반드시 검증한다.
 TOOL_SPECS: list[dict] = [
@@ -316,7 +315,7 @@ TOOL_SPECS: list[dict] = [
         "description": "특정 정책의 상세 정보(혜택·자격·신청 방법·기간·주의사항)와 사용자 자격 판정을 조회합니다.",
         "input_schema": {
             "type": "object",
-            "properties": {"policy_id": {"type": "string", "enum": _POLICY_IDS}},
+            "properties": {"policy_id": {"type": "string", "description": "검색 결과의 policy_id"}},
             "required": ["policy_id"],
             "additionalProperties": False,
         },

@@ -1,0 +1,25 @@
+{
+  "needs_mapping": false,
+  "mapping": {
+    "date": 0,
+    "merchant": 1,
+    "withdrawal": 2,
+    "deposit": 3
+  },
+  "header_row": 0,
+  "transactions": [
+    {
+      "date": "2026-10-01",
+      "amount": -5000,
+      "merchant": "스타벅스",
+      "category": "식비"
+    },
+    {
+      "date": "2026-10-02",
+      "amount": 2450000,
+      "merchant": "급여",
+      "category": "수입"
+    }
+  ],
+  "errors": []
+}

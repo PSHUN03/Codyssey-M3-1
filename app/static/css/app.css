@@ -163,6 +163,23 @@ strong { color: var(--ink); font-weight: 700; }
 .header-link { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; font-weight: 600; color: var(--ink); text-decoration: none; padding: 8px 4px; }
 .header-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .demo-tag { font-size: 13px; font-weight: 600; color: var(--body); }
+#pwa-install-button { flex-shrink: 0; padding-inline: 12px; white-space: nowrap; }
+#pwa-install-button[hidden] { display: none; }
+@media (max-width: 899px) {
+  :root.has-pwa-install .header-row { gap: 12px; }
+  /* Leave room for existing account actions without stretching the install button. */
+  :root.has-pwa-install-secondary { --header-h: 116px; }
+  :root.has-pwa-install-secondary .header-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding-block: 10px;
+  }
+  :root.has-pwa-install-secondary #pwa-install-button {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
 @media (min-width: 900px) {
   .top-nav { display: flex; gap: 4px; margin-left: 16px; }
   .top-nav a {
@@ -429,6 +446,19 @@ body.no-nav .toast { bottom: 24px; }
 .modal-body { display: flex; flex-direction: column; gap: 12px; padding: 24px; }
 .modal-body h2 { font-size: 20px; font-weight: 800; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.pwa-install-dialog { max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.pwa-install-dialog [hidden] { display: none !important; }
+.pwa-install-body { gap: 16px; padding: 20px; }
+.pwa-install-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pwa-install-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 800; }
+.pwa-install-heading { display: grid; gap: 4px; }
+.pwa-install-heading p { color: var(--body); font-size: 14px; }
+.pwa-install-steps { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.pwa-install-steps li { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: start; gap: 12px; }
+.pwa-install-step-number { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: var(--lime-pale); color: var(--ink-deep); font-size: 13px; font-weight: 700; }
+.pwa-install-steps strong { display: block; font-size: 15px; }
+.pwa-install-steps p { margin-top: 2px; color: var(--body); font-size: 13px; }
+.pwa-install-tip { padding: 12px 14px; border-radius: 14px; background: var(--lime-pale); color: var(--ink-deep); font-size: 13px; }
 
 /* ---------------------------------------------------------------- 목록·수치 */
 .row-list { list-style: none; margin: 0; padding: 0; }
