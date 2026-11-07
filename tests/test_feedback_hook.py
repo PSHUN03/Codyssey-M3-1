@@ -48,6 +48,18 @@ def test_dislike_is_sent_without_personal_info(client, sent, with_webhook):
     assert "fb-dislike@example.com" not in text and "피드백테스터" not in text
 
 
+def test_names_and_emails_are_hidden(client, sent, with_webhook):
+    # 가짜 이름·이메일을 직접 적어도 공개 이슈로 가는 값에는 남지 않는다
+    message_id = _answer_id(client, "fb-name@example.com", "제 이름은 김가짜예요. 피드백테스터 계정인데 월세 지원 받을 수 있어?")
+    client.post("/api/feedback", json={"message_id": message_id, "rating": -1,
+                                       "comment": "저는 박가명입니다. 답장은 fake.person@example.org 로 주세요"})
+    payload = sent[0][1]
+    text = str(payload)
+    for leaked in ("김가짜", "박가명", "fake.person@example.org", "피드백테스터", "fb-name"):
+        assert leaked not in text
+    assert "[이메일 가림]" in payload["comment"] and "[이름 가림]" in payload["question"]
+
+
 def test_like_is_not_sent(client, sent, with_webhook):
     message_id = _answer_id(client, "fb-like@example.com", "월세 지원 받을 수 있어?")
     client.post("/api/feedback", json={"message_id": message_id, "rating": 1})
@@ -72,6 +84,9 @@ def test_send_failure_is_swallowed(caplog):
     ("월급 250만 원인데 30만 원 더 써도 돼?", "월급 [금액]인데 [금액] 더 써도 돼?"),
     ("2,450,000원 들어와요", "[금액] 들어와요"),
     ("배달 주 2회, 금리 3.5%", "배달 주 2회, 금리 3.5%"),
+    ("이름: 홍길동, 메일 a.b+c@mail.example.com", "이름: [이름 가림], 메일 [이메일 가림]"),
+    ("저는 이가짜라고 해요", "저는 [이름 가림]라고 해요"),
+    ("이름을 바꾸고 싶어요", "이름을 바꾸고 싶어요"),
 ])
 def test_amounts_are_hidden(text, expected):
     assert feedback_hook._clean(text) == expected
