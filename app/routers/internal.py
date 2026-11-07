@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db import get_db
 from app.services import weekly_reports
+from app.services.policies import ingest, youthcenter
 
 router = APIRouter(prefix="/internal")
 
@@ -51,3 +52,11 @@ def complete_weekly(report_id: str, payload: DeliveryIn, db: Session = Depends(g
     if not weekly_reports.complete_report(db, report_id, payload.claim_token):
         raise HTTPException(status_code=409, detail="유효한 발송 건이 아닙니다.")
     return {"ok": True}
+
+
+@router.post("/policies/ingest", dependencies=[Depends(require_internal_key)])
+def ingest_policies():
+    try:
+        return ingest.ingest(youthcenter.fetch_policies())
+    except youthcenter.PolicyAPIError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
