@@ -34,3 +34,5 @@ private/
 *.bundle
 /\[붙임4\]_*PENTA.hwpx
 /\[붙임4\]_*PENTA.pdf
+
+app/data/cache/
