@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
 
+from app.db import get_db
 from app.deps import current_user, require_member, require_onboarded
 from app.models import User
 from app.routers.auth import next_step
 from app.services import account, lessons, planner
-from app.services.agent.memory import KINDS
+from app.services.agent.memory import KINDS, RETENTION_DAYS, purge_expired
 from app.services.finance.segment import SEGMENT_RULE_VERSION, SEGMENTS
 from app.services.onboarding.flow import REGIONS
 from app.services.policies import eligibility, repository
@@ -105,10 +107,12 @@ def coach_page(request: Request, user: User = Depends(require_onboarded)):
 
 
 @router.get("/settings")
-def settings_page(request: Request, user: User = Depends(require_member)):
+def settings_page(request: Request, user: User = Depends(require_member), db: Session = Depends(get_db)):
+    purge_expired(db, user)
     return render(request, "settings.html", user=user, profile=user.profile,
                   facts=planner.profile_facts(user.profile), memories=list(reversed(user.memories)),
-                  memory_kinds=KINDS, regions=REGIONS, consents=account.consent_status(user),
+                  memory_kinds=KINDS, memory_retention_months=RETENTION_DAYS // 30,
+                  regions=REGIONS, consents=account.consent_status(user),
                   consent_labels={**account.REQUIRED_CONSENTS, **account.OPTIONAL_CONSENTS})
 
 

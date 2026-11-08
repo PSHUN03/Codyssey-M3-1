@@ -19,3 +19,9 @@ ignore = ["E501", "B008"]
 [tool.ruff.lint.isort]
 # app과 tests를 외부 라이브러리가 아니라 프로젝트 코드로 분류한다
 known-first-party = ["app", "tests"]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+skip_empty = true

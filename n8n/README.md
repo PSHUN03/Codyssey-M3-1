@@ -53,6 +53,16 @@ Webhook (POST /webhook/sadari-feedback)
 3. **디스코드 알림** 노드: URL을 팀 디스코드 채널의 웹훅 주소로 바꾼다 (이 주소도 비밀값이라 JSON을 다시 내보낼 때 지운다)
 4. 워크플로를 Active로 켜고, Production URL을 Render 환경변수 `FEEDBACK_WEBHOOK_URL`에 넣는다
 
+## W4. 예시 계정 정리 (BE-03)
+
+```
+Schedule Trigger (매일 04:30 KST)
+  → HTTP Request: POST /internal/demo/cleanup  (X-Internal-Key)
+```
+
+- 만든 지 하루가 지난 예시 계정('지우')을 대화·기억과 함께 지운다. 응답은 `{"deleted": N}`.
+- 워크플로 파일: [demo_cleanup.json](demo_cleanup.json). 가져온 뒤 HTTP 노드에 W1과 같은 Header Auth 자격 증명을 연결하고 Active로 켠다.
+
 ## 호스팅 선택지 (DATA-04에서 결정 후 ADR 작성)
 
 | 선택지 | 비용 | 장단점 |
