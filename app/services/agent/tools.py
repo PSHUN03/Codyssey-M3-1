@@ -191,7 +191,10 @@ def save_memory(args: dict, ctx: ToolContext) -> dict:
     saved = memory_service.save_memory(ctx.db, ctx.user, kind, content)
     if saved:
         ctx.memories_saved.append(content)
-    return {"saved": bool(saved), "content": content}
+        return {"saved": True, "content": content}
+    if memory_service.contains_financial_figure(content):
+        return {"saved": False, "content": content, "reason": memory_service.REJECT_REASON}
+    return {"saved": False, "content": content}
 
 
 def set_goal(args: dict, ctx: ToolContext) -> dict:
@@ -209,7 +212,37 @@ def set_goal(args: dict, ctx: ToolContext) -> dict:
     }
 
 
+def compare_savings_products(args: dict, ctx: ToolContext) -> dict:
+    from app.services.savings_products import ProductAPIError
+    from app.services.savings_products import compare_savings_products as compare
+
+    months = _int(args, "term_months", 1, 120)
+    product = _str(args, "product_type", 20, {"savings", "deposit"}, required=False) or "savings"
+    try:
+        result = compare(months, product)
+    except ProductAPIError as exc:
+        raise ToolError(str(exc)) from None
+    source = {"url": "https://finlife.fss.or.kr/", "name": "금감원 금융상품한눈에",
+              "as_of": result["fetched_on"]}
+    if not any(s["url"] == source["url"] for s in ctx.sources):
+        ctx.sources.append(source)
+    return result
+
+
+
+def analyze_spending(args: dict, ctx: ToolContext) -> dict:
+    from app.services import spending
+
+    month = _str(args, "month", 7, required=False)
+    try:
+        return spending.summary(ctx.db, ctx.user, month)
+    except ValueError as exc:
+        raise ToolError(f"INVALID_INPUT: {exc}") from None
+
+
 _REGISTRY: dict[str, Callable[[dict, ToolContext], dict]] = {
+    "analyze_spending": analyze_spending,
+    "compare_savings_products": compare_savings_products,
     "get_my_finances": get_my_finances,
     "simulate_savings": simulate_savings,
     "check_extra_spending": check_extra_spending,
@@ -220,6 +253,8 @@ _REGISTRY: dict[str, Callable[[dict, ToolContext], dict]] = {
 }
 
 TOOL_LABELS = {
+    "analyze_spending": "소비 내역을 분석하고 있어요",
+    "compare_savings_products": "공시 금리를 비교하고 있어요",
     "get_my_finances": "내 재무 정보를 확인하고 있어요",
     "simulate_savings": "저축 결과를 계산하고 있어요",
     "check_extra_spending": "지출 영향을 계산하고 있어요",
@@ -246,10 +281,18 @@ def run_tool(name: str, args: object, ctx: ToolContext) -> tuple[dict, bool]:
     return result, False
 
 
-_POLICY_IDS = [p["id"] for p in repository.all_policies()]
 
 # Claude API 도구 정의. 입력을 스트리밍하므로 run_tool에서 반드시 검증한다.
 TOOL_SPECS: list[dict] = [
+    {
+        "name": "analyze_spending",
+        "description": "사용자가 올린 거래내역으로 한 달 소비를 분석합니다. 카테고리별 지출, 고정비 추정, 구독 후보, 큰 지출 5건, 저축 여력을 돌려줍니다. '어디에 돈을 많이 썼어?', '구독 정리할 거 있어?' 같은 질문에 쓰세요. 거래내역이 없으면 has_data가 false입니다.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"month": {"type": "string", "description": "YYYY-MM. 비우면 가장 최근 달"}},
+            "additionalProperties": False,
+        },
+    },
     {
         "name": "get_my_finances",
         "description": "사용자의 재무 프로필(소득·고정비·대출·저축·목표)과 현재 월급 배분 플랜, 비상금 목표, 목표 달성 가능성을 조회합니다. 개인 맞춤 답변 전에 먼저 호출하세요.",
@@ -296,7 +339,7 @@ TOOL_SPECS: list[dict] = [
         "description": "특정 정책의 상세 정보(혜택·자격·신청 방법·기간·주의사항)와 사용자 자격 판정을 조회합니다.",
         "input_schema": {
             "type": "object",
-            "properties": {"policy_id": {"type": "string", "enum": _POLICY_IDS}},
+            "properties": {"policy_id": {"type": "string", "description": "검색 결과의 policy_id"}},
             "required": ["policy_id"],
             "additionalProperties": False,
         },
@@ -329,6 +372,15 @@ TOOL_SPECS: list[dict] = [
         },
     },
 ]
+
+TOOL_SPECS.append({
+    "name": "compare_savings_products",
+    "description": "금감원 은행 예·적금 공시를 기본금리 순으로 최대 5개 비교합니다. 가입 권유가 아닌 정보입니다.",
+    "input_schema": {"type": "object", "properties": {
+        "term_months": {"type": "integer", "minimum": 1, "maximum": 120},
+        "product_type": {"type": "string", "enum": ["savings", "deposit"]}},
+        "required": ["term_months"], "additionalProperties": False},
+})
 
 for _spec in TOOL_SPECS:
     _spec["eager_input_streaming"] = True

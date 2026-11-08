@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Consent, Profile, User
+from app.models import Consent, LoginFailure, Profile, User
 from app.security import hash_password, verify_password
 from app.services import planner
 from app.services.agent.memory import save_memory
@@ -74,6 +76,69 @@ def delete_account(db: Session, user: User) -> None:
     """탈퇴 시 모든 개인 데이터를 즉시 삭제한다 (NFR-06)."""
     db.delete(user)
     db.commit()
+
+
+# ------------------------------------------------------------------ 로그인 시도 제한 (BE-03)
+
+LOCK_THRESHOLD = 5
+LOCK_MINUTES = 10
+LOCKED_MESSAGE = f"로그인에 {LOCK_THRESHOLD}번 실패해 {LOCK_MINUTES}분 동안 잠겼어요. 잠시 후 다시 시도해 주세요."
+
+
+def _login_key(email: str) -> str:
+    return hashlib.sha256(email.strip().lower().encode()).hexdigest()
+
+
+def _as_utc(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+def login_locked(db: Session, email: str, now: datetime | None = None) -> bool:
+    now = now or datetime.now(UTC)
+    row = db.scalar(select(LoginFailure).where(LoginFailure.key == _login_key(email)))
+    return bool(row and row.locked_until and _as_utc(row.locked_until) > now)
+
+
+def record_login_failure(db: Session, email: str, now: datetime | None = None) -> bool:
+    """실패를 기록하고, 이번 실패로 잠기면 True. 같은 이메일로 10분 안에 5번 실패하면 10분 잠근다."""
+    now = now or datetime.now(UTC)
+    window = timedelta(minutes=LOCK_MINUTES)
+    row = db.scalar(select(LoginFailure).where(LoginFailure.key == _login_key(email)))
+    if row is None:
+        row = LoginFailure(key=_login_key(email), count=0, first_failed_at=now)
+        db.add(row)
+    elif now - _as_utc(row.first_failed_at) > window:
+        row.count, row.first_failed_at, row.locked_until = 0, now, None
+    row.count += 1
+    locked = row.count >= LOCK_THRESHOLD
+    if locked:
+        row.locked_until, row.count, row.first_failed_at = now + window, 0, now
+    db.commit()
+    return locked
+
+
+def clear_login_failures(db: Session, email: str) -> None:
+    row = db.scalar(select(LoginFailure).where(LoginFailure.key == _login_key(email)))
+    if row is not None:
+        db.delete(row)
+        db.commit()
+
+
+# ------------------------------------------------------------------ 예시 계정 정리 (BE-03)
+
+DEMO_KEEP_DAYS = 1
+
+
+def cleanup_demo_users(db: Session, now: datetime | None = None) -> int:
+    """만든 지 하루가 지난 예시 계정을 대화·기억까지 함께 지운다."""
+    cutoff = (now or datetime.now(UTC)) - timedelta(days=DEMO_KEEP_DAYS)
+    users = db.scalars(select(User).where(User.is_demo.is_(True))).all()
+    expired = [u for u in users if _as_utc(u.created_at) < cutoff]
+    for user in expired:
+        db.delete(user)
+    if expired:
+        db.commit()
+    return len(expired)
 
 
 PROFILE_FIELDS = (

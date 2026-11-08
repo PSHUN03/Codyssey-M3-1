@@ -1,0 +1,66 @@
+{
+  "name": "사다리 예시 계정 정리",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 4 * * *"
+            }
+          ]
+        }
+      },
+      "id": "7ec0df15-95ae-40b8-8375-a92856f004b8",
+      "name": "예약",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SADARI_BASE_URL + '/internal/demo/cleanup' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "1fadeba6-e663-45fe-b4f5-3014eb0636be",
+      "name": "예시 계정 삭제",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        250,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "예약": {
+      "main": [
+        [
+          {
+            "node": "예시 계정 삭제",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Seoul",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
+  },
+  "pinData": {}
+}

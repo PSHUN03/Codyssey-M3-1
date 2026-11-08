@@ -4,14 +4,15 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db import get_db
 from app.deps import require_member, require_onboarded
 from app.models import ChatMessage, Feedback, Memory, User
-from app.services import account, planner
+from app.services import account, feedback_hook, planner
 from app.services.agent.tools import ToolContext, run_tool
 
 router = APIRouter(prefix="/api")
@@ -81,13 +82,19 @@ class FeedbackIn(BaseModel):
 
 
 @router.post("/feedback")
-def feedback(payload: FeedbackIn, user: User = Depends(require_member), db: Session = Depends(get_db)):
+def feedback(payload: FeedbackIn, background: BackgroundTasks, user: User = Depends(require_member),
+             db: Session = Depends(get_db)):
     message = db.get(ChatMessage, payload.message_id)
     if message is None or message.user_id != user.id or message.role != "assistant":
         raise HTTPException(status_code=404)
-    db.add(Feedback(user_id=user.id, message_id=message.id, rating=payload.rating, comment=payload.comment))
+    row = Feedback(user_id=user.id, message_id=message.id, rating=payload.rating, comment=payload.comment)
+    db.add(row)
     db.commit()
-    # TODO(FR-17): n8n 웹훅으로 전달해 GitHub Issue를 자동 생성한다 — docs/tasks/01_PM.md 참고
+    settings = get_settings()
+    if payload.rating == -1 and settings.feedback_webhook_url:
+        # 아쉬워요는 n8n을 거쳐 GitHub Issue가 된다 (FR-17). 응답을 기다리게 하지 않도록 뒤에서 보낸다
+        background.add_task(feedback_hook.send, settings.feedback_webhook_url,
+                            feedback_hook.build_payload(db, row, message), settings.internal_api_key)
     return {"ok": True}
 
 
