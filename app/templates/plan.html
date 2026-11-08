@@ -122,10 +122,12 @@
   {% if segment %}
   <section class="card span-12 segment plan-diagnosis" aria-labelledby="segment-name">
     <p class="label">진단 결과</p>
-    <h2 class="segment-name" id="segment-name"><span class="segment-code">{{ segment.code }}</span>{{ segment.name }}</h2>
-    <p class="segment-reason">{{ segment.reason }}</p>
-    <h3 class="segment-sub">먼저 할 일</h3>
-    <ol class="segment-actions">{% for a in segment.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+    <div class="plan-diagnosis-body">
+      <h2 class="segment-name" id="segment-name"><span class="segment-code">{{ segment.code }}</span>{{ segment.name }}</h2>
+      <p class="segment-reason">{{ segment.reason }}</p>
+      <h3 class="segment-sub">먼저 할 일</h3>
+      <ol class="segment-actions">{% for a in segment.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+    </div>
     <div class="segment-links">
       {% for link in segment.links %}<a class="btn btn-sm {{ 'btn-primary' if loop.first else 'btn-secondary' }}" href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
     </div>
