@@ -130,3 +130,9 @@ def test_save_previewed_rows_keeps_user_categories_and_masks(client):
 def test_save_previewed_rows_rejects_invalid(client, bad):
     _member(client, "bad@example.test")
     assert client.post("/api/transactions/save", json=bad).status_code == 422
+
+
+def test_transaction_table_keeps_created_at():
+    # 배포 DB의 transactions 테이블은 created_at NOT NULL 열을 갖고 있다. 모델에서 빠지면 저장이 500이 된다.
+    column = Transaction.__table__.c.created_at
+    assert column.default is not None

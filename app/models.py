@@ -216,6 +216,10 @@ class Transaction(Base):
     category: Mapped[str] = mapped_column(String(20))
     is_fixed: Mapped[bool] = mapped_column(Boolean, default=False)
     source: Mapped[str] = mapped_column(String(20), default="upload")
+    # 배포 DB 테이블은 이 열을 NOT NULL로 갖고 있다. 빠지면 INSERT가 실패한다(머지 중 누락돼 500 발생).
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class WeeklySavingsCheck(Base):
     """주간 저축 입금 체크."""
 
