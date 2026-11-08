@@ -66,7 +66,8 @@ def get_settings() -> Settings:
         log.warning("SECRET_KEY가 없어 임시 키를 사용합니다. 서버가 재시작되면 로그인이 풀립니다.")
 
     return Settings(
-        env=os.getenv("APP_ENV", "development"),
+        # Render는 RENDER=true를 자동으로 넣는다. 대시보드에 APP_ENV를 빠뜨려도 운영 설정(Secure 쿠키 등)이 켜지게 한다
+        env=os.getenv("APP_ENV") or ("production" if os.getenv("RENDER") else "development"),
         secret_key=secret,
         database_url=os.getenv("DATABASE_URL") or f"sqlite:///{PROJECT_DIR / 'sadari.db'}",
         llm_provider=provider,

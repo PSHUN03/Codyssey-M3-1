@@ -144,6 +144,18 @@ class Memory(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class LoginFailure(Base):
+    """로그인 실패 횟수 (BE-03). 이메일 원문 대신 해시를 키로 쓴다."""
+
+    __tablename__ = "login_failures"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(String(64), unique=True)
+    count: Mapped[int] = mapped_column(Integer, default=0)
+    first_failed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class Feedback(Base):
     __tablename__ = "feedback"
 

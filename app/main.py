@@ -52,6 +52,9 @@ def create_app() -> FastAPI:
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "same-origin")
         response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Permissions-Policy", "camera=(self), microphone=(), geolocation=()")
+        if settings.is_production:
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
         return response
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

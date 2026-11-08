@@ -3,6 +3,7 @@
 여기에 추가할 엔드포인트 (docs/tasks/05_RAG_자동화.md):
 - POST /internal/policies/ingest   정책 데이터 수집·갱신 (FR-18)
 - POST /internal/reports/weekly    주간 체크인 리포트 생성 (FR-15)
+- POST /internal/demo/cleanup      하루 지난 예시 계정 삭제 (BE-03)
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_db
-from app.services import weekly_reports
+from app.services import account, weekly_reports
 from app.services.policies import ingest, youthcenter
 
 router = APIRouter(prefix="/internal")
@@ -31,6 +32,12 @@ def require_internal_key(x_internal_key: str | None = Header(default=None)) -> N
 def ping():
     """n8n에서 연결을 확인할 때 쓴다."""
     return {"ok": True}
+
+
+@router.post("/demo/cleanup", dependencies=[Depends(require_internal_key)])
+def cleanup_demo(db: Session = Depends(get_db)):
+    """만든 지 하루가 지난 예시 계정을 지운다 (BE-03). n8n이 매일 호출한다."""
+    return {"deleted": account.cleanup_demo_users(db)}
 
 
 @router.post("/reports/weekly", dependencies=[Depends(require_internal_key)])
