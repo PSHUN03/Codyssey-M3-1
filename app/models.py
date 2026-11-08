@@ -174,7 +174,7 @@ class LlmUsage(Base):
     __tablename__ = "llm_usage"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    kind: Mapped[str] = mapped_column(String(20))  # coach / structured / text
+    kind: Mapped[str] = mapped_column(String(20))  # coach / structured / text / vision
     model: Mapped[str] = mapped_column(String(80))
     input_tokens: Mapped[int] = mapped_column(Integer, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, default=0)

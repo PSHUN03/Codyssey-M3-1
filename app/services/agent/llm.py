@@ -85,6 +85,37 @@ def text_call(system: str, user: str, max_tokens: int = 2000) -> str | None:
     return "".join(b.text for b in response.content if b.type == "text").strip() or None
 
 
+def vision_structured_call(system: str, image_b64: str, media_type: str, schema: dict,
+                           max_tokens: int = 1500) -> dict | None:
+    """경량 모델 Vision으로 이미지를 읽어 JSON 스키마에 맞는 결과를 받는다 (AI-02). 실패하면 None."""
+    settings = get_settings()
+    if settings.is_mock:
+        return None
+    started = time.perf_counter()
+    try:
+        response = client().messages.create(
+            model=settings.fast_model,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_b64}},
+                {"type": "text", "text": "이 영수증을 읽어 주세요."},
+            ]}],
+            output_config={"format": {"type": "json_schema", "schema": schema}},
+        )
+    except anthropic.APIError as exc:
+        log.warning("vision_structured_call 실패: %s", exc)
+        return None
+    _record("vision", settings.fast_model, response, started)
+    if response.stop_reason in ("refusal", "max_tokens"):
+        return None
+    text = next((b.text for b in response.content if b.type == "text"), "")
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return None
+
+
 def _record(kind: str, model: str, response: object, started: float) -> None:
     from app.services.agent import usage  # 순환 import 방지
 
