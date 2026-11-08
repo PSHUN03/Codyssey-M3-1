@@ -1346,3 +1346,18 @@ body { background: var(--canvas); }
 #benefit-preview { scroll-margin-top: calc(var(--header-h) + 24px); }
 @keyframes benefit-preview-in { from { opacity: .3; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: no-preference) { .benefit-preview-content { animation: benefit-preview-in 260ms ease-out; } }
+
+/* 돈 공부 카드 (FR-21) */
+.learn-cards { margin-top: 0; }
+.learn-cards details p + p { margin-top: -10px; }
+.learn-example { font-weight: 600; color: var(--ink); }
+.learn-source { font-size: 14px; color: var(--mute); }
+.learn-source a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.learn-quiz { margin-top: 32px; }
+.quiz-item { margin: 24px 0 0; padding: 0; border: 0; }
+.quiz-item legend { margin-bottom: 8px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+.quiz-option { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.quiz-option input { width: 18px; height: 18px; accent-color: var(--lime); }
+.quiz-result { margin-top: 8px; }
+.quiz-explain { margin-top: 4px; color: var(--body); line-height: 1.6; }
+

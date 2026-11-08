@@ -1311,12 +1311,28 @@ function initCoachShortcut() {
 
 initPageFeedback();
 initCoachShortcut();
+
+function initLearn() {
+  // 퀴즈 답은 화면에서만 채점하고 어디에도 보내거나 저장하지 않는다 (FR-21)
+  for (const item of $$(".quiz-item")) {
+    item.addEventListener("change", (ev) => {
+      const correct = ev.target.value === item.dataset.answer;
+      const result = $(".quiz-result", item);
+      result.textContent = correct ? "맞았어요." : "다시 생각해 보세요.";
+      result.className = `quiz-result status ${correct ? "status-ok" : "status-bad"}`;
+      result.hidden = false;
+      $(".quiz-explain", item).hidden = !correct;
+    });
+  }
+}
+
 const page = document.body.dataset.page;
 if (page === "landing") { initLandingMotion(); initLanding(); }
 if (page === "onboarding") initOnboarding();
 if (page === "coach") initCoach();
 if (page === "benefits") initBenefits();
 if (page === "plan") initPlan();
+if (page === "learn") initLearn();
 if (page === "settings") initSettings();
 if (page === "consent") initConsent();
 
