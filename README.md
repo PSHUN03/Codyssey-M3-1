@@ -21,19 +21,22 @@
 
 ## 화면
 
-랜딩 계산기 → 질문 카드 진단 → 월급 배분 → 혜택 → 코치 순서의 시연입니다 (모의 AI 모드, 모바일 화면).
-
-<img src="docs/images/demo.gif" width="300" alt="사다리 시연: 계산기, 진단, 플랜, 혜택, 코치">
+배포본(https://sadari.onrender.com)에서 예시 계정으로 찍은 실제 구동 화면입니다 (2026-11-08, 실제 Claude 연결, 모바일 375px).
 
 <p>
-  <img src="docs/presentation/screens/00_onboarding.jpg" width="160" alt="질문 카드 진단">
-  <img src="docs/presentation/screens/01_home.jpg" width="160" alt="홈: 이번 달 요약">
-  <img src="docs/presentation/screens/02_plan.jpg" width="160" alt="월급 배분">
-  <img src="docs/presentation/screens/03_benefit.jpg" width="160" alt="혜택 자격 판정">
-  <img src="docs/presentation/screens/04_coach.jpg" width="160" alt="AI 코치">
+  <img src="docs/images/screens/01_landing.jpg" width="180" alt="랜딩: 비로그인 월급 계산기">
+  <img src="docs/images/screens/02_home.jpg" width="180" alt="홈: 이번 달 요약과 주간 체크">
+  <img src="docs/images/screens/03_plan.jpg" width="180" alt="월급 배분과 유형 진단">
+  <img src="docs/images/screens/04_benefits.jpg" width="180" alt="청년 혜택 자격 판정">
+</p>
+<p>
+  <img src="docs/images/screens/05_coach.jpg" width="180" alt="AI 코치 실제 답변">
+  <img src="docs/images/screens/06_spending.jpg" width="180" alt="거래내역 소비 분석">
+  <img src="docs/images/screens/07_receipt.jpg" width="180" alt="영수증 AI 인식">
+  <img src="docs/images/screens/08_progress.jpg" width="180" alt="저축 기록과 목표 진행률">
 </p>
 
-왼쪽부터 질문 카드 진단, 홈, 월급 배분, 혜택 자격 판정, AI 코치. 다시 찍으려면 서버를 켠 뒤 `python scripts/make_demo_gif.py`, `python docs/presentation/capture_screens.py`를 실행합니다.
+윗줄은 랜딩 계산기, 홈, 월급 배분, 혜택 자격 판정이고, 아랫줄은 AI 코치(실제 답변), 소비 분석(가상 거래내역), 영수증 인식(가상 영수증 r01), 저축 진행률입니다. 다시 찍으려면 `python scripts/capture_readme_screens.py https://sadari.onrender.com`을 실행합니다 (예시 계정만 쓰고 가입하지 않음).
 
 ## 기능
 
