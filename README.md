@@ -53,7 +53,7 @@
 | 답변 피드백을 GitHub 이슈로 (FR-17) | 완료 (이름·이메일·금액 가림). 배포본은 `FEEDBACK_WEBHOOK_URL` 설정 후 이슈 생성 | 자동화 워크플로우 (n8n) |
 | 금융 기초 학습 카드와 퀴즈 (FR-21) | 완료 (`/learn`, 카드 8장) | 없음 |
 | 소비 분석, 목표 대시보드 (FR-14, 16) | 개발 중 | 없음 |
-| 영수증 인식 (FR-19) | 개발 중 | 멀티모달 (Vision) |
+| 영수증 인식 (FR-19) | API 완료 (`POST /api/receipts/scan`), 촬영 화면 개발 중 | 멀티모달 (Vision) |
 
 "개발 중"은 아직 `main`에 들어오지 않아 배포본에 없는 기능입니다. 구현 가이드는 [docs/tasks](docs/tasks)에 역할별로 있습니다.
 
@@ -148,6 +148,7 @@ pytest -q                        # 단위·통합 테스트 (모의 AI 모드, �
 ruff check .                     # 코드 스타일
 python eval/run_eval.py          # 정책 검색 정답률, 투자 권유 탐지율
 python eval/run_eval.py --live   # 실제 Claude 응답 레드팀 평가 (API 키 필요)
+python eval/run_receipt_eval.py  # 가상 영수증 10장 인식 정확도 (API 키 필요)
 ```
 
 | 지표 | 현재 (2026-11-08) | 목표 |

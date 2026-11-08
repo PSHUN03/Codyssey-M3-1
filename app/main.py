@@ -15,6 +15,7 @@ from app.db import init_engine
 from app.deps import ConsentRequired, LoginRequired, OnboardingRequired
 from app.routers import api, auth, coach, internal, onboarding, pages, public
 from app.routers.products import router as products_router
+from app.routers.receipts import router as receipts_router
 from app.routers.reports import router as reports_router
 from app.routers.transactions import router as transactions_router
 from app.web import render
@@ -59,6 +60,7 @@ def create_app() -> FastAPI:
         app.include_router(module.router)
 
     app.include_router(products_router)
+    app.include_router(receipts_router)
     app.include_router(reports_router)
     app.include_router(transactions_router)
 
