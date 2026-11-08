@@ -10,14 +10,14 @@
     <div><p class="kicker">작은 기록이 목표에 가까워져요</p><h1 class="page-title">저축 기록과 진행률</h1><p class="page-sub">기록한 저축 금액을 모아 보여드려요.</p></div>
     <a class="btn btn-secondary btn-sm" href="/home{{ '?example=sample' if is_sample else '' }}#fe01-month-title">이번 달 기록 수정 {{ ui.icon("arrow-right", 16) }}</a>
   </div>
-  <p class="fe01-sample-notice">{% if is_sample %}<span class="fe01-sample">샘플 데이터</span> 연습용 목표·기록이에요. 실제 내 저축 내역과 연결되지 않아요. <a href="/progress">실제 기록으로 돌아가기</a>{% else %}저장한 저축 기록을 보여드려요. 목표 진행률은 연결 준비 중이에요. <a href="/progress?example=sample">샘플로 둘러보기</a>{% endif %}</p>
+  <p class="fe01-sample-notice">{% if is_sample %}<span class="fe01-sample">샘플 데이터</span> 연습용 목표·기록이에요. 실제 내 저축 내역과 연결되지 않아요. <a href="/progress">실제 기록으로 돌아가기</a>{% else %}저장한 저축 기록과 목표 진행률을 보여드려요. <a href="/progress?example=sample">샘플로 둘러보기</a>{% endif %}</p>
   {% if not is_sample %}<div class="fe01-load-status"><p class="fe01-status" data-fe01-month-status role="status" aria-live="polite">저축 기록을 불러오고 있어요.</p><div class="fe01-reload"><button type="button" class="btn btn-secondary btn-sm" data-fe01-reload="savings">기록 다시 불러오기</button><a class="btn btn-secondary btn-sm" data-fe01-recovery="savings" hidden></a></div></div>{% endif %}
   <div class="fe01-progress-grid">
     <section class="card" aria-labelledby="fe01-goal-title">
       <p class="label">{{ '샘플 목표' if is_sample else '나의 목표' }}</p><h2 class="card-title" id="fe01-goal-title">{{ fe01_config.goal.name if is_sample else (current_goal.name if current_goal else '코치와 목표를 정해 보세요') }}</h2>
       <p class="fe01-progress-amount"><strong data-fe01-total>{{ '320만 원' if is_sample else '—' }}</strong><span>{% if is_sample %}/ {{ fe01_config.goal.amount | won }}{% elif current_goal %}/ {{ current_goal.target_amount | won }}{% endif %}</span></p>
-      <div class="progress fe01-progress-track" data-fe01-progress role="progressbar" aria-label="목표 저축 진행률" aria-valuemin="0" aria-valuemax="100" {% if is_sample %}aria-valuenow="10.7"{% else %}aria-valuetext="목표 진행률 연결 준비 중"{% endif %}><span data-fe01-fill style="width:{{ '10.7' if is_sample else '0' }}%"></span></div>
-      <div class="fe01-progress-meta"><strong data-fe01-percent>{{ '10.7% 달성' if is_sample else '진행률 연결 준비 중' }}</strong><span data-fe01-remaining>{{ '샘플 데이터를 불러오고 있어요.' if is_sample else '누적 금액은 아직 표시하지 않아요.' }}</span></div>
+      <div class="progress fe01-progress-track" data-fe01-progress role="progressbar" aria-label="목표 저축 진행률" aria-valuemin="0" aria-valuemax="100" {% if is_sample %}aria-valuenow="10.7"{% else %}aria-valuetext="목표 진행률을 불러오고 있어요"{% endif %}><span data-fe01-fill style="width:{{ '10.7' if is_sample else '0' }}%"></span></div>
+      <div class="fe01-progress-meta"><strong data-fe01-percent>{{ '10.7% 달성' if is_sample else '진행률을 불러오고 있어요' }}</strong><span data-fe01-remaining>{{ '샘플 데이터를 불러오고 있어요.' if is_sample else '진단 때 입력한 저축액과 기록한 월 저축을 더해 계산해요.' }}</span></div>
       <p class="card-foot">{{ '아래 월별 샘플 기록의 합계를 기준으로 해요.' if is_sample else '서버에서 목표 진행률을 조회할 수 있게 되면 표시해요.' }}</p>
     </section>
     <section class="card">

@@ -44,7 +44,7 @@
             <div class="receipt-sample-action"><button type="button" class="receipt-link" data-use-sample>샘플 흐름 다시 보기</button></div>
           </section>
           <section class="receipt-panel" aria-label="인식 결과 확인과 샘플 기록" data-result-panel>
-            <div class="receipt-panel-head"><div><h2 data-result-title>인식 결과 확인</h2><p class="receipt-panel-sub" data-result-sub>확인하고, 틀린 부분은 바로 고쳐요.</p></div><span class="receipt-ai-badge" data-ai-badge>{{ receipt.icon("sparkles") }}AI 인식 · 샘플</span></div>
+            <div class="receipt-panel-head"><div><h2 data-result-title>인식 결과 확인</h2><p class="receipt-panel-sub" data-result-sub>확인하고, 틀린 부분은 바로 고쳐요.</p></div><span class="receipt-ai-badge" data-ai-badge>{{ receipt.icon("sparkles") }}<span data-ai-badge-text>AI 인식 · 샘플</span></span></div>
             <div class="receipt-pending" data-pending hidden>
               <span class="receipt-state-icon">{{ receipt.icon("scan-line") }}</span><h3>사진이 준비됐어요</h3><p>인식하기를 누르면 AI가 사진을 읽어요.<br>결과는 저장 전에 직접 고칠 수 있어요.</p>
               <button type="button" class="receipt-button receipt-button-primary receipt-button-block" data-scan>{{ receipt.icon("sparkles") }}샘플 결과 보기</button>
@@ -58,12 +58,12 @@
                 <div class="receipt-field"><label class="receipt-field-label" for="receipt-merchant">가맹점</label><input class="receipt-input" id="receipt-merchant" type="text" name="merchant" maxlength="80" autocomplete="off" required value="사다리 커피" aria-describedby="receipt-merchant-error"><p class="receipt-error" id="receipt-merchant-error" data-error="merchant" role="alert" hidden></p></div>
                 <div class="receipt-field"><label class="receipt-field-label" for="receipt-amount">결제 금액</label><span class="receipt-money"><input id="receipt-amount" type="text" inputmode="numeric" name="amount" autocomplete="off" required value="15500" placeholder="금액을 입력해 주세요" aria-describedby="receipt-amount-error"><span>원</span></span><p class="receipt-error" id="receipt-amount-error" data-error="amount" role="alert" hidden></p></div>
               </div>
-              <div class="receipt-save-area"><button type="button" data-save class="receipt-button receipt-button-primary receipt-button-block">{{ receipt.icon("check") }}확인하고 샘플 저장</button><p class="receipt-save-note">이 미리보기에서만 반영돼요.<br>실제 지출 내역으로 저장되지 않아요.</p></div>
+              <div class="receipt-save-area"><button type="button" data-save class="receipt-button receipt-button-primary receipt-button-block">{{ receipt.icon("check") }}<span data-save-label>확인하고 샘플 저장</span></button><p class="receipt-save-note">이 미리보기에서만 반영돼요.<br>실제 지출 내역으로 저장되지 않아요.</p></div>
             </form>
             <div data-saved hidden>
-              <div class="receipt-saved-intro"><span class="receipt-state-icon receipt-success-check" data-success-check>{{ receipt.icon("check") }}</span><h3>샘플 기록을 남겼어요</h3><p>직접 확인한 내용으로 반영했어요.</p></div>
+              <div class="receipt-saved-intro"><span class="receipt-state-icon receipt-success-check" data-success-check>{{ receipt.icon("check") }}</span><h3 data-saved-heading>샘플 기록을 남겼어요</h3><p>직접 확인한 내용으로 반영했어요.</p></div>
               <dl class="receipt-saved-details"><div><dt>결제 날짜</dt><dd data-saved-date></dd></div><div><dt>가맹점</dt><dd data-saved-merchant></dd></div><div><dt>결제 금액</dt><dd class="receipt-saved-amount" data-saved-amount></dd></div></dl>
-              <button type="button" class="receipt-button receipt-button-block" data-edit>{{ receipt.icon("pencil") }}내용 다시 수정하기</button><p class="receipt-save-note">샘플 저장 결과이며 실제 지출 내역은 바뀌지 않아요.</p>
+              <button type="button" class="receipt-button receipt-button-block" data-edit>{{ receipt.icon("pencil") }}내용 다시 수정하기</button><p class="receipt-save-note" data-saved-note>샘플 저장 결과이며 실제 지출 내역은 바뀌지 않아요.</p>
             </div>
             <p data-live role="status" aria-live="polite" class="receipt-save-note"></p>
           </section>

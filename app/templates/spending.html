@@ -14,7 +14,7 @@
           <div class="s-file-box">{{ ui.icon("document", 20) }}<div><p class="s-file-name" data-file-name>{{ '샘플_거래내역.csv' if is_sample else '거래내역 파일을 선택해 주세요' }}</p><p class="s-file-help" data-file-help>{{ '가상의 거래 10건이 준비돼 있어요.' if is_sample else '파일 선택 후 미리보기를 눌러 주세요.' }}</p></div></div>
           <input type="file" accept=".xlsx,.csv" data-file-input hidden aria-label="소비 분석용 엑셀 또는 CSV 파일 선택">
           <div class="s-upload-actions"><button type="button" class="s-button" data-pick>{{ ui.icon("arrow-up", 20) }}파일 선택</button><button type="button" class="s-button s-primary" data-analyze {% if not is_sample %}disabled{% endif %}>{{ ui.icon("plan", 20) }}{{ '샘플 분석하기' if is_sample else '미리보기' }}</button></div>
-          <p class="s-upload-note">{% if is_sample %}선택한 파일은 읽거나 전송하지 않아요.<br>분석 결과는 파일과 관계없는 샘플 거래예요. <a href="/spending">실제 파일 미리보기</a>{% else %}‘미리보기’를 누르면 파일을 전송해 내용을 확인해요.<br>거래 저장과 월별 요약은 준비 중이에요. <a href="/spending?example=result">샘플로 둘러보기</a>{% endif %}</p>
+          <p class="s-upload-note">{% if is_sample %}선택한 파일은 읽거나 전송하지 않아요.<br>분석 결과는 파일과 관계없는 샘플 거래예요. <a href="/spending">실제 파일 미리보기</a>{% else %}‘미리보기’를 누르면 파일을 전송해 내용을 확인해요.<br>확인한 거래는 ‘거래 저장하기’를 눌러야 저장돼요. <a href="/spending?example=result">샘플로 둘러보기</a>{% endif %}</p>
           <p class="s-error" data-file-error role="alert" hidden></p>
           <div class="s-progress-area" data-loading hidden role="status" aria-live="polite"><div class="s-progress-top"><span>{{ '샘플 분석을 준비하고 있어요' if is_sample else '파일 내용을 확인하고 있어요' }}</span><span data-progress-text>0%</span></div><div class="s-progress" role="progressbar" aria-label="파일 미리보기 진행" aria-valuemin="0" aria-valuemax="100"><span data-progress-fill></span></div></div>
         </section>
@@ -27,8 +27,8 @@
         <div data-analysis {% if not is_sample %}hidden{% endif %}>
           <div class="s-metrics">
             <section class="s-metric s-metric-total"><p class="s-metric-label">{{ sample.month_label if is_sample else '업로드 내역' }} 총 지출</p><div class="s-number"><strong data-total>{{ '891,800' if is_sample else '—' }}</strong><span>원</span></div><p class="s-metric-note" data-total-note>샘플 거래 10건의 합계예요.</p></section>
-            <section class="s-metric"><p class="s-metric-label">고정비{{ ' · 예시' if is_sample else '' }}</p><div class="s-number"><strong data-fixed>{{ '627,800' if is_sample else '—' }}</strong><span {% if not is_sample %}hidden{% endif %}>원</span></div><p class="s-metric-note">{{ '정기결제 2건 포함' if is_sample else '저장·월별 요약 연결 후 확인할 수 있어요.' }}</p></section>
-            <section class="s-metric"><p class="s-metric-label">변동비{{ ' · 예시' if is_sample else '' }}</p><div class="s-number"><strong data-variable>{{ '264,000' if is_sample else '—' }}</strong><span {% if not is_sample %}hidden{% endif %}>원</span></div><p class="s-metric-note">{{ '식비·쇼핑 등 생활 지출' if is_sample else '미리보기에서는 임의로 나누지 않아요.' }}</p></section>
+            <section class="s-metric"><p class="s-metric-label">고정비{{ ' · 예시' if is_sample else '' }}</p><div class="s-number"><strong data-fixed>{{ '627,800' if is_sample else '—' }}</strong><span {% if not is_sample %}hidden{% endif %}>원</span></div><p class="s-metric-note" data-fixed-note>{{ '정기결제 2건 포함' if is_sample else '거래를 저장하면 월별 요약으로 계산해요.' }}</p></section>
+            <section class="s-metric"><p class="s-metric-label">변동비{{ ' · 예시' if is_sample else '' }}</p><div class="s-number"><strong data-variable>{{ '264,000' if is_sample else '—' }}</strong><span {% if not is_sample %}hidden{% endif %}>원</span></div><p class="s-metric-note" data-variable-note>{{ '식비·쇼핑 등 생활 지출' if is_sample else '미리보기에서는 임의로 나누지 않아요.' }}</p></section>
           </div>
           <div class="s-grid">
             <section class="s-panel" aria-label="카테고리별 지출"><div class="s-panel-head"><div><h2>어디에 많이 썼을까요?</h2><p class="s-panel-sub">카테고리별 지출 · 단위: 원</p></div><span class="s-icon">{{ ui.icon("plan", 20) }}</span></div><div class="s-chart" data-chart></div></section>
@@ -51,6 +51,7 @@
 {% endfor %}
 </tbody></table>
             <div class="s-more-row"><button type="button" class="s-button" data-previous hidden>이전 거래</button><button type="button" class="s-button" data-more>나머지 5건 보기</button></div>
+            {% if not is_sample %}<div class="s-upload-actions s-save-row"><button type="button" class="s-button s-primary" data-save-transactions>거래 저장하기</button></div>{% endif %}
             <p class="s-live" data-change-status role="status" aria-live="polite">{{ '분류 수정은 이 샘플에만 반영돼요.' if is_sample else '분류 변경과 거래내역은 아직 저장되지 않아요.' }}</p>
           </section>
         </div>

@@ -99,3 +99,34 @@ def test_coach_tool_and_account_deletion(client):
     assert client.request("DELETE", "/api/account").status_code in (200, 204, 303)
     with new_session() as db:
         assert db.scalar(select(func.count()).select_from(Transaction)) == 0
+
+
+def test_save_previewed_rows_keeps_user_categories_and_masks(client):
+    rows = [
+        {"date": "2026-10-03", "merchant": "월세 이체", "amount": -500000, "category": "주거"},
+        {"date": "2026-10-07", "merchant": "스타벅스 둔산점", "amount": -6500, "category": "문화"},  # 사용자가 식비→문화로 바꿈
+        {"date": "2026-10-01", "merchant": "가짜회사 급여", "amount": 2450000, "category": "식비"},  # 입금은 수입으로
+        {"date": "2026-10-20", "merchant": "카드 1234-5678-9012-3456 결제", "amount": -30000, "category": "쇼핑"},
+        {"date": "2026-10-21", "merchant": "취소", "amount": 0, "category": "기타"},
+    ]
+    assert client.post("/api/transactions/save", json={"transactions": rows}).status_code == 401
+    user_id = _member(client, "save@example.test")
+    res = client.post("/api/transactions/save", json={"transactions": rows})
+    assert res.status_code == 200 and res.json() == {"saved": 4, "skipped": 0, "months": ["2026-10"]}
+    assert client.post("/api/transactions/save", json={"transactions": rows}).json()["skipped"] == 4
+    with new_session() as db:
+        saved = {t.merchant: t for t in db.scalars(select(Transaction).where(Transaction.user_id == user_id))}
+    assert saved["스타벅스 둔산점"].category == "문화" and saved["가짜회사 급여"].category == "수입"
+    assert not any("1234-5678" in m for m in saved)
+    summary = client.get("/api/transactions/summary?month=2026-10").json()
+    assert summary["total_spent"] == 536500 and summary["fixed_estimate"] == 500000
+
+
+@pytest.mark.parametrize("bad", [
+    {"transactions": []},
+    {"transactions": [{"date": "2026-13-01", "merchant": "x", "amount": -1, "category": "식비"}]},
+    {"transactions": [{"date": "2026-10-01", "merchant": "x", "amount": -1, "category": "도박"}]},
+])
+def test_save_previewed_rows_rejects_invalid(client, bad):
+    _member(client, "bad@example.test")
+    assert client.post("/api/transactions/save", json=bad).status_code == 422

@@ -1,7 +1,10 @@
 """거래내역 미리보기(DATA-06)와 저장·요약(BE-01). 원본 파일은 저장하지 않는다."""
 import json
+from datetime import date as Date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -43,6 +46,30 @@ async def upload(file: UploadFile = File(...), mapping: str | None = Form(None),
         return {**parsed, "saved": 0, "skipped": 0}
     result = spending.save_transactions(db, user, parsed["transactions"])
     return {"needs_mapping": False, **result, "errors": parsed["errors"]}
+
+
+class PreviewedTransaction(BaseModel):
+    date: Date
+    merchant: str = Field(max_length=2000)
+    amount: int = Field(ge=-100_000_000, le=100_000_000)
+    category: Literal["식비", "교통", "쇼핑", "주거", "의료", "교육", "통신", "문화", "기타", "수입"]
+
+
+class SaveRequest(BaseModel):
+    transactions: list[PreviewedTransaction] = Field(min_length=1, max_length=transactions.MAX_ROWS)
+
+
+@router.post("/transactions/save")
+def save_previewed(body: SaveRequest, user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
+    """미리보기에서 확인한 거래(분류 수정 포함)를 저장한다. 가맹점명은 한 번 더 가리고, 0원 거래는 건너뛴다."""
+    rows = [
+        {"date": t.date.isoformat(), "merchant": transactions.redact(t.merchant)[:200], "amount": t.amount,
+         "category": "수입" if t.amount > 0 else ("기타" if t.category == "수입" else t.category)}
+        for t in body.transactions if t.amount != 0
+    ]
+    result = spending.save_transactions(db, user, rows)
+    months = sorted({row["date"][:7] for row in rows})
+    return {**result, "months": months}
 
 
 @router.get("/transactions/summary")

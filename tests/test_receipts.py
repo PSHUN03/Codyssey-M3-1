@@ -103,3 +103,20 @@ def test_eval_scoring_with_fake_vision():
     result = module.score(answers, perfect)
     assert result["n"] == 2 and result["accuracy"] == {"date": 1.0, "merchant": 1.0, "total": 1.0, "card_masked": 1.0}
     assert {r["file"] for r in result["rows"]} == set(by_file)
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        # r07: 합계가 가려졌는데 보이는 품목 금액(12000)으로 채운 경우
+        ({"total_amount": 12000, "items": [{"name": "셔츠 세탁", "amount": None}, {"name": "코트 드라이", "amount": 12000}]}, None),
+        # 모델이 합계 줄을 또렷이 읽지 못했다고 답한 경우
+        ({"total_amount": 15000, "total_visible": False, "items": []}, None),
+        # 품목 금액이 모두 보이면 합계가 그 합과 같아도 정상
+        ({"total_amount": 6150, "total_visible": True, "items": [{"name": "김밥", "amount": 3000}, {"name": "우유", "amount": 3150}]}, 6150),
+        # 못 읽은 품목이 있어도 합계가 따로 보이면(합과 다르면) 그대로 둔다
+        ({"total_amount": 20000, "total_visible": True, "items": [{"name": "셔츠", "amount": None}, {"name": "코트", "amount": 12000}]}, 20000),
+    ],
+)
+def test_hidden_total_is_not_guessed(raw, expected):
+    assert receipts.normalize(raw, source="ai")["total_amount"] == expected

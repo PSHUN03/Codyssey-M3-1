@@ -1,4 +1,4 @@
-/* FE-01 live check-ins and monthly records. Goal progress is deliberately pending. */
+/* FE-01 live check-ins, monthly records and server-computed goal progress. */
 (() => {
   "use strict";
   const root = document.querySelector("[data-fe01]"), source = document.getElementById("fe01-sample-config");
@@ -12,7 +12,7 @@
   const won = amount => `${format(amount / 10000)}만 원`;
   const monthLabel = month => `${month.slice(0, 4)}년 ${Number(month.slice(5))}월`;
   const channel = () => ({ ready: false, busy: false, error: "", status: null, message: "", generation: 0, controller: null });
-  const state = { paid: null, records: [], dirty: false, weekly: channel(), savings: channel() };
+  const state = { paid: null, records: [], progress: null, dirty: false, weekly: channel(), savings: channel() };
   const input = find("#fe01-amount"), form = find("[data-fe01-month-form]"), chartNode = find("[data-fe01-chart]");
   const chart = chartNode ? window.SadariFe01Chart(chartNode, false) : null;
   const hasWeekly = all("[data-fe01-weekly]").length > 0;
@@ -51,8 +51,7 @@
     const previous = state.records.find(record => record.month === previousMonth);
     const difference = current && previous ? current.amount - previous.amount : null;
     setText("[data-fe01-comparison]", difference === null ? (channel.ready ? "비교할 기록이 아직 없어요." : "") : difference > 0 ? `지난달보다 ${won(difference)} 더 모았어요` : difference < 0 ? `지난달보다 ${won(-difference)} 적게 모았어요` : "지난달과 같은 금액이에요");
-    // GET /api/savings has no cumulative progress contract yet. Never infer it from 12 displayed months.
-    setText("[data-fe01-total]", "—"); setText("[data-fe01-percent]", "진행률 연결 준비 중");
+    renderProgress();
     const emptyText = channel.ready ? "최근 12개월에 저장한 저축 기록이 없어요." : channel.busy ? "저축 기록을 불러오고 있어요." : "기록을 다시 불러와 확인해 주세요.";
     const list = find("[data-fe01-records]");
     if (list) {
@@ -67,6 +66,26 @@
     }
     chart?.render(records);
     if (chartNode && !records.length) { const note = document.createElement("p"); note.className = "field-help"; note.textContent = emptyText; chartNode.replaceChildren(note); }
+  }
+  // Progress comes only from the server (existing savings + every monthly record). Never infer it from the 12 displayed months.
+  function renderProgress() {
+    const progress = state.progress, bar = find("[data-fe01-progress]"), fill = find("[data-fe01-fill]");
+    if (!progress || progress.percentage === null) {
+      setText("[data-fe01-total]", progress ? won(progress.saved) : "—");
+      const loading = !progress && (state.savings.busy || !state.savings.ready && !state.savings.error);
+      setText("[data-fe01-percent]", progress ? "목표 금액이 없어요" : loading ? "진행률을 불러오고 있어요" : "진행률을 불러오지 못했어요");
+      setText("[data-fe01-remaining]", progress ? "재무 진단에서 목표를 정하면 진행률을 보여드려요." : loading ? "잠시만 기다려 주세요." : "기록을 다시 불러와 확인해 주세요.");
+      if (fill) fill.style.width = "0%";
+      bar?.removeAttribute("aria-valuenow"); bar?.setAttribute("aria-valuetext", "목표 진행률 없음");
+      return;
+    }
+    const left = Math.max(0, progress.target - progress.saved);
+    setText("[data-fe01-total]", won(progress.saved));
+    setText("[data-fe01-percent]", `${progress.percentage.toFixed(1)}% 달성`);
+    setText("[data-fe01-remaining]", left > 0 ? `목표까지 ${won(left)} 남았어요. 진단 때 입력한 저축액과 기록한 월 저축을 더했어요.` : "목표 금액을 모두 모았어요.");
+    if (fill) fill.style.width = `${progress.percentage}%`;
+    bar?.setAttribute("aria-valuenow", String(progress.percentage));
+    bar?.setAttribute("aria-valuetext", `${won(progress.saved)}, 목표의 ${progress.percentage.toFixed(1)}%`);
   }
   function syncInput() {
     if (!input || state.dirty) return;
@@ -104,8 +123,8 @@
     return run("weekly", options => client.loadWeekly(options), records => { state.paid = records.find(record => record.week === config.week)?.paid ?? null; }, false);
   }
   function loadSavings() {
-    return run("savings", options => client.loadSavings(options), records => {
-      state.records = records;
+    return run("savings", options => client.loadSavingsWithProgress(options), ({ records, progress }) => {
+      state.records = records; state.progress = progress;
       const current = records.find(record => record.month === config.month);
       if (state.dirty && current && input) { try { if (contract.parseMan(input.value) === current.amount) state.dirty = false; } catch { /* Keep the user's invalid draft intact. */ } }
       syncInput();
@@ -125,12 +144,16 @@
     run("savings", options => client.saveSavings(config.month, amount, options), record => {
       state.records = [...state.records.filter(item => item.month !== record.month), record].sort((a, b) => a.month.localeCompare(b.month));
       state.dirty = false; syncInput(); state.savings.message = `${config.month_label} 저축 금액 ${won(record.amount)}을 저장했어요.`;
-    }, true);
+    }, true).then(() => { if (state.savings.ready && !state.savings.error) refreshProgress(); });
   });
   input?.addEventListener("input", event => {
     event.stopPropagation(); state.dirty = true;
     try { contract.parseMan(input.value); input.removeAttribute("aria-invalid"); find("#fe01-amount-error").hidden = true; } catch { /* Keep field errors until corrected. */ }
   });
+  async function refreshProgress() {
+    try { state.progress = (await client.loadSavingsWithProgress({})).progress; renderProgress(); }
+    catch { /* The saved record is already shown; progress refreshes on the next reload. */ }
+  }
   all("[data-fe01-reload]").forEach(button => button.addEventListener("click", () => button.dataset.fe01Reload === "weekly" ? loadWeekly() : loadSavings()));
   if (hasWeekly) loadWeekly(); loadSavings();
   window.addEventListener("pagehide", () => { cancel("weekly"); cancel("savings"); });
