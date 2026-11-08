@@ -3,7 +3,7 @@
 {% extends "base.html" %}
 {% block title %}홈{% endblock %}
 {% block content %}
-<div class="page-head">
+<div class="page-head fe01-page-head">
   <div>
     <p class="kicker">이번 달도 차근차근</p>
     <h1 class="page-title">{{ user.nickname }}님의 <span class="home-title-topic">돈 흐름</span></h1>
@@ -17,7 +17,7 @@
 {% set living = plan.allocations | selectattr("kind", "equalto", "living") | sum(attribute="amount") %}
 {% set emergency = plan.allocations | selectattr("key", "equalto", "emergency") | sum(attribute="amount") %}
 {% set goal = s.goal %}
-<div class="grid home-dashboard">
+<div class="grid home-dashboard" data-fe01>
   <section class="card span-7 home-savings">
     <div class="home-savings-head">
       <div>
@@ -93,6 +93,8 @@
   </section>
   {% endif %}
 
+  {% include "_fe01_checkins.html" %}
+
   <section class="card span-7">
     <div class="card-head">
       <h2 class="card-title">챙길 수 있는 혜택</h2>
@@ -137,5 +139,7 @@
   <p>아직 플랜이 없어요.</p>
   <button class="btn btn-primary" data-action="regenerate">플랜 만들기</button>
 </section>
+<div class="grid fe01-checkins" data-fe01>{% include "_fe01_checkins.html" %}</div>
 {% endif %}
+{% include "_fe01_config.html" %}
 {% endblock %}

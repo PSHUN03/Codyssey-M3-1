@@ -1,0 +1,34 @@
+{% set is_sample = fe01_config.mode == 'sample' %}
+<section class="card fe01-card fe01-weekly" aria-labelledby="fe01-week-title" data-fe01-week-card>
+  <div class="fe01-card-head">
+    <div><p class="label">한 번만 눌러 기록해요 {% if is_sample %}<span class="fe01-sample">샘플 데이터</span>{% endif %}</p><h2 class="card-title" id="fe01-week-title">이번 주 냈나요?</h2><p class="fe01-date">{{ fe01_config.week_label }}</p></div>
+    <span class="fe01-icon" aria-hidden="true">{{ ui.icon("check", 20) }}</span>
+  </div>
+  <div class="fe01-answers" role="group" aria-label="이번 주 납입 여부">
+    <button class="fe01-answer" type="button" data-fe01-weekly="paid" aria-pressed="false" {% if not is_sample %}disabled{% endif %}>냈어요</button>
+    <button class="fe01-answer" type="button" data-fe01-weekly="missed" aria-pressed="false" {% if not is_sample %}disabled{% endif %}>못 냈어요</button>
+  </div>
+  <p class="fe01-status" data-fe01-week-status role="status" aria-live="polite">{{ '이번 주 저축 여부를 알려 주세요.' if is_sample else '이번 주 기록을 불러오고 있어요.' }}</p>
+  {% if not is_sample %}<div class="fe01-reload"><button type="button" class="btn btn-secondary btn-sm" data-fe01-reload="weekly">기록 다시 불러오기</button><a class="btn btn-secondary btn-sm" data-fe01-recovery="weekly" hidden></a></div>{% endif %}
+  <a class="btn btn-secondary btn-sm" href="/coach" data-fe01-coach hidden>코치와 이야기하기 {{ ui.icon("arrow-right", 16) }}</a>
+  <p class="field-help fe01-disclaimer">{{ '연습용 기록이며 실제 저축 내역으로 저장되지 않아요.' if is_sample else '같은 주에 다시 누르면 마지막 답변으로 저장돼요.' }}</p>
+</section>
+<section class="card fe01-card fe01-monthly" aria-labelledby="fe01-month-title" data-fe01-month-card>
+  <div class="fe01-card-head">
+    <div><p class="label">실제로 모은 금액 {% if is_sample %}<span class="fe01-sample">샘플 데이터</span>{% endif %}</p><h2 class="card-title" id="fe01-month-title">이번 달 얼마 모았나요?</h2><p class="fe01-date">{{ fe01_config.month_label }}</p></div>
+    <span class="fe01-icon" aria-hidden="true">{{ ui.icon("plan", 20) }}</span>
+  </div>
+  <form data-fe01-month-form novalidate>
+    <label class="field-label fe01-amount-label" for="fe01-amount">{{ fe01_config.month_label }} 저축 금액</label>
+    <div class="fe01-input-row">
+      <span class="fe01-money-input"><input id="fe01-amount" name="amount" type="{{ 'number' if is_sample else 'text' }}" inputmode="{{ 'numeric' if is_sample else 'decimal' }}" {% if is_sample %}min="0" max="1000000" step="1" value="65"{% else %}value="" disabled{% endif %} required aria-describedby="fe01-amount-help fe01-amount-error"><span>만 원</span></span>
+      <button class="btn btn-primary" type="submit" {% if not is_sample %}disabled{% endif %}>{{ '샘플 기록하기' if is_sample else '기록하기' }}</button>
+    </div>
+    <p class="field-help" id="fe01-amount-help">같은 달 기록은 입력한 금액으로 바뀌어요.{% if not is_sample %} 0~1,000만 원까지 입력할 수 있어요.{% endif %}</p>
+    <p class="field-error" id="fe01-amount-error" role="alert" hidden></p>
+    <p class="fe01-status" data-fe01-month-status role="status" aria-live="polite">{{ '샘플 데이터를 불러오고 있어요.' if is_sample else '이번 달 기록을 불러오고 있어요.' }}</p>
+  </form>
+  {% if not is_sample %}<div class="fe01-reload"><button type="button" class="btn btn-secondary btn-sm" data-fe01-reload="savings">기록 다시 불러오기</button><a class="btn btn-secondary btn-sm" data-fe01-recovery="savings" hidden></a></div>{% endif %}
+  <a class="link-more" href="/progress{{ '?example=sample' if is_sample else '' }}">월별 저축 기록 보기 {{ ui.icon("chevron-right", 16) }}</a>
+  <p class="field-help fe01-disclaimer"><a href="{{ '/home' if is_sample else '/home?example=sample' }}">{{ '실제 기록으로 돌아가기' if is_sample else '샘플로 둘러보기' }}</a></p>
+</section>
