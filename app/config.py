@@ -40,6 +40,7 @@ class Settings:
     refusal_fallback: bool
     daily_chat_limit: int
     internal_api_key: str | None
+    feedback_webhook_url: str | None = None
 
     @property
     def is_mock(self) -> bool:
@@ -65,7 +66,8 @@ def get_settings() -> Settings:
         log.warning("SECRET_KEY가 없어 임시 키를 사용합니다. 서버가 재시작되면 로그인이 풀립니다.")
 
     return Settings(
-        env=os.getenv("APP_ENV", "development"),
+        # Render는 RENDER=true를 자동으로 넣는다. 대시보드에 APP_ENV를 빠뜨려도 운영 설정(Secure 쿠키 등)이 켜지게 한다
+        env=os.getenv("APP_ENV") or ("production" if os.getenv("RENDER") else "development"),
         secret_key=secret,
         database_url=os.getenv("DATABASE_URL") or f"sqlite:///{PROJECT_DIR / 'sadari.db'}",
         llm_provider=provider,
@@ -75,4 +77,5 @@ def get_settings() -> Settings:
         refusal_fallback=(os.getenv("REFUSAL_FALLBACK") or "true").lower() != "false",
         daily_chat_limit=_int("DAILY_CHAT_LIMIT", 50),
         internal_api_key=os.getenv("INTERNAL_API_KEY") or None,
+        feedback_webhook_url=os.getenv("FEEDBACK_WEBHOOK_URL") or None,
     )

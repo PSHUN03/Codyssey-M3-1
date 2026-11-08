@@ -1,4 +1,4 @@
-/* FE-05: local sample preview only. This adapter never sends a receipt or saves a transaction. */
+/* FE-05: 샘플 미리보기와 AI-02 영수증 인식(POST /api/receipts/scan). 사진과 결과는 서버에 저장하지 않는다. */
 (() => {
   "use strict";
   const contract = typeof module !== "undefined" && module.exports
@@ -58,7 +58,7 @@
     const fields = { date: form.elements.date, merchant: form.elements.merchant, amount: form.elements.amount };
     const photo = find("[data-local-photo]");
     let stage = "review", source = "sample", objectUrl = null, fileName = "", generation = 0, timer = null;
-    let result = sampleResult(config), values = toDraft(result), saved = null;
+    let result = sampleResult(config), values = toDraft(result), saved = null, selectedFile = null, recognized = false;
 
     function clearErrors() {
       Object.entries(fields).forEach(([name, input]) => { input.removeAttribute("aria-invalid"); find(`[data-error="${name}"]`).hidden = true; });
@@ -75,8 +75,10 @@
       find("[data-loading]").hidden = !loading; find("[data-saved]").hidden = !complete;
       find("[data-ai-badge]").hidden = !review && !complete;
       find("[data-result-title]").textContent = complete ? "확인한 샘플 기록" : stage === "preview" ? "인식 준비" : "인식 결과 확인";
-      find("[data-result-sub]").textContent = complete ? "실제 지출 내역에는 저장되지 않아요." : "확인하고, 틀린 부분은 바로 고쳐요.";
-      find("[data-result-note]").textContent = source === "photo" ? "선택한 사진과 관계없는 예시 값이에요. 지금은 확인·수정 흐름만 체험해요." : "아래는 샘플 영수증의 예시 값이에요. 날짜·가맹점·금액을 확인해 주세요.";
+      find("[data-result-sub]").textContent = complete ? "아직 지출 내역에는 저장되지 않아요." : "확인하고, 틀린 부분은 바로 고쳐요.";
+      find("[data-result-note]").textContent = source === "photo"
+        ? (recognized ? "AI가 사진에서 읽은 값이에요. 틀리거나 비어 있는 부분은 직접 고쳐 주세요." : "인식하기를 누르면 사진을 읽어 날짜·가맹점·금액을 채워요.")
+        : "아래는 샘플 영수증의 예시 값이에요. 날짜·가맹점·금액을 확인해 주세요.";
       find("[data-missing-notice]").hidden = result.amount !== null;
       find("[data-sample-paper]").hidden = source !== "sample";
       photo.hidden = source !== "photo" || !objectUrl;
@@ -121,7 +123,7 @@
     }));
     find("[data-edit]").addEventListener("click", () => { stage = "review"; clearErrors(); render(true); fields.merchant.focus(); announce("내용을 수정한 뒤 다시 샘플 저장할 수 있어요."); });
     find("[data-use-sample]").addEventListener("click", () => {
-      generation++; clearTimeout(timer); releasePhoto(); source = "sample"; stage = "preview";
+      generation++; clearTimeout(timer); releasePhoto(); source = "sample"; stage = "preview"; selectedFile = null; recognized = false;
       result = sampleResult(config); values = toDraft(result); saved = null; clearErrors(); render(true); announce("샘플 영수증을 불러왔어요.");
     });
     find("[data-camera-button]").addEventListener("click", () => find("[data-camera-input]").click());
@@ -137,13 +139,32 @@
       if (current !== generation) { URL.revokeObjectURL(nextUrl); return; }
       if (!decoded) { URL.revokeObjectURL(nextUrl); fail("사진을 열 수 없어요. 다른 JPG·PNG 사진을 선택해 주세요."); return; }
       clearTimeout(timer); releasePhoto(); objectUrl = nextUrl; photo.src = nextUrl; fileName = file.name;
-      source = "photo"; stage = "preview"; saved = null; result = sampleResult(config); values = toDraft(result);
-      clearErrors(); render(true); announce("사진 미리보기를 준비했어요. 사진은 전송되지 않아요.");
+      source = "photo"; stage = "preview"; saved = null; selectedFile = file; recognized = false;
+      result = { date: null, merchant: null, amount: null }; values = toDraft(result);
+      clearErrors(); render(true); announce("사진 미리보기를 준비했어요. 인식하기를 누르면 사진을 읽어요. 사진은 저장하지 않아요.");
     }
     root.querySelectorAll("[data-camera-input], [data-photo-input]").forEach(input => input.addEventListener("change", () => { selectFile(input); }));
+    async function scanPhoto() {
+      const current = ++generation, error = find("[data-file-error]");
+      const body = new FormData(); body.append("file", selectedFile);
+      try {
+        const response = await fetch("/api/receipts/scan", { method: "POST", body, credentials: "same-origin", cache: "no-store" });
+        const payload = await response.json().catch(() => ({}));
+        if (current !== generation) return;
+        if (!response.ok) throw new Error(payload.detail || "영수증을 읽지 못했어요. 다시 시도하거나 직접 입력해 주세요.");
+        result = contract.fromScanResponse(payload); recognized = payload.source === "ai";
+        values = toDraft(result); stage = "review"; clearErrors(); render(true);
+        announce(result.amount === null ? "금액을 읽지 못했어요. 직접 입력해 주세요." : "영수증을 읽었어요. 내용을 확인해 주세요.");
+        find("[data-result-panel]").scrollIntoView({ behavior: "auto", block: "nearest" });
+      } catch (exception) {
+        if (current !== generation) return;
+        stage = "preview"; render(); error.textContent = exception.message; error.hidden = false;
+      }
+    }
     find("[data-scan]").addEventListener("click", () => {
       if (stage !== "preview") return;
       stage = "loading"; render();
+      if (source === "photo" && selectedFile) { scanPhoto(); return; }
       timer = setTimeout(() => {
         result = sampleResult(config); values = toDraft(result); stage = "review"; clearErrors(); render(true);
         announce(result.amount === null ? "금액 확인이 필요한 샘플 결과예요." : "샘플 인식 결과를 준비했어요.");

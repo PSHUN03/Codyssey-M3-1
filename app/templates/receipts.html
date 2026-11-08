@@ -11,7 +11,7 @@
     <div><p class="kicker">작은 지출도 놓치지 않게</p><h1 class="page-title">영수증 기록하기</h1><p class="page-sub">사진 한 장으로 지출 기록을 시작해요.</p></div>
     <a class="btn btn-secondary receipt-back" href="/plan" aria-label="뒤로가기, 플랜 페이지로 이동">{{ ui.icon("arrow-left", 14) }}뒤로가기</a>
   </div>
-  <p class="receipt-sample-line"><span class="receipt-sample-tag">샘플 모드</span><span>사진은 전송되지 않고, 예시 결과로 체험해요.</span></p>
+  <p class="receipt-sample-line"><span class="receipt-sample-tag">AI 인식</span><span>사진을 읽어 날짜·가맹점·금액을 채워요. 사진은 저장하지 않아요.</span></p>
 
         <ol class="receipt-steps" aria-label="영수증 기록 순서">
           <li data-step="photo"><span class="receipt-step-number">1</span><span>사진 선택</span></li>
@@ -46,7 +46,7 @@
           <section class="receipt-panel" aria-label="인식 결과 확인과 샘플 기록" data-result-panel>
             <div class="receipt-panel-head"><div><h2 data-result-title>인식 결과 확인</h2><p class="receipt-panel-sub" data-result-sub>확인하고, 틀린 부분은 바로 고쳐요.</p></div><span class="receipt-ai-badge" data-ai-badge>{{ receipt.icon("sparkles") }}AI 인식 · 샘플</span></div>
             <div class="receipt-pending" data-pending hidden>
-              <span class="receipt-state-icon">{{ receipt.icon("scan-line") }}</span><h3>사진이 준비됐어요</h3><p>지금은 샘플 인식 결과로<br>확인·수정 과정을 체험할 수 있어요.</p>
+              <span class="receipt-state-icon">{{ receipt.icon("scan-line") }}</span><h3>사진이 준비됐어요</h3><p>인식하기를 누르면 AI가 사진을 읽어요.<br>결과는 저장 전에 직접 고칠 수 있어요.</p>
               <button type="button" class="receipt-button receipt-button-primary receipt-button-block" data-scan>{{ receipt.icon("sparkles") }}샘플 결과 보기</button>
             </div>
             <div class="receipt-pending" data-loading hidden role="status" aria-live="polite"><span class="receipt-state-icon"><span class="receipt-spinner"></span></span><h3>샘플 결과를 준비해요</h3><p>실제 사진 인식은 진행하지 않아요.</p></div>

@@ -69,6 +69,15 @@
       {% if unallocated_total > 0 %}<li><span class="dot k-unallocated"></span><span class="alloc-name">남은 금액</span><span class="alloc-amt">{{ unallocated_total | won }}</span><span class="alloc-pct">{{ ((unallocated_total / plan.summary.monthly_income) * 100) | round | int }}%</span></li>{% endif %}
     </ul>
     <p class="card-foot">금액은 AI가 아니라 계산 엔진이 정해진 규칙({{ plan.rule_version }})으로 계산해요.</p>
+    <details class="segment-rules plan-rules">
+      <summary>배분 기준과 출처</summary>
+      <ul>
+        <li><b>저축 비율</b> 고정비를 뺀 돈의 45%, 부모님과 살면 60%. 사회초년기에는 소득의 50% 이상 저축을 권하는 금융교육 자료(<a href="https://korea.kr/news/customizedNewsView.do?newsId=148920502" target="_blank" rel="noopener">정책브리핑·금융감독원, 2023</a>)를 참고해 사다리가 정한 값이에요.</li>
+        <li><b>비상금 목표</b> 꼭 나가는 돈과 생활비의 3개월치. 생활비 3~6개월분을 권하는 은행 금융교육 자료(<a href="https://kbthink.com/savings/basics/savings-ratio.html" target="_blank" rel="noopener">KB Think, 2026</a>)의 하한이에요.</li>
+        <li><b>비상금이 부족할 때</b> 저축액의 30%를 비상금에 먼저 넣어요. 목표 저축과 비상금을 함께 늘리려고 사다리가 정한 값이고, 따로 근거가 되는 공식 기준은 없어요.</li>
+      </ul>
+      <p class="card-foot">사람마다 맞는 비율은 달라요. 참고용 출발점으로 보고, 내 상황에 맞게 조정해 주세요.</p>
+    </details>
   </section>
 
   <section class="card plan-goal">

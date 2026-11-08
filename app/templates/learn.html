@@ -1,0 +1,40 @@
+{% set page = "learn" %}{% set nav = true %}
+{% extends "base.html" %}
+{% block title %}돈 공부{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">돈 공부 한 장</h1>
+    <p class="page-sub">첫 월급을 받으면 한 번은 알아 둘 것들이에요. 궁금한 카드를 눌러 펼쳐 보세요.</p>
+  </div>
+</div>
+
+<div class="faq learn-cards">
+  {% for c in data.cards %}
+  <details id="{{ c.id }}">
+    <summary>{{ c.title }}</summary>
+    {% for line in c.lines %}<p>{{ line }}</p>{% endfor %}
+    <p class="learn-example">{{ c.example }}</p>
+    <p class="learn-source">출처: <a href="{{ c.source.url }}"{% if c.source.url.startswith("http") %} target="_blank" rel="noopener"{% endif %}>{{ c.source.label }}</a></p>
+  </details>
+  {% endfor %}
+</div>
+
+<section class="card learn-quiz" aria-labelledby="quiz-title">
+  <h2 class="card-title" id="quiz-title">확인 퀴즈 {{ data.quiz | length }}문제</h2>
+  <p class="muted-line">답은 저장하지 않아요.</p>
+  {% for q in data.quiz %}
+  <fieldset class="quiz-item" data-answer="{{ q.answer }}">
+    <legend>{{ loop.index }}. {{ q.question }}</legend>
+    {% set qi = loop.index0 %}
+    {% for opt in q.options %}
+    <label class="quiz-option"><input type="radio" name="q{{ qi }}" value="{{ loop.index0 }}"> {{ opt }}</label>
+    {% endfor %}
+    <p class="quiz-result" role="status" aria-live="polite" hidden></p>
+    <p class="quiz-explain" hidden>{{ q.explain }}</p>
+  </fieldset>
+  {% endfor %}
+</section>
+
+<p class="source-line">{{ data._meta.as_of }} 기준. 한도와 세율은 바뀔 수 있어요.</p>
+{% endblock %}
