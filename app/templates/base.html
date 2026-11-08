@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-ui61-scrollbar-v8">
   {% if page in ("home", "plan", "progress") %}<link rel="stylesheet" href="/static/css/fe01.css?v={{ asset_version }}">{% endif %}
+  {% block page_styles %}{% endblock %}
 </head>
 {% set nav_items = [
   ("/home", "홈", "home"),
@@ -37,7 +38,7 @@
         {% endfor %}
         {% else %}
         {% for href, label, _ in nav_items %}
-        {% set on = request.url.path.startswith(href) or (href == "/plan" and page == "progress") %}
+        {% set on = request.url.path.startswith(href) or (href == "/plan" and page in ("progress", "spending")) %}
         <a href="{{ href }}" class="{{ 'is-active' if on }}" {% if on %}aria-current="page"{% endif %}>{{ label }}</a>
         {% endfor %}
         {% endif %}
@@ -79,7 +80,7 @@
   {% if nav %}
   <nav class="tab-bar" aria-label="주 메뉴">
     {% for href, label, icon_name in nav_items %}
-    {% set on = request.url.path.startswith(href) or (href == "/plan" and page == "progress") %}
+    {% set on = request.url.path.startswith(href) or (href == "/plan" and page in ("progress", "spending")) %}
     <a href="{{ href }}" class="{{ 'is-active' if on }}" {% if on %}aria-current="page"{% endif %}>
       <span class="tab-icon">{{ ui.icon(icon_name, 22) }}</span>{{ label }}
     </a>
@@ -129,5 +130,6 @@
   {% block dialogs %}{% endblock %}
   <script src="/static/js/app.js?v={{ asset_version }}-ui61-new-chat-v7" defer></script>
   {% if page in ("home", "progress") %}<script src="/static/js/checkin-contract.js?v={{ asset_version }}" defer></script><script src="/static/js/fe01.js?v={{ asset_version }}" defer></script>{% if fe01_config.mode == 'api' %}<script src="/static/js/fe01-live.js?v={{ asset_version }}" defer></script>{% endif %}{% endif %}
+  {% block page_scripts %}{% endblock %}
 </body>
 </html>
