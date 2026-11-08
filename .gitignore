@@ -36,3 +36,7 @@ private/
 /\[붙임4\]_*PENTA.pdf
 
 app/data/cache/
+
+# 테스트 커버리지 결과
+.coverage
+htmlcov/

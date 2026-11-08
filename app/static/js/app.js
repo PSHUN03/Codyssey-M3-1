@@ -18,8 +18,38 @@ function setFeedback(element, message, state = "") {
   element.hidden = !message;
   element.classList.toggle("is-error", state === "error");
   element.classList.toggle("is-success", state === "success");
+  element.classList.toggle("is-loading", state === "loading");
   element.setAttribute("role", state === "error" ? "alert" : "status");
   element.textContent = message;
+  if (state === "loading" && message) {
+    // Keep the status announcement stable; only the decorative dots animate.
+    const dots = document.createElement("span");
+    dots.className = "loading-dots";
+    dots.setAttribute("aria-hidden", "true");
+    dots.textContent = "...";
+    element.append(dots);
+  }
+}
+
+// Feedback stays readable; motion is a brief supplement and never moves the page.
+function shakeInvalidControl(control) {
+  if (!control || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const target = control.closest(".chat-form, .money-input, .big-input, .receipt-money, .fe01-money-input") || control;
+  if (!target.animate) return;
+  target.getAnimations().filter((animation) => animation.id === "input-error-shake").forEach((animation) => animation.cancel());
+  target.animate([
+    { translate: "0px" }, { translate: "-4px" }, { translate: "4px" },
+    { translate: "-3px" }, { translate: "3px" }, { translate: "0px" },
+  ], { id: "input-error-shake", duration: 280, easing: "ease-out" });
+}
+
+function initValidationMotion() {
+  document.addEventListener("invalid", (event) => shakeInvalidControl(event.target), true);
+  const observer = new MutationObserver((records) => {
+    const invalid = new Set(records.map((record) => record.target).filter((control) => control.getAttribute("aria-invalid") === "true"));
+    invalid.forEach(shakeInvalidControl);
+  });
+  observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["aria-invalid"] });
 }
 
 function formFeedback(form, message, state = "") {
@@ -37,7 +67,7 @@ function initPageFeedback() {
   const pendingForms = new Map();
   const fieldError = (control, message) => {
     const field = control.closest(".field");
-    if (!field) return;
+    if (!field) return false;
     if (!control.id) control.id = `feedback-field-${++fieldId}`;
     const label = $(".field-label", field);
     if (label) {
@@ -58,6 +88,7 @@ function initPageFeedback() {
     else { control.removeAttribute("aria-invalid"); describedBy.delete(id); }
     if (describedBy.size) control.setAttribute("aria-describedby", [...describedBy].join(" "));
     else control.removeAttribute("aria-describedby");
+    return true;
   };
   document.addEventListener("invalid", (event) => {
     const control = event.target;
@@ -68,8 +99,8 @@ function initPageFeedback() {
       ? control.type === "checkbox" ? "필수 동의를 확인해 주세요." : `${label.trim()} 항목을 입력해 주세요.`
       : control.type === "email" ? "이메일 주소 형식을 확인해 주세요."
         : control.title || "입력 형식과 범위를 확인해 주세요.";
-    fieldError(control, message);
-    formFeedback(control.form, message, "error");
+    // A field-level error is enough; controls without one keep the form fallback.
+    if (!fieldError(control, message)) formFeedback(control.form, message, "error");
     const first = Array.from(control.form.elements).find((el) => el.willValidate && !el.validity.valid);
     if (control === first) control.focus();
   }, true);
@@ -82,9 +113,14 @@ function initPageFeedback() {
     if (pendingForms.has(form)) { event.preventDefault(); return; }
     const button = event.submitter || $("button[type='submit']", form);
     pendingForms.set(form, { button, label: button?.textContent });
-    if (button) { button.disabled = true; button.textContent = "처리하고 있어요…"; }
+    const loadingMessage = form.dataset.pageLoadingMessage;
+    if (button) {
+      button.disabled = true;
+      if (!loadingMessage) button.textContent = "처리하고 있어요…";
+    }
     form.setAttribute("aria-busy", "true");
-    formFeedback(form, "요청을 처리하고 있어요. 잠시 기다려 주세요.");
+    if (loadingMessage) setFeedback($("#page-feedback"), loadingMessage, "loading");
+    else formFeedback(form, "요청을 처리하고 있어요. 잠시 기다려 주세요.");
   }));
   document.addEventListener("click", (event) => {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button > 0) return;
@@ -93,7 +129,7 @@ function initPageFeedback() {
     const url = new URL(link.href, location.href);
     if (url.origin === location.origin && url.pathname + url.search !== location.pathname + location.search) {
       navigating = true;
-      setFeedback($("#page-feedback"), "화면을 불러오고 있어요.");
+      setFeedback($("#page-feedback"), "화면을 불러오고 있어요", "loading");
     }
   });
   window.addEventListener("pageshow", (event) => {
@@ -103,7 +139,8 @@ function initPageFeedback() {
     for (const [form, { button, label }] of pendingForms) {
       if (button) { button.disabled = false; button.textContent = label; }
       form.setAttribute("aria-busy", "false");
-      formFeedback(form, "다시 입력하거나 제출할 수 있어요.");
+      if (form.dataset.pageLoadingMessage) setFeedback($("#page-feedback"), "");
+      else formFeedback(form, "다시 입력하거나 제출할 수 있어요.");
     }
     pendingForms.clear();
   });
@@ -871,6 +908,7 @@ function initCoach() {
   const chat = $("#chat"), form = $("#chat-form"), input = $("#chat-input"), sendBtn = $(".send-btn", form);
   const dialog = $("#feedback-dialog");
   const coachStatus = $("#coach-status");
+  const newConversationButton = $("#coach-new-conversation");
   let busy = false;
   const feedbackComment = dialog && $("textarea", dialog);
   const feedbackError = $("#feedback-comment-error");
@@ -896,13 +934,34 @@ function initCoach() {
 
   async function send(text) {
     if (busy || !text) return;
-    $(".coach")?.classList.remove("coach-is-empty");
+    const coach = $(".coach");
+    const welcome = $(".coach-welcome", coach);
+    const firstQuestion = coach.classList.contains("coach-is-empty");
+    const motionAllowed = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (firstQuestion && welcome && motionAllowed && welcome.animate) {
+      // Take the introduction out of flow while it leaves; chat can rise immediately.
+      welcome.style.height = `${welcome.getBoundingClientRect().height}px`;
+      welcome.classList.add("is-leaving");
+      welcome.setAttribute("aria-hidden", "true");
+      const exit = welcome.animate([
+        { opacity: 1, transform: "translateY(0)" },
+        { opacity: 0, transform: "translateY(-32px)" },
+      ], { duration: 320, easing: "ease-out" });
+      exit.onfinish = () => { welcome.classList.remove("is-leaving"); welcome.style.height = ""; };
+    }
+    coach.classList.remove("coach-is-empty");
     setFeedback($("#coach-feedback"), "");
     busy = true;
     sendBtn.disabled = true;
+    if (newConversationButton) newConversationButton.disabled = true;
     coachStatus.textContent = "코치가 답변을 준비하고 있어요";
     $("#suggestions")?.remove();
-    addMessage(chat, "user", escapeHtml(text));
+    const question = addMessage(chat, "user", escapeHtml(text));
+    if (firstQuestion && motionAllowed && question.animate) {
+      question.animate([
+        { opacity: .25, translate: "0 80px" }, { opacity: 1, translate: "0 0" },
+      ], { duration: 360, easing: "cubic-bezier(.2,.7,.2,1)" });
+    }
     const bubble = addMessage(chat, "bot", "");
     try { await streamChat(text, bubble); }
     catch {
@@ -912,6 +971,7 @@ function initCoach() {
     finally {
       busy = false;
       sendBtn.disabled = false;
+      if (newConversationButton) newConversationButton.disabled = false;
       coachStatus.textContent = "";
       input.focus({ preventScroll: true });
     }
@@ -921,7 +981,7 @@ function initCoach() {
     ev.preventDefault();
     if (busy) return;
     const text = input.value.trim();
-    if (!text) { setFeedback($("#coach-feedback"), "질문을 입력해 주세요.", "error"); input.focus(); return; }
+    if (!text) { setFeedback($("#coach-feedback"), "질문을 입력해 주세요.", "error"); shakeInvalidControl(input); input.focus(); return; }
     input.value = "";
     autosize();
     send(text);
@@ -1070,8 +1130,9 @@ async function regenerate(button) {
 }
 
 /* ------------------------------------------------------------ 내 정보 */
-function initProfileSelects(form) {
+function initProfileSelects(form, signal) {
   if (!form) return;
+  const listenerOptions = signal ? { signal } : undefined;
   let closeOpen = () => {};
   $$("select[data-profile-select]", form).forEach((select) => {
     const label = document.querySelector(`label[for="${select.id}"]`);
@@ -1197,13 +1258,13 @@ function initProfileSelects(form) {
         if (match !== undefined) highlight(match);
       }
     });
-    document.addEventListener("pointerdown", (event) => { if (!wrapper.contains(event.target)) close(); });
-    document.addEventListener("focusin", (event) => { if (!wrapper.contains(event.target)) close(); });
-    window.addEventListener("resize", close);
+    document.addEventListener("pointerdown", (event) => { if (!wrapper.contains(event.target)) close(); }, listenerOptions);
+    document.addEventListener("focusin", (event) => { if (!wrapper.contains(event.target)) close(); }, listenerOptions);
+    window.addEventListener("resize", close, listenerOptions);
     // The menu is anchored to its field and moves with it. Closing on scroll
     // cancels clicks when the browser scrolls an option into view first.
     select.addEventListener("change", sync);
-    form.addEventListener("reset", () => setTimeout(sync, 0));
+    form.addEventListener("reset", () => setTimeout(sync, 0), listenerOptions);
     trigger.append(value);
     wrapper.append(trigger, menu);
     select.after(wrapper);
@@ -1310,13 +1371,30 @@ function initCoachShortcut() {
 }
 
 initPageFeedback();
+initValidationMotion();
 initCoachShortcut();
+
+function initLearn() {
+  // 퀴즈 답은 화면에서만 채점하고 어디에도 보내거나 저장하지 않는다 (FR-21)
+  for (const item of $$(".quiz-item")) {
+    item.addEventListener("change", (ev) => {
+      const correct = ev.target.value === item.dataset.answer;
+      const result = $(".quiz-result", item);
+      result.textContent = correct ? "맞았어요." : "다시 생각해 보세요.";
+      result.className = `quiz-result status ${correct ? "status-ok" : "status-bad"}`;
+      result.hidden = false;
+      $(".quiz-explain", item).hidden = !correct;
+    });
+  }
+}
+
 const page = document.body.dataset.page;
 if (page === "landing") { initLandingMotion(); initLanding(); }
 if (page === "onboarding") initOnboarding();
 if (page === "coach") initCoach();
 if (page === "benefits") initBenefits();
 if (page === "plan") initPlan();
+if (page === "learn") initLearn();
 if (page === "settings") initSettings();
 if (page === "consent") initConsent();
 

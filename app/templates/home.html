@@ -3,7 +3,7 @@
 {% extends "base.html" %}
 {% block title %}홈{% endblock %}
 {% block content %}
-<div class="page-head">
+<div class="page-head fe01-page-head">
   <div>
     <p class="kicker">이번 달도 차근차근</p>
     <h1 class="page-title">{{ user.nickname }}님의 <span class="home-title-topic">돈 흐름</span></h1>
@@ -17,7 +17,7 @@
 {% set living = plan.allocations | selectattr("kind", "equalto", "living") | sum(attribute="amount") %}
 {% set emergency = plan.allocations | selectattr("key", "equalto", "emergency") | sum(attribute="amount") %}
 {% set goal = s.goal %}
-<div class="grid home-dashboard">
+<div class="grid home-dashboard" data-fe01>
   <section class="card span-7 home-savings">
     <div class="home-savings-head">
       <div>
@@ -85,6 +85,16 @@
   </section>
   </div>
 
+  {% if weekly %}
+  <section class="card span-12">
+    <h2 class="card-title">이번 주 리포트</h2>
+    <p class="muted-line">{{ weekly.week }} 주 · 저장된 계획 기준</p>
+    <p style="white-space: pre-line">{{ weekly.body }}</p>
+  </section>
+  {% endif %}
+
+  {% include "_fe01_checkins.html" %}
+
   <section class="card span-7">
     <div class="card-head">
       <h2 class="card-title">챙길 수 있는 혜택</h2>
@@ -115,11 +125,21 @@
     {% endif %}
     <a class="btn btn-primary" href="/coach">코치와 이야기하기</a>
   </section>
+
+  <section class="card span-12 learn-entry">
+    <div class="card-head">
+      <h2 class="card-title">돈 공부 한 장</h2>
+      <a class="link-more" href="/learn">카드 8장 보기</a>
+    </div>
+    <p class="muted-line">적금 이자가 생각보다 적은 이유, 예금자보호 한도, 신용점수 지키는 법을 한 장씩 정리했어요.</p>
+  </section>
 </div>
 {% else %}
 <section class="card">
   <p>아직 플랜이 없어요.</p>
   <button class="btn btn-primary" data-action="regenerate">플랜 만들기</button>
 </section>
+<div class="grid fe01-checkins" data-fe01>{% include "_fe01_checkins.html" %}</div>
 {% endif %}
+{% include "_fe01_config.html" %}
 {% endblock %}

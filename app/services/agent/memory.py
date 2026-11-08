@@ -1,17 +1,64 @@
-"""장기 메모리 (FR-10). 선호·약속·변화를 저장해 다음 대화의 맥락으로 쓴다."""
+"""장기 메모리 (FR-10, AI-07). 선호·약속·변화를 저장해 다음 대화의 맥락으로 쓴다.
+
+- 저장 항목: 코칭 선호, 스스로 한 약속, 앞으로의 생활 변화 (KINDS)
+- 저장하지 않는 것: 금액·부채 같은 재무 수치, 계좌·카드·전화·주민번호 (재무 수치는 프로필에서 따로 관리한다)
+- 보관 기간: 코치 대화에 마지막으로 쓰인 지 RETENTION_DAYS일이 지나면 지운다
+"""
 
 from __future__ import annotations
 
 import re
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from app.models import Memory, User
+from app.security import mask_sensitive
 from app.services.agent import llm
 from app.services.agent.prompts import MEMORY_EXTRACT_SYSTEM
+from app.services.finance.money import find_amounts
 
 KINDS = {"preference": "선호", "commitment": "약속", "fact": "변화"}
 MAX_MEMORIES = 50
+RETENTION_DAYS = 180  # 마지막 사용 후 6개월
+REJECT_REASON = "금액이나 부채 같은 재무 수치, 계좌·연락처는 기억하지 않아요. 숫자는 재무 프로필에서 관리해요."
+
+_FIGURE_RE = re.compile(r"(대출|빚|부채|카드값|연봉|월급|소득|월세|보증금|잔액|이자)\s*[0-9]")
+
+
+def contains_financial_figure(text: str) -> bool:
+    """금액(1천 원 이상), 재무 항목 옆의 숫자, 계좌·카드 같은 민감정보가 있으면 True."""
+    if any(amount >= 1_000 for amount in find_amounts(text)):
+        return True
+    if _FIGURE_RE.search(text):
+        return True
+    _, masked = mask_sensitive(text)
+    return bool(masked)
+
+
+def _as_utc(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+def purge_expired(db: Session, user: User, now: datetime | None = None) -> int:
+    """마지막 사용(없으면 저장 시각) 후 RETENTION_DAYS일이 지난 기억을 지운다."""
+    cutoff = (now or datetime.now(UTC)) - timedelta(days=RETENTION_DAYS)
+    expired = [m for m in user.memories if _as_utc(m.last_used_at or m.created_at) < cutoff]
+    for memory in expired:
+        db.delete(memory)
+    if expired:
+        db.commit()
+        db.refresh(user)
+    return len(expired)
+
+
+def mark_used(db: Session, memories: list[Memory]) -> None:
+    if not memories:
+        return
+    now = datetime.now(UTC)
+    for memory in memories:
+        memory.last_used_at = now
+    db.commit()
 
 _COMMIT_RE = re.compile(r"할게|하겠|하기로|안\s*할|줄일게|줄이겠|모을게|아낄게|끊을게|참을게|지킬게")
 _PREF_RE = re.compile(r"원금\s*보장|안전한|안정적|위험(은|이|한\s*건)?\s*(싫|부담|무서)|공격적|손해\s*보기\s*싫")
@@ -25,7 +72,7 @@ def recent_memories(user: User, limit: int = 10) -> list[Memory]:
 
 def save_memory(db: Session, user: User, kind: str, content: str) -> Memory | None:
     content = content.strip()[:200]
-    if kind not in KINDS or not content:
+    if kind not in KINDS or not content or contains_financial_figure(content):
         return None
     if any(m.content == content for m in user.memories):
         return None

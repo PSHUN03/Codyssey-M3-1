@@ -8,7 +8,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime, time
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -25,7 +25,7 @@ from app.services.agent.guardrails import (
     contains_investment_advice,
     unverified_amounts,
 )
-from app.services.agent.memory import extract_memories, save_memory
+from app.services.agent.memory import extract_memories, mark_used, purge_expired, recent_memories, save_memory
 from app.services.agent.tools import ToolContext
 from app.services.policies.eligibility import KST, today_kst
 
@@ -64,6 +64,13 @@ def _coach_session(db: Session, user: User) -> ChatSession:
     return session
 
 
+@router.post("/new-session")
+def new_conversation(user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
+    db.add(ChatSession(user_id=user.id, kind="coach", state={}))
+    db.commit()
+    return RedirectResponse("/coach", status_code=303)
+
+
 @router.post("/chat")
 def chat(payload: ChatIn, user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
     settings = get_settings()
@@ -74,6 +81,8 @@ def chat(payload: ChatIn, user: User = Depends(require_onboarded), db: Session =
         )
 
     text, masked_kinds = mask_sensitive(payload.message.strip())
+    purge_expired(db, user)
+    mark_used(db, recent_memories(user))  # 이번 답변의 맥락으로 쓰이는 기억
     session = _coach_session(db, user)
     history = [{"role": m.role, "content": m.content} for m in session.messages[-HISTORY_TURNS:]]
     db.add(ChatMessage(session_id=session.id, user_id=user.id, role="user", content=text))

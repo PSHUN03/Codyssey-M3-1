@@ -64,6 +64,7 @@
         <h2 class="card-title">코치가 기억하는 내용</h2>
       </div>
       <p class="card-sub">다음 대화에서 참고해요. 원하지 않으면 지워 주세요.</p>
+      <p class="field-help">약속, 돈 관리 선호, 앞으로의 생활 변화만 기억해요. 금액이나 부채 같은 재무 수치는 기억하지 않고 재무 정보에서 따로 관리해요. 대화에 마지막으로 쓰인 지 {{ memory_retention_months }}개월이 지나면 자동으로 지워요.</p>
       <ul class="row-list" id="memory-list">
         {% for m in memories %}
         <li class="memory-row" data-memory-id="{{ m.id }}">

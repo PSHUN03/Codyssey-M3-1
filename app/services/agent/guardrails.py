@@ -77,30 +77,11 @@ def is_jailbreak_request(text: str) -> bool:
     return bool(_JAILBREAK_RE.search(text))
 
 def contains_investment_advice(text: str) -> bool:
-    """텍스트에 실제 투자 권유 내용이 포함되어 있는지 판별한다.
-    (순수 거절 문구는 오탐지하지 않되, 거절과 조언이 섞인 우회 시도는 차단)
-    """
-    # 1. 투자 관련 키워드가 있는지 먼저 확인
-    has_advice = bool(
-        _INVEST_DIRECT.search(text) or 
-        (_INVEST_ASSETS.search(text) and _INVEST_ACTIONS.search(text)) or
-        _ADVICE_OUTPUT.search(text)
-    )
-    if not has_advice:
-        return False
-        
-    # 2. 명시적이고 적극적인 매수/매도 지시어(_ADVICE_OUTPUT)가 포함되어 있다면 
-    # 거절 문구와 함께 섞여 있더라도 확실한 위반(True)으로 판단합니다.
-    if _ADVICE_OUTPUT.search(text):
-        return True
-        
-    # 3. 키워드는 걸렸으나 텍스트에 부정/거절 표현("수 없", "없습", "어려워", "않", "못" 등)이 포함되어 있다면
-    # 이는 순수 거절 안내 메시지이므로 위반(False)으로 처리하지 않습니다.
-    refusal_context = re.search(r"(수\s*없|없습|어려워|않|못|불가능)", text)
-    if refusal_context:
-        return False
-        
-    return True
+    """답변에 명시적인 매수·매도 권유가 있는지 판별한다.
+
+    거절 문구가 함께 있어도 권유 문장이 있으면 위반이다. 상품 이름만 나오는 설명(IRP 안의 펀드 등)은 막지 않는다."""
+    return bool(_ADVICE_OUTPUT.search(text))
+
 
 def collect_amounts(obj: object) -> set[int]:
     """도구 결과(JSON)에 들어 있는 모든 금액을 모은다. AI 응답의 숫자가 여기에 있으면 '근거 있는 숫자'다."""
