@@ -8,7 +8,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime, time
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -62,6 +62,13 @@ def _coach_session(db: Session, user: User) -> ChatSession:
     db.add(session)
     db.commit()
     return session
+
+
+@router.post("/new-session")
+def new_conversation(user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
+    db.add(ChatSession(user_id=user.id, kind="coach", state={}))
+    db.commit()
+    return RedirectResponse("/coach", status_code=303)
 
 
 @router.post("/chat")
