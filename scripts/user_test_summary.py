@@ -2,7 +2,7 @@
 
 구글 폼 응답 CSV와 (있으면) 진행자 관찰 기록 CSV를 읽어 README와 결과보고서에 붙일
 Markdown을 출력한다. 폼 문항 제목은 'B1.'처럼 코드와 마침표로 시작해야 한다
-(docs/user-test/07_단기테스트_진행키트.md 6절). 응답 파일은 private/에 두고 커밋하지 않는다.
+(문항은 docs/user-test/03_설문지.md). 응답 파일은 private/에 두고 커밋하지 않는다.
 
     python scripts/user_test_summary.py private/설문응답.csv \
         --observations private/사용자테스트_관리.csv
@@ -21,7 +21,19 @@ from pathlib import Path
 CODE_RE = re.compile(r"^\s*([A-Z]\d{1,2})[.)]")
 SUCCESS = {"o", "ㅇ", "성공", "예", "y", "yes", "1", "true"}
 FAIL = {"x", "실패", "아니요", "n", "no", "0", "false"}
-F1_WITHIN_5 = {"3분 이내", "3~5분"}
+DIAG_WITHIN_5 = {"3분 이내", "3~5분"}
+EARLY_CAREER = {"1년 미만", "1~3년"}
+FEATURE_ITEMS = (
+    ("C1", "재무 진단 질문이 이해하기 쉬움"),
+    ("C2", "배분 금액의 이유를 이해함"),
+    ("C3", "배분이 실제 생활에 맞음"),
+    ("C4", "혜택 자격과 이유가 분명함"),
+    ("C5", "코치 답변이 내 상황을 반영함"),
+    ("C6", "코치의 금액·정보를 믿을 수 있음"),
+    ("C7", "AI 답변 표시와 한계 안내를 알아봄"),
+    ("C8", "재무 정보 입력이 부담스럽지 않음"),
+    ("C9", "이번 달 실천할 행동이 생김"),
+)
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -30,7 +42,7 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 
 
 def by_code(row: dict[str, str]) -> dict[str, str]:
-    """'B1. 이 서비스를…' 같은 열 이름을 'B1' 키로 바꾼다."""
+    """'B1. 사다리를 자주…' 같은 열 이름을 'B1' 키로 바꾼다."""
     out: dict[str, str] = {}
     for key, value in row.items():
         if not key:
@@ -72,50 +84,42 @@ def mean_text(values: list[float], unit: str = "", digits: int = 1) -> str:
     return f"{statistics.mean(values):.{digits}f}{unit} ({len(values)}명)"
 
 
-def dedupe(responses: list[dict[str, str]]) -> tuple[list[dict[str, str]], list[str]]:
-    """같은 테스터 번호가 여러 번 응답했으면 마지막 응답만 남긴다."""
-    latest: dict[str, dict[str, str]] = {}
-    dupes: list[str] = []
-    for i, ans in enumerate(responses):
-        tid = ans.get("A1", "").upper().replace(" ", "") or f"(번호 없음 {i + 1})"
-        if tid in latest:
-            dupes.append(tid)
-        latest[tid] = ans
-    return list(latest.values()), dupes
+def multi(value: str) -> list[str]:
+    """체크박스 응답('가, 나')을 항목 목록으로 나눈다."""
+    return [v.strip() for v in value.split(", ") if v.strip()]
 
 
 def summarize_survey(responses: list[dict[str, str]]) -> dict:
-    n = len(responses)
     sus = [s for s in (sus_score(a) for a in responses) if s is not None]
     benefits = [v for v in (to_int(a.get("D1")) for a in responses) if v is not None]
-    nps_scores = [v for v in (to_int(a.get("C5")) for a in responses) if v is not None and v <= 10]
-    reuse = [a.get("E4", "") for a in responses if a.get("E4")]
-    f1 = [a.get("F1", "") for a in responses if a.get("F1") and "예시 계정" not in a.get("F1", "")]
-    f2 = [a.get("F2", "") for a in responses if a.get("F2")]
-    f3 = [a.get("F3", "") for a in responses if a.get("F3") in ("예", "아니요")]
+    nps_scores = [v for v in (to_int(a.get("E2")) for a in responses) if v is not None and v <= 10]
+    reuse = Counter(a["E1"] for a in responses if a.get("E1"))
+    diag = [a["U2"] for a in responses if a.get("U2") and "하지 않음" not in a["U2"]]
     likert = {
         code: [v for v in (to_int(a.get(code)) for a in responses) if v is not None and 1 <= v <= 5]
-        for code in ("C1", "C2", "C3", "C4")
+        for code, _ in FEATURE_ITEMS
     }
+    used = Counter(f for a in responses for f in multi(a.get("U1", "")))
     return {
-        "n": n,
+        "n": len(responses),
         "demo": sum("예시 계정" in a.get("A6", "") for a in responses),
         "sus": sus,
         "benefits": benefits,
         "nps": nps(nps_scores),
         "nps_n": len(nps_scores),
-        "reuse_yes": sum(r == "예" for r in reuse),
-        "reuse_n": len(reuse),
-        "f1_ok": sum(v in F1_WITHIN_5 for v in f1),
-        "f1_n": len(f1),
-        "f2_ok": sum(v == "예" for v in f2),
-        "f2_n": len(f2),
-        "f3_ok": sum(v == "예" for v in f3),
-        "f3_n": len(f3),
+        "reuse": reuse,
+        "reuse_n": sum(reuse.values()),
+        "diag_ok": sum(v in DIAG_WITHIN_5 for v in diag),
+        "diag_n": len(diag),
         "likert": likert,
-        "age": Counter(a.get("A2", "") for a in responses if a.get("A2")),
-        "work": Counter(a.get("A3", "") for a in responses if a.get("A3")),
-        "mode": Counter(a.get("A5", "") for a in responses if a.get("A5")),
+        "age": Counter(a["A1"] for a in responses if a.get("A1")),
+        "work": Counter(a["A2"] for a in responses if a.get("A2")),
+        "career": Counter(a["A3"] for a in responses if a.get("A3")),
+        "early": sum(a.get("A3") in EARLY_CAREER for a in responses),
+        "habit": Counter(h for a in responses for h in multi(a.get("A4", ""))),
+        "benefit_exp": Counter(a["A5"] for a in responses if a.get("A5")),
+        "used": used,
+        "best": Counter(a["U3"] for a in responses if a.get("U3")),
     }
 
 
@@ -182,26 +186,33 @@ def render(survey: dict, obs: dict | None, responses: list[dict[str, str]]) -> s
         else "응답 없음"
     )
     nps_text = f"{survey['nps']:+.0f} ({survey['nps_n']}명)" if survey["nps"] is not None else "응답 없음"
+    reuse = survey["reuse"]
+    reuse_text = pct(reuse.get("예", 0), survey["reuse_n"])
+    if reuse.get("아마도"):
+        reuse_text += f", 아마도 {reuse['아마도']}명"
     lines = [
         "## README 표",
         "",
         "| 지표 | 목표 | 결과 |",
         "|---|---|---|",
-        f"| 테스터 수 | 10명 (최소 5명) | {n}명 (예시 계정 {survey['demo']}명) |",
+        f"| 응답자 수 | 10명 (최소 5명) | {n}명 (예시 계정 {survey['demo']}명) |",
         f"| SUS 사용성 점수 | 70점 이상 | {sus_text} |",
         f"| 1인당 새로 알게 된 혜택 | 2개 이상 | {benefit_text} |",
-        f"| 재사용 의향 | 60% 이상 | {pct(survey['reuse_yes'], survey['reuse_n'])} |",
+        f"| 재사용 의향 ('예') | 60% 이상 | {reuse_text} |",
         "",
         "혜택 수의 '3개 이상'은 3개로 계산했습니다.",
         "",
-        "## 결과보고서 2절 참여자",
+        "## 결과보고서 2절 응답자",
         "",
         "| 항목 | 값 |",
         "|---|---|",
-        f"| 참여 인원 | {n}명 (실제 데이터 {n - survey['demo']}명 / 예시 계정 {survey['demo']}명) |",
-        f"| 나이대 분포 | {counter_text(survey['age'])} |",
-        f"| 일하는 형태 분포 | {counter_text(survey['work'])} |",
-        f"| 참여 방식 | {counter_text(survey['mode'])} |",
+        f"| 응답자 수 | {n}명 (직접 가입 {n - survey['demo']}명 / 예시 계정 {survey['demo']}명) |",
+        f"| 주 대상(첫 소득 3년 이내) | {pct(survey['early'], n)} |",
+        f"| 나이대 | {counter_text(survey['age'])} |",
+        f"| 하고 있는 일 | {counter_text(survey['work'])} |",
+        f"| 첫 소득 이후 기간 | {counter_text(survey['career'])} |",
+        f"| 돈 관리 방식 (복수 응답) | {counter_text(survey['habit'])} |",
+        f"| 청년 혜택 신청 경험 | {counter_text(survey['benefit_exp'])} |",
         "",
         "## 결과보고서 3절 핵심 지표",
         "",
@@ -217,38 +228,42 @@ def render(survey: dict, obs: dict | None, responses: list[dict[str, str]]) -> s
             f"| 코치 답변 만족도 (관찰) | 4.0 이상 | {mean_text([float(v) for v in obs['t4']], '점')} |",
         ]
     lines += [
-        f"| 진단 5분 이내 완료 (자가 응답) | | {pct(survey['f1_ok'], survey['f1_n'])} |",
-        f"| 혜택 신청 방법 찾음 (자가 응답) | | {pct(survey['f2_ok'], survey['f2_n'])} |",
-        f"| 약속 저장 확인 (자가 응답) | | {pct(survey['f3_ok'], survey['f3_n'])} |",
+        f"| 진단 5분 이내 완료 (자가 응답) | 80% 이상 | {pct(survey['diag_ok'], survey['diag_n'])} |",
         f"| SUS 점수 | 70점 이상 | {sus_text} |",
         f"| 1인당 새로 알게 된 혜택 | 2개 이상 | {benefit_text} |",
-        f"| 코치 답변이 내 상황에 맞음 (C2) | 4.0 이상 | {mean_text(survey['likert']['C2'], '점')} |",
-        "| 7일 내 3회 이상 재방문 | 50% 이상 | 측정 안 함 (기간 축소) |",
-        f"| 재사용 의향 | 60% 이상 | {pct(survey['reuse_yes'], survey['reuse_n'])} |",
+        f"| 코치 답변이 내 상황을 반영함 (C5) | 4.0 이상 | {mean_text(survey['likert']['C5'], '점')} |",
+        "| 7일 내 3회 이상 재방문 | 50% 이상 | 측정 안 함 |",
+        f"| 재사용 의향 ('예') | 60% 이상 | {reuse_text} |",
         f"| NPS | 0 이상 | {nps_text} |",
         "",
-        "| 가치와 신뢰 문항 | 평균 |",
+        "| 기능별 평가 (1~5점) | 평균 |",
         "|---|---|",
-        f"| C1 배분 이유를 이해함 | {mean_text(survey['likert']['C1'], '점')} |",
-        f"| C2 코치 답변이 내 상황에 맞음 | {mean_text(survey['likert']['C2'], '점')} |",
-        f"| C3 코치 답변을 믿을 수 있음 | {mean_text(survey['likert']['C3'], '점')} |",
-        f"| C4 이번 주 행동이 분명해짐 | {mean_text(survey['likert']['C4'], '점')} |",
     ]
+    lines += [f"| {code} {label} | {mean_text(survey['likert'][code], '점')} |" for code, label in FEATURE_ITEMS]
+    lines += [
+        "",
+        "| 기능 | 써 본 사람 | 가장 도움이 됨 |",
+        "|---|---|---|",
+    ]
+    features = list(dict.fromkeys(list(survey["used"]) + [k for k in survey["best"] if "없음" not in k]))
+    lines += [f"| {f} | {survey['used'].get(f, 0)}명 | {survey['best'].get(f, 0)}명 |" for f in features]
+    if survey["best"].get("도움이 된 기능이 없음"):
+        lines.append(f"| 도움이 된 기능이 없음 | | {survey['best']['도움이 된 기능이 없음']}명 |")
     if obs:
         lines += ["", "| 과제 | 성공 |", "|---|---|"]
         for code, (ok, total) in obs["rates"].items():
             lines.append(f"| {code} | {pct(ok, total)} |")
-    lines += ["", "## 자유 의견 (테스터 번호별)", ""]
+    lines += ["", "## 자유 의견 (응답 순서 번호)", ""]
     for code, title in (
-        ("E1", "좋았던 점"),
-        ("E2", "불편하거나 헷갈린 점"),
-        ("E3", "있으면 계속 쓸 기능"),
-        ("D2", "알아볼 혜택"),
+        ("E3", "좋았던 점"),
+        ("E4", "헷갈리거나 불편했던 점"),
+        ("E5", "바뀌거나 추가되면 계속 쓸 것"),
+        ("D2", "더 알아볼 혜택"),
     ):
         lines.append(f"### {code} {title}")
         lines.append("")
-        items = [(a.get("A1", "?"), a.get(code, "")) for a in responses if a.get(code)]
-        lines += [f"- {tid}: {text}" for tid, text in items] or ["- (응답 없음)"]
+        items = [(i, a[code]) for i, a in enumerate(responses, 1) if a.get(code)]
+        lines += [f"- 응답 {i}: {text}" for i, text in items] or ["- (응답 없음)"]
         lines.append("")
     return "\n".join(lines)
 
@@ -264,9 +279,6 @@ def main(argv: list[str] | None = None) -> int:
     if not responses:
         print("응답이 없거나 문항 제목이 'B1.'처럼 코드로 시작하지 않습니다.", file=sys.stderr)
         return 1
-    responses, dupes = dedupe(responses)
-    if dupes:
-        print(f"같은 번호의 중복 응답은 마지막 것만 썼습니다: {', '.join(sorted(set(dupes)))}", file=sys.stderr)
 
     obs = None
     if args.observations and args.observations.exists():

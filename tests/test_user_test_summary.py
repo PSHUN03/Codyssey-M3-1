@@ -43,20 +43,18 @@ def test_nps():
 
 
 def test_by_code_ignores_untagged_columns():
-    row = {"타임스탬프": "2026. 11. 7", "A1. 테스터 번호": " T-01 ", "B10) 문항": "4"}
-    assert summary.by_code(row) == {"A1": "T-01", "B10": "4"}
+    row = {"타임스탬프": "2026. 11. 8", "A1. 나이대": " 20대 ", "B10) 문항": "4"}
+    assert summary.by_code(row) == {"A1": "20대", "B10": "4"}
 
 
 def test_report_from_csv(tmp_path, capsys):
-    header = ["타임스탬프", "A1. 번호", "A2. 나이대", "A6. 계정", "F1. 시간"] + SUS_TITLES
-    header += ["C2. 맞음", "C5. 추천", "D1. 혜택 수", "E2. 불편", "E4. 재사용"]
+    header = ["타임스탬프", "P1. 동의", "A1. 나이대", "A3. 첫 월급", "A6. 계정", "U1. 써 본 기능", "U2. 진단 시간"]
+    header += ["U3. 가장 도움", *SUS_TITLES, "C5. 코치 반영", "D1. 혜택 수", "E1. 다시", "E2. 추천", "E4. 불편"]
     rows = [
-        ["t", "T-01", "25~29", "예시 계정", "예시 계정이라 안 함"] + ["5", "1"] * 5
-        + ["4", "9", "3개 이상", "버튼이 작아요", "예"],
-        ["t", "T-02", "19~24", "직접 가입(실제 정보)", "3~5분"] + ["3"] * 10
-        + ["3", "5", "1", "", "모르겠다"],
-        ["t", "t-02", "19~24", "직접 가입(실제 정보)", "5~10분"] + ["3"] * 10
-        + ["2", "6", "1", "", "아니요"],
+        ["t", "동의합니다", "20대", "1~3년", "예시 계정(가상 인물 지우)으로 둘러봄", "월급 배분 플랜, AI 코치 상담",
+         "진단을 하지 않음(예시 계정 등)", "AI 코치 상담", *(["5", "1"] * 5), "4", "3개 이상", "예", "9", "버튼이 작아요"],
+        ["t", "동의합니다", "30대", "5년 이상", "직접 가입해 내 실제 정보로", "재무 진단(질문 카드), AI 코치 상담",
+         "3~5분", "도움이 된 기능이 없음", *(["3"] * 10), "", "1개", "아마도", "6", ""],
     ]
     survey = _write(tmp_path / "survey.csv", header, rows)
     obs = _write(
@@ -66,15 +64,19 @@ def test_report_from_csv(tmp_path, capsys):
     )
 
     assert summary.main([str(survey), "--observations", str(obs)]) == 0
-    out = capsys.readouterr()
-    assert "중복 응답" in out.err and "T-02" in out.err
-    assert "| 테스터 수 | 10명 (최소 5명) | 2명 (예시 계정 1명) |" in out.out
-    assert "평균 75.0점" in out.out
-    assert "평균 2.0개, 2개 이상 50% (1/2)" in out.out
-    assert "| 재사용 의향 | 60% 이상 | 50% (1/2) |" in out.out
-    assert "진단 5분 이내 완료 (자가 응답) | | 0% (0/1)" in out.out
-    assert "과제 성공률 (T1~T5, 관찰 2명) | 80% | 62% (5/8)" in out.out
-    assert "- T-01: 버튼이 작아요" in out.out
+    out = capsys.readouterr().out
+    assert "| 응답자 수 | 10명 (최소 5명) | 2명 (예시 계정 1명) |" in out
+    assert "평균 75.0점" in out
+    assert "평균 2.0개, 2개 이상 50% (1/2)" in out
+    assert "| 재사용 의향 ('예') | 60% 이상 | 50% (1/2), 아마도 1명 |" in out
+    assert "| 주 대상(첫 소득 3년 이내) | 50% (1/2) |" in out
+    assert "진단 5분 이내 완료 (자가 응답) | 80% 이상 | 100% (1/1)" in out
+    assert "| NPS | 0 이상 | +0 (2명) |" in out
+    assert "| C5 코치 답변이 내 상황을 반영함 | 4.0점 (1명) |" in out
+    assert "| AI 코치 상담 | 2명 | 1명 |" in out
+    assert "| 도움이 된 기능이 없음 | | 1명 |" in out
+    assert "과제 성공률 (T1~T5, 관찰 2명) | 80% | 62% (5/8)" in out
+    assert "- 응답 1: 버튼이 작아요" in out
 
 
 def test_empty_survey_fails(tmp_path):
