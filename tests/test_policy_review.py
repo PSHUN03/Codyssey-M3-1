@@ -16,9 +16,9 @@ def result(policy_id, day, **changes):
 
 def test_review_scope_is_explicit_and_never_confirms_individual_eligibility():
     reviewed = [p for p in repository.all_policies() if p.get("review_status") in {"official_summary_checked", "official_partial"}]
-    assert len(reviewed) == 13
-    assert sum(p["review_status"] == "official_summary_checked" for p in reviewed) == 10
-    assert sum(p["review_status"] == "official_partial" for p in reviewed) == 3
+    assert len(reviewed) == 19
+    assert sum(p["review_status"] == "official_summary_checked" for p in reviewed) == 14
+    assert sum(p["review_status"] == "official_partial" for p in reviewed) == 5
     for p in reviewed:
         assert p["review"]["individual_eligibility_verified"] is False
         assert p["unknown_checks"] and p["sources"]

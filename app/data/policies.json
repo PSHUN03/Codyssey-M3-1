@@ -1,8 +1,8 @@
 {
   "_meta": {
     "description": "사다리 청년 금융정책 시드 데이터. RAG 검색과 자격 판정에 쓰인다.",
-    "as_of": "2026-10-31",
-    "review_status": "추가 13개 대조: 10개 공식 본문 주요 항목 확인, 3개 부분 확인. 기존 7개 예외 검수와 개별 지급·승인 심사는 별도.",
+    "as_of": "2026-11-08",
+    "review_status": "2026-11-08 공식 자료 대조: 20개 중 14개 주요 항목 확인, 5개 부분 확인, 1개(청년도약계좌, 신규 가입 종료) 일부 확인. 개별 지급·승인 심사는 확인 대상이 아닙니다.",
     "rule_fields": {
       "age_min/age_max": "만 나이 범위",
       "annual_income_max": "총급여(세전 연봉) 상한",
@@ -26,7 +26,7 @@
       "agency": "금융위원회",
       "summary": "만 19~34세 청년이 3년간 매달 최대 50만 원을 저축하면 정부가 납입액의 6~12%를 기여금으로 더해주고 이자소득세를 면제해주는 정책금융상품입니다.",
       "benefit": "정부기여금은 우대형이 월 납입액의 12%(월 최대 6만 원), 일반형이 6%(월 최대 3만 원)입니다. 총급여 6,000만 원 초과~7,500만 원 이하는 기여금 없이 이자소득세 비과세만 받습니다. 만기는 3년입니다.",
-      "eligibility_text": "만 19~34세(병역 기간 최대 6년 제외). 우대형은 총급여 3,600만 원 이하 중소기업 재직자 또는 연 매출 1억 원 이하 소상공인이면서 가구 기준 중위소득 150% 이하. 일반형은 총급여 6,000만 원 이하, 가구 기준 중위소득 200% 이하. 비과세형은 총급여 6,000만 원 초과~7,500만 원 이하. 청년도약계좌와 중복 가입할 수 없습니다.",
+      "eligibility_text": "만 19~34세(병역 기간 최대 6년 제외). 우대형은 총급여 3,600만 원 이하 중소기업 재직자 또는 연 매출 1억 원 이하 소상공인이면서 가구 기준 중위소득 150% 이하. 일반형은 총급여 6,000만 원 이하(소상공인은 연 매출 3억 원 이하), 가구 기준 중위소득 200% 이하. 비과세형은 총급여 6,000만 원 초과~7,500만 원 이하. 청년도약계좌와 중복 가입할 수 없습니다.",
       "how_to_apply": "취급 은행 앱에서 가입자격 조회를 신청한 뒤 계좌를 개설합니다.",
       "apply_period": "2차 가입신청 2026년 10월 7~16일 마감. 심사 통과자 계좌개설 11월 16~27일. 다음 모집은 공식 공고 확인.",
       "caution": "일반 중도해지 시 정부기여금과 비과세 혜택을 잃습니다(퇴직·장기 치료 등 특별 중도해지 사유는 예외). 3년간 유지할 수 있는 금액으로 시작하세요.",
@@ -64,10 +64,12 @@
         }
       ],
       "review": {
-        "checked_on": "2026-10-31",
-        "status": "partial",
-        "scope": "공식 자료 주요 내용 대조. 모든 예외 조건 및 현행 공고 최종 검수는 미완료."
-      }
+        "checked_on": "2026-11-08",
+        "status": "official_summary_checked",
+        "scope": "금융위원회 2026-09-30 2차 가입 안내 본문과 연령·소득 유형·기여금 비율·월 납입 한도·만기·신청과 계좌개설 기간·청년도약계좌 중복 불가를 대조했습니다. 개별 심사 결과는 확인할 수 없습니다.",
+        "individual_eligibility_verified": false
+      },
+      "review_status": "official_summary_checked"
     },
     {
       "id": "youth-leap-account",
@@ -103,9 +105,10 @@
         }
       ],
       "review": {
-        "checked_on": "2026-10-31",
+        "checked_on": "2026-11-08",
         "status": "partial",
-        "scope": "공식 가입 일정 출처 확보. 신규 종료일·중도해지 비율 원문 추가 확인 필요."
+        "scope": "신규 가입 종료(2025-12-31)와 청년미래적금 전환은 금융위원회 2026-09-30 안내(2차 모집 시 기존 가입자 특별중도해지 후 갈아타기 허용)와 일치합니다. 중도해지 시 보전 비율 원문은 서민금융진흥원 공지 본문을 읽지 못해 확인하지 못했습니다.",
+        "individual_eligibility_verified": false
       }
     },
     {
@@ -118,7 +121,7 @@
       "eligibility_text": "만 19~34세, 연소득 5,000만 원 이하, 무주택 청년. 세대주가 아니어도 본인이 무주택이면 가입할 수 있습니다.",
       "how_to_apply": "취급 은행에서 새로 가입하거나 기존 청약통장을 전환합니다.",
       "apply_period": "상시 가입",
-      "caution": "비과세·소득공제의 세부 요건(무주택 세대주 여부 등)은 가입 은행에서 확인하세요.",
+      "caution": "비과세·소득공제의 세부 요건(무주택 세대주 여부 등)은 가입 은행에서 확인하세요. 국토교통부가 2026년 10월 소득 기준을 연 7,000만 원 이하로 완화한다고 발표했습니다. 연소득 5,000만~7,000만 원이면 가입 은행에서 현재 기준을 확인하세요.",
       "rules": {
         "age_min": 19,
         "age_max": 34,
@@ -144,13 +147,19 @@
         {
           "name": "국토교통부 청년주택드림청약 공식 안내",
           "url": "https://www.molit.go.kr/2024dreamaccount/main.jsp"
+        },
+        {
+          "name": "SBS Biz 2026-10-12: 청년주택드림 청약통장 소득기준 7천만원으로 완화(국토교통부 발표)",
+          "url": "https://biz.sbs.co.kr/amp/article/20000339479"
         }
       ],
       "review": {
-        "checked_on": "2026-10-31",
-        "status": "partial",
-        "scope": "공식 자료 주요 내용 대조. 모든 예외 조건 및 현행 공고 최종 검수는 미완료."
-      }
+        "checked_on": "2026-11-08",
+        "status": "official_partial",
+        "scope": "연령·무주택·최대 금리·당첨 시 연계 대출은 출시 공고와 일치합니다. 국토교통부가 2026-10-12에 소득 기준을 연 7,000만 원 이하로 완화한다고 발표했으나, 고시 개정 시행일은 확인하지 못해 판정은 기존 5,000만 원 기준을 유지합니다.",
+        "individual_eligibility_verified": false
+      },
+      "review_status": "official_partial"
     },
     {
       "id": "youth-rent-support",
@@ -162,7 +171,7 @@
       "eligibility_text": "만 19~34세, 부모와 별도로 거주하는 무주택 청년. 청년가구 기준 중위소득 60% 이하이면서 원가구(부모 포함) 기준 중위소득 100% 이하여야 하며, 재산 기준이 별도로 있습니다.",
       "how_to_apply": "복지로 홈페이지에서 온라인으로 신청하거나 주소지 행정복지센터를 방문합니다. 임대차계약서와 최근 3개월 월세 이체 증빙이 필요합니다.",
       "apply_period": "2026년 모집: 3월 30일~5월 29일 (마감). 다음 모집 공고를 확인하세요.",
-      "caution": "생애 1회만 받을 수 있어요. 문의: 국토교통부 콜센터 1599-0001.",
+      "caution": "생애 1회만 받을 수 있어요. 문의: 국토교통부 콜센터 1599-0001. 국토교통부는 2027년부터 이 사업의 소득 기준을 완화한다고 발표했습니다.",
       "rules": {
         "age_min": 19,
         "age_max": 34,
@@ -195,13 +204,19 @@
         {
           "name": "복지로 2026 청년월세 지원사업",
           "url": "https://m.bokjiro.go.kr/ssis-tem/ssis-tem/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004661"
+        },
+        {
+          "name": "복지로 2026년 청년월세 지원 신청 안내(2026-03-20)",
+          "url": "https://www.bokjiro.go.kr/ssis-tbu/cms/pc/customer/notice/1309500_1141.html"
         }
       ],
       "review": {
-        "checked_on": "2026-10-31",
-        "status": "partial",
-        "scope": "공식 자료 주요 내용 대조. 모든 예외 조건 및 현행 공고 최종 검수는 미완료."
-      }
+        "checked_on": "2026-11-08",
+        "status": "official_summary_checked",
+        "scope": "복지로 2026-03-20 신청 안내 본문과 연령·별도 거주·소득 기준(청년가구 60%, 원가구 100%)·월 20만 원·최대 24회·신청 기간을 대조했습니다. 재산 기준과 개별 선정은 확인할 수 없습니다.",
+        "individual_eligibility_verified": false
+      },
+      "review_status": "official_summary_checked"
     },
     {
       "id": "sme-youth-tax-cut",
@@ -241,10 +256,12 @@
         }
       ],
       "review": {
-        "checked_on": "2026-10-31",
-        "status": "partial",
-        "scope": "공식 자료 주요 내용 대조. 모든 예외 조건 및 현행 공고 최종 검수는 미완료."
-      }
+        "checked_on": "2026-11-08",
+        "status": "official_summary_checked",
+        "scope": "국세청 안내 본문과 연령(15~34세, 병역 최대 6년 차감)·감면율 90%·과세기간별 200만 원 한도·5년 감면·적용기한(2026년)을 대조했습니다. 업종 해당 여부는 개별 확인이 필요합니다.",
+        "individual_eligibility_verified": false
+      },
+      "review_status": "official_summary_checked"
     },
     {
       "id": "youth-tomorrow-savings",
@@ -285,13 +302,19 @@
         {
           "name": "복지로 2026년 청년내일저축계좌 신청 안내",
           "url": "https://www.bokjiro.go.kr/ssis-tbu/cms/pc/customer/notice/1309680_1141.html"
+        },
+        {
+          "name": "KDI 경제정보센터 정책자료: 청년내일저축계좌",
+          "url": "https://eiec.kdi.re.kr/policy/materialView.do?num=287499"
         }
       ],
       "review": {
-        "checked_on": "2026-10-31",
-        "status": "partial",
-        "scope": "공식 자료 주요 내용 대조. 모든 예외 조건 및 현행 공고 최종 검수는 미완료."
-      }
+        "checked_on": "2026-11-08",
+        "status": "official_summary_checked",
+        "scope": "복지로 2026-04-24 신청 안내 본문과 연령(15~39세)·근로·사업소득 월 10만 원 이상·소득인정액 중위소득 50% 이하·신청과 보완 기간을 대조했습니다. 월 10만 원 저축 시 정부 30만 원 매칭, 3년 최대 1,440만 원은 KDI 경제정보센터 정책자료로 확인했습니다.",
+        "individual_eligibility_verified": false
+      },
+      "review_status": "official_summary_checked"
     },
     {
       "id": "pension-tax-credit",
@@ -320,13 +343,19 @@
         {
           "name": "국가법령정보센터 소득세법 제59조의3",
           "url": "https://www.law.go.kr/법령/소득세법/제59조의3"
+        },
+        {
+          "name": "국세청 연금계좌 세액공제 안내",
+          "url": "https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?mi=6596&cntntsId=7875"
         }
       ],
       "review": {
-        "checked_on": "2026-10-31",
-        "status": "partial",
-        "scope": "공식 자료 주요 내용 대조. 모든 예외 조건 및 현행 공고 최종 검수는 미완료."
-      }
+        "checked_on": "2026-11-08",
+        "status": "official_partial",
+        "scope": "현행 소득세법 기준(연금저축 600만 원, IRP 합산 900만 원, 총급여 5,500만 원 이하 15%·초과 12%, 지방소득세 포함 16.5%·13.2%)으로 적었습니다. 국세청 안내 페이지 일부 표가 개정 전 기준(4,500만 원)으로 보여 원문 대조를 마치지 못했습니다.",
+        "individual_eligibility_verified": false
+      },
+      "review_status": "official_partial"
     },
     {
       "id": "youth-jeonse-loan",
