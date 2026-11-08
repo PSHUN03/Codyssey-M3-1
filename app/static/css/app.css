@@ -949,6 +949,20 @@ body.no-nav .toast { bottom: 24px; }
 .home-dashboard > .card { border-radius: 28px; }
 .home-dashboard .card-action { min-height: 48px; }
 .plan-title-break { display: none; }
+.plan-page-head > :first-child { flex: 1 1 28rem; min-width: 0; }
+.plan-header-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; flex: 0 1 380px; }
+.plan-header-actions .btn { width: 100%; }
+@media (max-width: 599px) {
+  .plan-page-head > :first-child, .plan-header-actions { flex-basis: auto; }
+}
+@media (max-width: 379px) {
+  .plan-header-actions { grid-template-columns: 1fr; }
+}
+.plan-diagnosis { text-align: center; }
+.plan-diagnosis-body { width: fit-content; max-width: 100%; margin-inline: auto; text-align: left; }
+.plan-diagnosis .segment-name { justify-content: flex-start; }
+.plan-diagnosis .segment-links { justify-content: center; }
+.plan-diagnosis .segment-rules ul, .plan-diagnosis .segment-rules .card-foot { text-align: left; }
 .plan-dashboard { align-items: start; }
 .plan-dashboard > .card { border-radius: 28px; }
 .plan-savings { padding: clamp(24px, 3vw, 36px); }

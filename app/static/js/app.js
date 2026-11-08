@@ -1123,7 +1123,7 @@ async function regenerate(button) {
   button.disabled = true;
   button.textContent = "계산 중이에요";
   button.setAttribute("aria-busy", "true");
-  setFeedback($("#page-feedback"), "플랜을 다시 계산하고 있어요.");
+  setFeedback($("#page-feedback"), "플랜을 다시 계산하고 있어요", "loading");
   try { await api("/api/plans/generate", { method: "POST" }); location.reload(); }
   catch (e) { setFeedback($("#page-feedback"), `${e.message} 다시 계산을 눌러 주세요.`, "error"); }
   finally { button.disabled = false; button.textContent = label; button.setAttribute("aria-busy", "false"); }

@@ -4,20 +4,19 @@
 {% block title %}월급 배분{% endblock %}
 {% block page_styles %}<link rel="stylesheet" href="/static/css/spending.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/css/receipts.css?v={{ asset_version }}">{% endblock %}
 {% block content %}
-<div class="page-head fe01-page-head">
+<div class="page-head fe01-page-head plan-page-head">
   <div>
     <p class="kicker">내 돈 관리 계획</p>
     <h1 class="page-title">목표 저축을<br class="plan-title-break"> 시작할 수 있어요.</h1>
     {% if plan %}<p class="page-sub">입력한 금액으로 살펴본 결과예요.</p>{% endif %}
   </div>
-  <div class="fe01-header-actions">
+  <div class="plan-header-actions">
     <a class="btn btn-secondary btn-sm" href="/progress">저축 기록 보기 {{ ui.icon("arrow-right", 16) }}</a>
     {% if plan %}<button class="btn btn-ghost btn-sm" data-action="regenerate">다시 계산</button>{% endif %}
+    <a class="btn btn-secondary btn-sm" href="/spending">소비 분석 보기 {{ ui.icon("arrow-right", 16) }}</a>
+    <a class="btn btn-secondary btn-sm" href="/plan/receipts">{{ ui.icon("document", 16) }}영수증 기록하기</a>
   </div>
 </div>
-
-<div class="fe02-plan-entry"><a class="btn btn-secondary btn-sm" href="/spending">소비 분석 보기 {{ ui.icon("arrow-right", 16) }}</a></div>
-<div class="fe05-plan-entry"><a class="btn btn-secondary btn-sm" href="/plan/receipts">{{ ui.icon("document", 16) }}영수증 기록하기</a></div>
 
 {% if not plan %}
 <section class="card">
@@ -121,12 +120,14 @@
   </section>
 
   {% if segment %}
-  <section class="card span-12 segment" aria-labelledby="segment-name">
+  <section class="card span-12 segment plan-diagnosis" aria-labelledby="segment-name">
     <p class="label">진단 결과</p>
-    <h2 class="segment-name" id="segment-name"><span class="segment-code">{{ segment.code }}</span>{{ segment.name }}</h2>
-    <p class="segment-reason">{{ segment.reason }}</p>
-    <h3 class="segment-sub">먼저 할 일</h3>
-    <ol class="segment-actions">{% for a in segment.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+    <div class="plan-diagnosis-body">
+      <h2 class="segment-name" id="segment-name"><span class="segment-code">{{ segment.code }}</span>{{ segment.name }}</h2>
+      <p class="segment-reason">{{ segment.reason }}</p>
+      <h3 class="segment-sub">먼저 할 일</h3>
+      <ol class="segment-actions">{% for a in segment.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+    </div>
     <div class="segment-links">
       {% for link in segment.links %}<a class="btn btn-sm {{ 'btn-primary' if loop.first else 'btn-secondary' }}" href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
     </div>
