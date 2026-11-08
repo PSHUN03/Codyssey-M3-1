@@ -155,6 +155,24 @@ class Feedback(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class LlmUsage(Base):
+    """Claude 호출 한 번의 사용량 (AI-05, NFR-08). 사용자 식별 정보와 대화 내용은 남기지 않는다."""
+
+    __tablename__ = "llm_usage"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))  # coach / structured / text
+    model: Mapped[str] = mapped_column(String(80))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_read_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_write_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    tools: Mapped[list] = mapped_column(JSON, default=list)
+    stop_reason: Mapped[str | None] = mapped_column(String(30))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
 class WeeklyReport(Base):
     """주간 리포트와 발송 기록. 같은 사용자·주에는 동일한 ID를 사용한다."""
 

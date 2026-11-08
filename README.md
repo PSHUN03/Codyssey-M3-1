@@ -206,6 +206,14 @@ pg_dump "$DATABASE_URL" -Fc -f backup.dump
 
 백업 파일에는 사용자 데이터가 포함될 수 있으므로 GitHub 저장소에 커밋하지 않습니다.
 
+### AI 사용량 확인
+
+Claude 호출마다 모델, 입력·출력·캐시 토큰, 지연 시간, 사용한 도구를 로그와 `llm_usage` 테이블에 남깁니다. 사용자 정보와 대화 내용은 기록하지 않습니다. 최근 사용량은 내부 API로 확인합니다.
+
+```bash
+curl -H "X-Internal-Key: $INTERNAL_API_KEY" "https://codyssey-m3-1.onrender.com/internal/usage/summary?days=7"
+```
+
 자세한 배포 절차는 [배포 가이드](docs/05_배포가이드.md)를 참고하세요.
 
 ## 사용자 테스트 결과
