@@ -27,7 +27,10 @@ from app.services.agent.guardrails import (
     collect_amounts,
     contains_investment_advice,
     enforce_verified_amounts,
+    is_debt_crisis_request,
     is_investment_advice_request,
+    is_jailbreak_request,
+    is_sensitive_info_request,
 )
 from app.services.agent.memory import recent_memories
 from app.services.agent.prompts import COACH_SYSTEM, context_block
@@ -150,28 +153,30 @@ class AnthropicCoach:
             for block in tool_uses:
                 yield {"type": "status", "text": TOOL_LABELS.get(block.name, "확인하고 있어요")}
 
-                # 완료 기준 2: 필수 데이터(실수령액/프로필) 누락 시 계산 대신 먼저 묻기
+                # 완료 기준 2: 필수 데이터(월 실수령액/프로필) 누락 시 계산 대신 먼저 묻기
+                # (net_income -> monthly_income으로 수정, "마이페이지" -> "설정"으로 용어 수정)
                 if block.name in ("simulate_savings", "check_extra_spending", "get_my_finances"):
-                    if not user.profile or not user.profile.onboarding_done or (hasattr(user.profile, 'net_income') and not user.profile.net_income):
-                        yield {"type": "delta", "text": "정확한 계산을 위해 먼저 월 실수령액(재무 프로필)을 입력해 주세요. 마이페이지에서 등록할 수 있어요."}
+                    if not user.profile or not user.profile.onboarding_done or (hasattr(user.profile, 'monthly_income') and not user.profile.monthly_income):
+                        yield {"type": "delta", "text": "정확한 계산을 위해 먼저 월 실수령액(재무 프로필)을 입력해 주세요. 설정에서 등록할 수 있어요."}
                         return
 
                 output, is_error = run_tool(block.name, block.input, ctx)
 
+                # [수정] is_error 발생 시 바로 return 하지 않고, 
+                # 오류 내용을 item에 담아 모델에게 전달하여 입력을 고쳐 재시도할 수 있도록 합니다.
                 if is_error:
                     err_msg = output.get("error", "알 수 없는 오류") if isinstance(output, dict) else "도구 실행 오류"
-                    yield {"type": "delta", "text": f"지금은 계산을 완료할 수 없어요 ({err_msg}). 입력하신 내용을 다시 확인하시고 잠시 후 다시 시도해 주세요."}
-                    return
-
-                # 도구 결과(JSON)에 포함된 모든 공식 금액을 수집
-                allowed_amounts |= collect_amounts(output)
+                    content_str = json.dumps({"error": err_msg}, ensure_ascii=False)
+                else:
+                    # 도구 결과(JSON)에 포함된 모든 공식 금액을 수집
+                    allowed_amounts |= collect_amounts(output)
+                    content_str = json.dumps(output, ensure_ascii=False, default=str)
 
                 item = {
                     "type": "tool_result",
                     "tool_use_id": block.id,
-                    "content": json.dumps(output, ensure_ascii=False, default=str),
+                    "content": content_str,
                 }
-
 
                 results.append(item)
             messages.append({"role": "user", "content": results})
@@ -196,6 +201,16 @@ _PLAN_RE = re.compile(r"배분|월급|예산|플랜|통장|쪼개|계획|비상�
 _MEMORY_RE = re.compile(r"기억해|기억\s*해\s*줘|잊지\s*마|약속")
 _TARGET_RE = re.compile(r"모으려면|필요|얼마씩|목표")
 
+DEBT_CRISIS_REPLY = (
+    "카드 대금이나 대출 상환으로 어려움을 겪고 계신군요. "
+    "혼자 고민하지 마시고 서민금융진흥원(국번 없이 1397)이나 신용회복위원회에서 채무 조정 및 서민금융 상담을 받아보세요."
+)
+
+PRIVACY_INQUIRY_REPLY = (
+    "사다리는 안전한 보안 원칙에 따라 개인정보를 엄격하게 보호하고 있으며, "
+    "주민등록번호 등 민감한 정보는 요구하거나 저장하지 않습니다. 자세한 내용은 개인정보 처리방침을 참고해 주세요."
+)
+
 
 class MockCoach:
     """API 키 없이 동작하는 규칙 기반 코치. 실제 도구를 호출하므로 숫자는 모두 계산 엔진에서 나온다."""
@@ -219,12 +234,22 @@ class MockCoach:
 
     def _reply(self, ctx: ToolContext, text: str) -> str:
         has_profile = bool(ctx.user.profile and ctx.user.profile.onboarding_done)
+        
+        # --- 가드레일 카테고리별 맞춤 분기 처리 ---
         if is_investment_advice_request(text):
             return INVESTMENT_GUARD_REPLY
+        if is_debt_crisis_request(text):
+            return DEBT_CRISIS_REPLY
+        if is_sensitive_info_request(text):
+            return PRIVACY_INQUIRY_REPLY
+        if is_jailbreak_request(text):
+            return "이 요청에는 답변드릴 수 없어요. 돈 관리와 관련된 질문으로 다시 말씀해 주세요."
+        
+        # --- 기존 대화 및 재무 관련 로직 ---
         if _MEMORY_RE.search(text):
             self._call(ctx, "save_memory", {"kind": "commitment", "content": text[:200]})
             return f"기억해 둘게요. \"{text[:60]}\"\n다음 주 체크인 때 어땠는지 같이 볼게요."
-
+        
         amounts = find_amounts(text, assume_manwon=False)
         if not has_profile and (_SPEND_RE.search(text) or _PLAN_RE.search(text)):
             return "재무 진단을 먼저 마치면 월급과 지출에 맞춰 계산해 드릴 수 있어요."
