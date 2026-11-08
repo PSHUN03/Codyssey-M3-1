@@ -962,7 +962,7 @@ body.no-nav .toast { bottom: 24px; }
 .plan-diagnosis-body { width: fit-content; max-width: 100%; margin-inline: auto; text-align: left; }
 .plan-diagnosis .segment-name { justify-content: flex-start; }
 .plan-diagnosis .segment-links { justify-content: center; }
-.plan-diagnosis .segment-rules ul, .plan-diagnosis .segment-rules .card-foot { text-align: left; }
+.plan-diagnosis-criteria { max-width: 44rem; margin-inline: auto; text-align: left; }
 .plan-dashboard { align-items: start; }
 .plan-dashboard > .card { border-radius: 28px; }
 .plan-savings { padding: clamp(24px, 3vw, 36px); }
