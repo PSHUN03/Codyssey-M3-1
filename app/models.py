@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from datetime import date as date_type
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -33,6 +33,8 @@ class User(Base):
     memories: Mapped[list[Memory]] = relationship(cascade="all, delete-orphan", order_by="Memory.id")
     weekly_reports: Mapped[list[WeeklyReport]] = relationship(cascade="all, delete-orphan")
     transactions: Mapped[list[Transaction]] = relationship(cascade="all, delete-orphan", order_by="Transaction.id")
+    weekly_savings_checks: Mapped[list[WeeklySavingsCheck]] = relationship(cascade="all, delete-orphan")
+    monthly_savings_records: Mapped[list[MonthlySavingsRecord]] = relationship(cascade="all, delete-orphan")
 
 
 class Consent(Base):
@@ -66,7 +68,7 @@ class Profile(Base):
     debt_total: Mapped[int | None] = mapped_column(Integer)
     debt_monthly: Mapped[int | None] = mapped_column(Integer)
     savings: Mapped[int | None] = mapped_column(Integer)
-    saving_monthly: Mapped[int | None] = mapped_column(Integer)  # 지금 매달 적금·저축에 넣는 돈 (유형 D 판정)
+    saving_monthly: Mapped[int | None] = mapped_column(Integer)
     goal_text: Mapped[str | None] = mapped_column(String(200))
     goal_amount: Mapped[int | None] = mapped_column(Integer)
     goal_months: Mapped[int | None] = mapped_column(Integer)
@@ -109,7 +111,7 @@ class ChatSession(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    kind: Mapped[str] = mapped_column(String(20))  # onboarding | coach
+    kind: Mapped[str] = mapped_column(String(20))
     state: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -124,7 +126,7 @@ class ChatMessage(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     session_id: Mapped[int] = mapped_column(ForeignKey("chat_sessions.id", ondelete="CASCADE"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    role: Mapped[str] = mapped_column(String(20))  # user | assistant
+    role: Mapped[str] = mapped_column(String(20))
     content: Mapped[str] = mapped_column(Text)
     sources: Mapped[list] = mapped_column(JSON, default=list)
     tools_used: Mapped[list] = mapped_column(JSON, default=list)
@@ -141,7 +143,7 @@ class Memory(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    kind: Mapped[str] = mapped_column(String(20))  # preference | commitment | fact
+    kind: Mapped[str] = mapped_column(String(20))
     content: Mapped[str] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # 코치 맥락에 마지막으로 쓰인 시각
@@ -165,7 +167,7 @@ class Feedback(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     message_id: Mapped[int] = mapped_column(ForeignKey("chat_messages.id", ondelete="CASCADE"), index=True)
-    rating: Mapped[int] = mapped_column(Integer)  # 1 | -1
+    rating: Mapped[int] = mapped_column(Integer)
     comment: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -214,4 +216,31 @@ class Transaction(Base):
     category: Mapped[str] = mapped_column(String(20))
     is_fixed: Mapped[bool] = mapped_column(Boolean, default=False)
     source: Mapped[str] = mapped_column(String(20), default="upload")
+class WeeklySavingsCheck(Base):
+    """주간 저축 입금 체크."""
+
+    __tablename__ = "weekly_savings_checks"
+    __table_args__ = (
+        UniqueConstraint("user_id", "week", name="uq_weekly_savings_user_week"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    week: Mapped[str] = mapped_column(String(8))
+    deposited: Mapped[bool] = mapped_column(Boolean)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class MonthlySavingsRecord(Base):
+    """월별 저축 금액 기록."""
+
+    __tablename__ = "monthly_savings_records"
+    __table_args__ = (
+        UniqueConstraint("user_id", "month", name="uq_monthly_savings_user_month"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    month: Mapped[str] = mapped_column(String(7))
+    amount: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -8,9 +8,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import User
+from app.models import MonthlySavingsRecord, User
 from app.services import planner
 from app.services.agent import memory as memory_service
 from app.services.finance.budget import extra_spending_impact
@@ -83,27 +84,68 @@ def _require_profile(ctx: ToolContext):
 def get_my_finances(args: dict, ctx: ToolContext) -> dict:
     profile = _require_profile(ctx)
     result = planner.compute_budget(profile)
+
+    # 최근 3개월 저축 기록 조회
+    recent_savings = ctx.db.scalars(
+        select(MonthlySavingsRecord)
+        .where(MonthlySavingsRecord.user_id == ctx.user.id)
+        .order_by(MonthlySavingsRecord.month.desc())
+        .limit(3)
+    ).all()
+
     return {
         "profile": {
-            "age": profile.age, "employment_type": profile.employment_type, "company_size": profile.company_size,
-            "monthly_income": profile.monthly_income, "annual_income": profile.annual_income,
-            "housing_type": profile.housing_type, "rent": profile.rent, "fixed_costs": profile.fixed_costs,
-            "debt_total": profile.debt_total, "debt_monthly": profile.debt_monthly, "savings": profile.savings,
-            "saving_monthly": profile.saving_monthly, "region": profile.region, "goal": profile.goal_text,
+            "age": profile.age,
+            "employment_type": profile.employment_type,
+            "company_size": profile.company_size,
+            "monthly_income": profile.monthly_income,
+            "annual_income": profile.annual_income,
+            "housing_type": profile.housing_type,
+            "rent": profile.rent,
+            "fixed_costs": profile.fixed_costs,
+            "debt_total": profile.debt_total,
+            "debt_monthly": profile.debt_monthly,
+            "savings": profile.savings,
+            "saving_monthly": profile.saving_monthly,
+            "region": profile.region,
+            "goal": profile.goal_text,
         },
-        "segment": {k: v for k, v in planner.compute_segment(profile, result).to_dict().items() if k != "links"},
-        "monthly_plan": {a.label: a.amount for a in result.allocations},
-        "monthly_plan_readable": {a.label: fmt_won(a.amount) for a in result.allocations},
-        "emergency_fund": {"target": result.emergency_target, "gap": result.emergency_gap},
+        "recent_savings": [
+            {
+                "month": record.month,
+                "amount": record.amount,
+            }
+            for record in recent_savings
+        ],
+        "segment": {
+            key: value
+            for key, value in planner.compute_segment(profile, result).to_dict().items()
+            if key != "links"
+        },
+        "monthly_plan": {
+            allocation.label: allocation.amount
+            for allocation in result.allocations
+        },
+        "monthly_plan_readable": {
+            allocation.label: fmt_won(allocation.amount)
+            for allocation in result.allocations
+        },
+        "emergency_fund": {
+            "target": result.emergency_target,
+            "gap": result.emergency_gap,
+        },
         "goal_feasibility": result.goal,
         "warnings": result.warnings,
         "goals": [
-            {"name": g.name, "target_amount": g.target_amount, "target_months": g.target_months,
-             "monthly_needed": g.monthly_needed}
-            for g in ctx.user.goals[-3:]
+            {
+                "name": goal.name,
+                "target_amount": goal.target_amount,
+                "target_months": goal.target_months,
+                "monthly_needed": goal.monthly_needed,
+            }
+            for goal in ctx.user.goals[-3:]
         ],
     }
-
 
 def simulate_savings(args: dict, ctx: ToolContext) -> dict:
     monthly = _int(args, "monthly_amount", 1_000, 10_000_000)
