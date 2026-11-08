@@ -25,7 +25,7 @@ from app.services.agent.guardrails import (
     contains_investment_advice,
     unverified_amounts,
 )
-from app.services.agent.memory import extract_memories, save_memory
+from app.services.agent.memory import extract_memories, mark_used, purge_expired, recent_memories, save_memory
 from app.services.agent.tools import ToolContext
 from app.services.policies.eligibility import KST, today_kst
 
@@ -74,6 +74,8 @@ def chat(payload: ChatIn, user: User = Depends(require_onboarded), db: Session =
         )
 
     text, masked_kinds = mask_sensitive(payload.message.strip())
+    purge_expired(db, user)
+    mark_used(db, recent_memories(user))  # 이번 답변의 맥락으로 쓰이는 기억
     session = _coach_session(db, user)
     history = [{"role": m.role, "content": m.content} for m in session.messages[-HISTORY_TURNS:]]
     db.add(ChatMessage(session_id=session.id, user_id=user.id, role="user", content=text))

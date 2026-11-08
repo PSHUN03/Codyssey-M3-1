@@ -142,6 +142,7 @@ class Memory(Base):
     kind: Mapped[str] = mapped_column(String(20))  # preference | commitment | fact
     content: Mapped[str] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # 코치 맥락에 마지막으로 쓰인 시각
 
 
 class Feedback(Base):
