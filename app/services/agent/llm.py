@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from functools import lru_cache
 
 import anthropic
@@ -40,6 +41,7 @@ def structured_call(system: str, user: str, schema: dict, max_tokens: int = 1024
     settings = get_settings()
     if settings.is_mock:
         return None
+    started = time.perf_counter()
     try:
         response = client().messages.create(
             model=settings.fast_model,
@@ -51,6 +53,7 @@ def structured_call(system: str, user: str, schema: dict, max_tokens: int = 1024
     except anthropic.APIError as exc:
         log.warning("structured_call 실패: %s", exc)
         return None
+    _record("structured", settings.fast_model, response, started)
     if response.stop_reason in ("refusal", "max_tokens"):
         return None
     text = next((b.text for b in response.content if b.type == "text"), "")
@@ -65,6 +68,7 @@ def text_call(system: str, user: str, max_tokens: int = 2000) -> str | None:
     settings = get_settings()
     if settings.is_mock:
         return None
+    started = time.perf_counter()
     try:
         response = client().messages.create(
             model=settings.fast_model,
@@ -75,9 +79,17 @@ def text_call(system: str, user: str, max_tokens: int = 2000) -> str | None:
     except anthropic.APIError as exc:
         log.warning("text_call 실패: %s", exc)
         return None
+    _record("text", settings.fast_model, response, started)
     if response.stop_reason == "refusal":
         return None
     return "".join(b.text for b in response.content if b.type == "text").strip() or None
+
+
+def _record(kind: str, model: str, response: object, started: float) -> None:
+    from app.services.agent import usage  # 순환 import 방지
+
+    usage.record(kind, model, getattr(response, "usage", None), (time.perf_counter() - started) * 1000,
+                 stop_reason=getattr(response, "stop_reason", None))
 
 
 def nullable(schema: dict) -> dict:
