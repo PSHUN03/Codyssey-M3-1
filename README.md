@@ -21,19 +21,22 @@
 
 ## 화면
 
-랜딩 계산기 → 질문 카드 진단 → 월급 배분 → 혜택 → 코치 순서의 시연입니다 (모의 AI 모드, 모바일 화면).
-
-<img src="docs/images/demo.gif" width="300" alt="사다리 시연: 계산기, 진단, 플랜, 혜택, 코치">
+배포본(https://sadari.onrender.com)에서 예시 계정으로 찍은 실제 구동 화면입니다 (2026-11-08, 실제 Claude 연결, 모바일 375px).
 
 <p>
-  <img src="docs/presentation/screens/00_onboarding.jpg" width="160" alt="질문 카드 진단">
-  <img src="docs/presentation/screens/01_home.jpg" width="160" alt="홈: 이번 달 요약">
-  <img src="docs/presentation/screens/02_plan.jpg" width="160" alt="월급 배분">
-  <img src="docs/presentation/screens/03_benefit.jpg" width="160" alt="혜택 자격 판정">
-  <img src="docs/presentation/screens/04_coach.jpg" width="160" alt="AI 코치">
+  <img src="docs/images/screens/01_landing.jpg" width="180" alt="랜딩: 비로그인 월급 계산기">
+  <img src="docs/images/screens/02_home.jpg" width="180" alt="홈: 이번 달 요약과 주간 체크">
+  <img src="docs/images/screens/03_plan.jpg" width="180" alt="월급 배분과 유형 진단">
+  <img src="docs/images/screens/04_benefits.jpg" width="180" alt="청년 혜택 자격 판정">
+</p>
+<p>
+  <img src="docs/images/screens/05_coach.jpg" width="180" alt="AI 코치 실제 답변">
+  <img src="docs/images/screens/06_spending.jpg" width="180" alt="거래내역 소비 분석">
+  <img src="docs/images/screens/07_receipt.jpg" width="180" alt="영수증 AI 인식">
+  <img src="docs/images/screens/08_progress.jpg" width="180" alt="저축 기록과 목표 진행률">
 </p>
 
-왼쪽부터 질문 카드 진단, 홈, 월급 배분, 혜택 자격 판정, AI 코치. 다시 찍으려면 서버를 켠 뒤 `python scripts/make_demo_gif.py`, `python docs/presentation/capture_screens.py`를 실행합니다.
+윗줄은 랜딩 계산기, 홈, 월급 배분, 혜택 자격 판정이고, 아랫줄은 AI 코치(실제 답변), 소비 분석(가상 거래내역), 영수증 인식(가상 영수증 r01), 저축 진행률입니다. 다시 찍으려면 `python scripts/capture_readme_screens.py https://sadari.onrender.com`을 실행합니다 (예시 계정만 쓰고 가입하지 않음).
 
 ## 기능
 
@@ -48,7 +51,7 @@
 | 비로그인 월급 계산기, 예시 계정 (FR-22) | MVP 완료 | 없음 |
 | 예·적금 상품 비교 (FR-12) | 완료 (API, 코치 도구). 배포본은 `FSS_API_KEY` 설정 후 동작 | 금감원 Open API, Agent 도구 |
 | 거래내역 업로드·저장과 소비 분석 (FR-13, 14) | 완료 (`/spending` 미리보기·분류 수정·저장·월별 요약, 코치 도구) | LLM 컬럼 매핑, 계좌·카드번호 가림, Agent 도구 |
-| 주간 리포트와 홈 카드 (FR-15) | 완료 (서버, n8n 워크플로) | 자동화 워크플로우 (n8n) |
+| 주간 리포트와 홈 카드 (FR-15) | 완료 (서버 API, n8n 워크플로 정의). n8n 실행 위치를 정하지 않아 배포 환경에서 자동 실행되지는 않음 | 자동화 워크플로우 (n8n) |
 | 정책 데이터 수집·검수 (FR-18) | 완료 (온통청년 수집 API, n8n 워크플로, 정책 20개) | RAG 데이터 갱신 |
 | 답변 피드백을 GitHub 이슈로 (FR-17) | 완료 (이름·이메일·금액 가림). 배포본은 `FEEDBACK_WEBHOOK_URL` 설정 후 이슈 생성 | 자동화 워크플로우 (n8n) |
 | 금융 기초 학습 카드와 퀴즈 (FR-21) | 완료 (`/learn`, 카드 8장) | 없음 |
@@ -154,10 +157,11 @@ python eval/run_receipt_eval.py  # 가상 영수증 10장 인식 정확도 (API 
 
 | 지표 | 현재 (2026-11-08) | 목표 |
 |---|---|---|
-| 테스트 | 232개 통과 (CI 기준) | 기능을 추가할 때 함께 늘림 |
+| 테스트 | 274개 통과 (로컬 pytest, 프런트 테스트는 CI에서 추가 실행) | 기능을 추가할 때 함께 늘림 |
 | 테스트 커버리지 | 전체 90%, 계산 엔진 98% | 계산 엔진 90% 이상 (CI에서 확인) |
 | 정책 검색 hit@1 | 골든셋 40문항 98% (hit@3 100%) | 40문항에서 85% 이상 |
 | 위험 요청 탐지 (입력 규칙, 5개 유형) | 30문항 중 30문항 (100%) | 30문항에서 100% |
+| 코치 응답 루브릭 (정확성·개인화·실행 가능성·안전성, 1~5점) | 10문항 평균 4.03, 안전성 4.7 ([ADR-0014](docs/adr/0014-coach-model-choice.md), 경량 모델 채점, 사람 검수 전) | 평균 4.0 이상 |
 | 레드팀 라이브 평가 | 30문항 위반 0건 (출력 필터 포함, [개발일지](docs/devlog/2026-11-04-레드팀-라이브평가.md)) | 위반 0건 |
 
 입력 규칙은 투자 권유·수익 보장, 대출·부채 위기, 개인정보 요구, 탈옥 시도를 나눠 찾고 유형마다 다른 안내(서민금융 1397 등)를 합니다(AI-06). 근거 없는 금액은 숫자를 바꾸지 않고 주의 문구를 붙여 기록합니다.
