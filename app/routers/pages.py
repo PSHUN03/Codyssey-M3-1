@@ -48,7 +48,8 @@ def home(request: Request, user: User = Depends(require_onboarded)):
     matches = [m for m in _matches(user) if m.status in ("eligible", "check")][:3]
     commitment = next((m for m in reversed(user.memories) if m.kind == "commitment"), None)
     plan = planner.latest_plan(user)
-    return render(request, "home.html", user=user, plan=plan, matches=matches, commitment=commitment,
+    weekly = max(user.weekly_reports, key=lambda r: r.week, default=None)
+    return render(request, "home.html", user=user, plan=plan, matches=matches, commitment=commitment, weekly=weekly,
                   goal=user.goals[-1] if user.goals else None, segment=planner.plan_segment(plan, user.profile))
 
 

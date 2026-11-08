@@ -30,6 +30,7 @@ class User(Base):
     plans: Mapped[list[BudgetPlan]] = relationship(cascade="all, delete-orphan", order_by="BudgetPlan.id")
     chat_sessions: Mapped[list[ChatSession]] = relationship(cascade="all, delete-orphan", order_by="ChatSession.id")
     memories: Mapped[list[Memory]] = relationship(cascade="all, delete-orphan", order_by="Memory.id")
+    weekly_reports: Mapped[list[WeeklyReport]] = relationship(cascade="all, delete-orphan")
 
 
 class Consent(Base):
@@ -151,4 +152,17 @@ class Feedback(Base):
     message_id: Mapped[int] = mapped_column(ForeignKey("chat_messages.id", ondelete="CASCADE"), index=True)
     rating: Mapped[int] = mapped_column(Integer)  # 1 | -1
     comment: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class WeeklyReport(Base):
+    """주간 리포트와 발송 기록. 같은 사용자·주에는 동일한 ID를 사용한다."""
+
+    __tablename__ = "weekly_reports"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    week: Mapped[str] = mapped_column(String(10))
+    body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20))
+    claim_token: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
