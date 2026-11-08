@@ -53,6 +53,10 @@ def get_coach() -> Coach:
 
 # ------------------------------------------------------------------ Claude Agent
 
+FALLBACK_NOTICE = "지금 AI 서버에 연결할 수 없어 계산 엔진의 기본 안내로 답해요."
+FALLBACK_PREFIX = "(AI 연결이 원활하지 않아 기본 안내로 답해요)\n\n"
+
+
 class AnthropicCoach:
     MAX_TURNS = 6
     ERROR_TEXT = "AI 서버와 연결하지 못했어요. 잠시 후 다시 시도해 주세요."
@@ -92,7 +96,7 @@ class AnthropicCoach:
         need_separator = False
         allowed_amounts: set[int] = set() # 도구 결과 금액들을 모을 집합
 
-        for _ in range(self.MAX_TURNS):
+        for turn in range(self.MAX_TURNS):
             wrote_text = False
             started = time.perf_counter()
             try:
@@ -138,7 +142,15 @@ class AnthropicCoach:
                 continue
             except anthropic.APIError:
                 log.exception("코치 API 호출 실패")
-                yield {"type": "error", "text": self.ERROR_TEXT}
+                if turn > 0:
+                    # 이미 답변 일부를 보냈거나 도구를 쓴 뒤라면 섞지 않고 오류만 알린다
+                    yield {"type": "error", "text": self.ERROR_TEXT}
+                    return
+                # 첫 호출부터 AI 서버를 쓸 수 없으면(예산 한도·장애) 계산 엔진 기반 기본 안내로 대신 답한다.
+                # AI 답변이 아니라는 점을 먼저 알린다.
+                yield {"type": "notice", "text": FALLBACK_NOTICE}
+                yield {"type": "delta", "text": FALLBACK_PREFIX}
+                yield from MockCoach().stream(ctx, history, user_text)
                 return
 
             if response.stop_reason == "refusal":
