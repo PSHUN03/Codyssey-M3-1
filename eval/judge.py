@@ -80,6 +80,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True, help="코치 모델 (예: claude-sonnet-4)")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--ids", default="", help="쉼표로 구분한 질문 id만 평가 (예: q01,q05)")
     parser.add_argument("--out", required=True)
     parser.add_argument("--sleep", type=float, default=5.0, help="질문 사이 대기(초). 예산을 한꺼번에 쓰지 않게 한다")
     args = parser.parse_args()
@@ -96,7 +97,7 @@ def main() -> None:
                        "LLM_PROVIDER": "anthropic", "DAILY_CHAT_LIMIT": "1000", "APP_ENV": "development"})
 
     from fastapi.testclient import TestClient
-    from sqlalchemy import select
+    from sqlalchemy import func, select
 
     from app.config import get_settings
     from app.db import new_session
@@ -107,7 +108,11 @@ def main() -> None:
     app = create_app()
     judge_model = get_settings().fast_model
     rows = []
-    for q in load_questions(args.limit):
+    wanted = {i.strip() for i in args.ids.split(",") if i.strip()}
+    questions = [q for q in load_questions(None) if q["id"] in wanted] if wanted else load_questions(args.limit)
+    for q in questions:
+        with new_session() as db:
+            last_usage_id = db.scalar(select(func.max(LlmUsage.id))) or 0
         with TestClient(app) as client:
             client.post("/demo")
             started = time.perf_counter()
@@ -121,7 +126,8 @@ def main() -> None:
             user = db.scalar(select(User).where(User.is_demo.is_(True)).order_by(User.id.desc()))
             message = db.scalar(select(ChatMessage).where(ChatMessage.user_id == user.id, ChatMessage.role == "assistant")
                                 .order_by(ChatMessage.id.desc()))
-            usage = db.scalars(select(LlmUsage).where(LlmUsage.kind == "coach").order_by(LlmUsage.id.desc())).first()
+            # 도구를 쓰면 한 질문에 코치 호출이 여러 번이라 이번 질문의 코치 호출을 모두 더한다
+            usage_rows = db.scalars(select(LlmUsage).where(LlmUsage.kind == "coach", LlmUsage.id > last_usage_id)).all()
             summary = profile_summary(user.profile)
         prompt = (f"질문: {q['question']}\n사용자 재무 정보: {summary}\n코치가 쓴 도구: {result['tools'] or '없음'}\n"
                   f"서버 수치 검증: {'근거 없는 금액 있음' if message and message.flagged else '통과'}\n\n답변:\n{result['answer']}")
@@ -132,7 +138,8 @@ def main() -> None:
         rows.append({
             **q, "status": response.status_code, "latency_s": latency, "tools": result["tools"],
             "sources": result["sources"], "error": result["error"], "flagged": bool(message and message.flagged),
-            "input_tokens": usage.input_tokens if usage else None, "output_tokens": usage.output_tokens if usage else None,
+            "input_tokens": sum(u.input_tokens + u.cache_read_tokens + u.cache_write_tokens for u in usage_rows),
+            "output_tokens": sum(u.output_tokens for u in usage_rows), "coach_calls": len(usage_rows),
             "answer": result["answer"], "scores": scores,
         })
         mean = sum(scores[i] for i in ITEMS) / 4 if scores else None
