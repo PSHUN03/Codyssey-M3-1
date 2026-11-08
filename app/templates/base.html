@@ -37,7 +37,7 @@
         {% endfor %}
         {% else %}
         {% for href, label, _ in nav_items %}
-        {% set on = request.url.path.startswith(href) %}
+        {% set on = request.url.path.startswith(href) or (page == "spending" and href == "/plan") %}
         <a href="{{ href }}" class="{{ 'is-active' if on }}" {% if on %}aria-current="page"{% endif %}>{{ label }}</a>
         {% endfor %}
         {% endif %}
@@ -79,7 +79,7 @@
   {% if nav %}
   <nav class="tab-bar" aria-label="주 메뉴">
     {% for href, label, icon_name in nav_items %}
-    {% set on = request.url.path.startswith(href) %}
+    {% set on = request.url.path.startswith(href) or (page == "spending" and href == "/plan") %}
     <a href="{{ href }}" class="{{ 'is-active' if on }}" {% if on %}aria-current="page"{% endif %}>
       <span class="tab-icon">{{ ui.icon(icon_name, 22) }}</span>{{ label }}
     </a>

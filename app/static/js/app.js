@@ -1130,8 +1130,9 @@ async function regenerate(button) {
 }
 
 /* ------------------------------------------------------------ 내 정보 */
-function initProfileSelects(form) {
+function initProfileSelects(form, signal) {
   if (!form) return;
+  const listenerOptions = signal ? { signal } : undefined;
   let closeOpen = () => {};
   $$("select[data-profile-select]", form).forEach((select) => {
     const label = document.querySelector(`label[for="${select.id}"]`);
@@ -1257,13 +1258,13 @@ function initProfileSelects(form) {
         if (match !== undefined) highlight(match);
       }
     });
-    document.addEventListener("pointerdown", (event) => { if (!wrapper.contains(event.target)) close(); });
-    document.addEventListener("focusin", (event) => { if (!wrapper.contains(event.target)) close(); });
-    window.addEventListener("resize", close);
+    document.addEventListener("pointerdown", (event) => { if (!wrapper.contains(event.target)) close(); }, listenerOptions);
+    document.addEventListener("focusin", (event) => { if (!wrapper.contains(event.target)) close(); }, listenerOptions);
+    window.addEventListener("resize", close, listenerOptions);
     // The menu is anchored to its field and moves with it. Closing on scroll
     // cancels clicks when the browser scrolls an option into view first.
     select.addEventListener("change", sync);
-    form.addEventListener("reset", () => setTimeout(sync, 0));
+    form.addEventListener("reset", () => setTimeout(sync, 0), listenerOptions);
     trigger.append(value);
     wrapper.append(trigger, menu);
     select.after(wrapper);

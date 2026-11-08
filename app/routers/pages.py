@@ -19,6 +19,7 @@ from app.services.agent.memory import KINDS, RETENTION_DAYS, purge_expired
 from app.services.finance.segment import SEGMENT_RULE_VERSION, SEGMENTS
 from app.services.onboarding.flow import REGIONS
 from app.services.policies import eligibility, repository
+from app.services.spending_preview import sample_spending
 from app.web import render
 
 router = APIRouter()
@@ -73,6 +74,13 @@ def receipts_page(request: Request, example: Literal["complete", "missing"] = "c
     config = {"mode": "sample", "example": example,
               "sample_date": datetime.now(ZoneInfo("Asia/Seoul")).date().isoformat()}
     return render(request, "receipts.html", user=user, receipt_config=config)
+
+
+@router.get("/spending")
+def spending_page(request: Request, example: Literal["result", "empty", "error"] | None = None,
+                  user: User = Depends(require_onboarded)):
+    config = sample_spending(example) if example else {"mode": "preview", "example": "idle", "rows": []}
+    return render(request, "spending.html", user=user, sample=config)
 
 
 @router.get("/learn")
