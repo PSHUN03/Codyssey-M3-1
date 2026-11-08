@@ -18,6 +18,8 @@ jobs:
       - name: Lint
         run: ruff check .
       - name: Test (모의 AI 모드, API 키 불필요)
-        run: pytest -q
+        run: pytest -q --cov=app --cov-report=term
+      - name: 계산 엔진 커버리지 90% 이상 (NFR-02)
+        run: coverage report --include="app/services/finance/*" --fail-under=90
       - name: AI 품질 평가 (검색·가드레일)
         run: python eval/run_eval.py

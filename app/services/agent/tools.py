@@ -191,7 +191,10 @@ def save_memory(args: dict, ctx: ToolContext) -> dict:
     saved = memory_service.save_memory(ctx.db, ctx.user, kind, content)
     if saved:
         ctx.memories_saved.append(content)
-    return {"saved": bool(saved), "content": content}
+        return {"saved": True, "content": content}
+    if memory_service.contains_financial_figure(content):
+        return {"saved": False, "content": content, "reason": memory_service.REJECT_REASON}
+    return {"saved": False, "content": content}
 
 
 def set_goal(args: dict, ctx: ToolContext) -> dict:

@@ -15,6 +15,7 @@ from app.db import init_engine
 from app.deps import ConsentRequired, LoginRequired, OnboardingRequired
 from app.routers import api, auth, coach, internal, onboarding, pages, public
 from app.routers.products import router as products_router
+from app.routers.receipts import router as receipts_router
 from app.routers.reports import router as reports_router
 from app.routers.transactions import router as transactions_router
 from app.web import render
@@ -52,6 +53,9 @@ def create_app() -> FastAPI:
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "same-origin")
         response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Permissions-Policy", "camera=(self), microphone=(), geolocation=()")
+        if settings.is_production:
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
         return response
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -59,6 +63,7 @@ def create_app() -> FastAPI:
         app.include_router(module.router)
 
     app.include_router(products_router)
+    app.include_router(receipts_router)
     app.include_router(reports_router)
     app.include_router(transactions_router)
 
