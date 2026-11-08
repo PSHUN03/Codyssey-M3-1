@@ -64,3 +64,10 @@ test('same-period corrections replace the sample value and never append records'
   assert.equal(store.read().paid,false);assert.deepEqual(store.read().records,[{month:'2026-11',amount:700000}]);
   assert.equal(config.records[0].amount,0);
 });
+test('server progress is accepted only when it matches the GET /api/savings contract',async()=>{
+  assert.deepEqual(live.normalizeProgress({progress:{saved_amount:3500000,target_amount:30000000,percentage:11.7}}),{saved:3500000,target:30000000,percentage:11.7});
+  assert.deepEqual(live.normalizeProgress({progress:{saved_amount:0,target_amount:null,percentage:null}}),{saved:0,target:null,percentage:null});
+  for(const progress of [undefined,{saved_amount:-1,target_amount:1,percentage:0},{saved_amount:1,target_amount:0,percentage:0},{saved_amount:1,target_amount:10,percentage:101},{saved_amount:1,target_amount:10,percentage:null},{saved_amount:'1',target_amount:10,percentage:10}])assert.equal(live.normalizeProgress({progress}),null);
+  const client=live.createClient(async()=>({ok:true,json:async()=>({savings:[{month:'2026-11',amount:500000}],progress:{saved_amount:3500000,target_amount:30000000,percentage:11.7}})}));
+  assert.deepEqual(await client.loadSavingsWithProgress(),{records:[{month:'2026-11',amount:500000}],progress:{saved:3500000,target:30000000,percentage:11.7}});
+});

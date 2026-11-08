@@ -74,7 +74,13 @@
       form.hidden = !review; find("[data-pending]").hidden = stage !== "preview";
       find("[data-loading]").hidden = !loading; find("[data-saved]").hidden = !complete;
       find("[data-ai-badge]").hidden = !review && !complete;
-      find("[data-result-title]").textContent = complete ? "확인한 샘플 기록" : stage === "preview" ? "인식 준비" : "인식 결과 확인";
+      // A real photo is not a sample; spending storage for receipts is not connected yet, so say exactly that.
+      const real = source === "photo";
+      find("[data-result-title]").textContent = complete ? (real ? "확인한 영수증" : "확인한 샘플 기록") : stage === "preview" ? "인식 준비" : "인식 결과 확인";
+      find("[data-ai-badge-text]").textContent = real ? "AI 인식" : "AI 인식 · 샘플";
+      find("[data-save-label]").textContent = real ? "확인 완료" : "확인하고 샘플 저장";
+      find("[data-saved-heading]").textContent = real ? "영수증 내용을 확인했어요" : "샘플 기록을 남겼어요";
+      find("[data-saved-note]").textContent = real ? "지출 내역 저장은 아직 연결되지 않아 이 화면에서만 보여요." : "샘플 저장 결과이며 실제 지출 내역은 바뀌지 않아요.";
       find("[data-result-sub]").textContent = complete ? "아직 지출 내역에는 저장되지 않아요." : "확인하고, 틀린 부분은 바로 고쳐요.";
       find("[data-result-note]").textContent = source === "photo"
         ? (recognized ? "AI가 사진에서 읽은 값이에요. 틀리거나 비어 있는 부분은 직접 고쳐 주세요." : "인식하기를 누르면 사진을 읽어 날짜·가맹점·금액을 채워요.")
@@ -110,7 +116,7 @@
       const icon = find("[data-success-check]"); icon.classList.remove("receipt-celebrate");
       void icon.offsetWidth;
       icon.classList.add("receipt-celebrate");
-      announce("수정한 내용을 샘플 기록에 반영했어요.");
+      announce(source === "photo" ? "확인한 내용을 화면에 반영했어요." : "수정한 내용을 샘플 기록에 반영했어요.");
       find("[data-result-panel]").scrollIntoView({ behavior: "auto", block: "nearest" });
     }
     find("[data-save]").addEventListener("click", saveReceipt);
@@ -121,7 +127,7 @@
       event.stopPropagation(); values[name] = input.value;
       input.removeAttribute("aria-invalid"); find(`[data-error="${name}"]`).hidden = true; announce("");
     }));
-    find("[data-edit]").addEventListener("click", () => { stage = "review"; clearErrors(); render(true); fields.merchant.focus(); announce("내용을 수정한 뒤 다시 샘플 저장할 수 있어요."); });
+    find("[data-edit]").addEventListener("click", () => { stage = "review"; clearErrors(); render(true); fields.merchant.focus(); announce(source === "photo" ? "내용을 수정한 뒤 다시 확인할 수 있어요." : "내용을 수정한 뒤 다시 샘플 저장할 수 있어요."); });
     find("[data-use-sample]").addEventListener("click", () => {
       generation++; clearTimeout(timer); releasePhoto(); source = "sample"; stage = "preview"; selectedFile = null; recognized = false;
       result = sampleResult(config); values = toDraft(result); saved = null; clearErrors(); render(true); announce("샘플 영수증을 불러왔어요.");

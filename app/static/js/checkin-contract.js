@@ -1,4 +1,4 @@
-/* BE-04 #62 read/write adapter. Progress reads and final route agreement remain pending. */
+/* BE-04 #62 read/write adapter. GET /api/savings also returns cumulative goal progress. */
 (() => {
   "use strict";
   const MAX_AMOUNT = 10_000_000;
@@ -52,6 +52,16 @@
       seen.add(row.month); return { month: row.month, amount: row.amount };
     }).sort((a, b) => a.month.localeCompare(b.month));
   }
+  function normalizeProgress(payload) {
+    const progress = isObject(payload) ? payload.progress : null;
+    if (!isObject(progress)) return null;
+    const { saved_amount: saved, target_amount: target, percentage } = progress;
+    if (!Number.isSafeInteger(saved) || saved < 0) return null;
+    if (target !== null && (!Number.isSafeInteger(target) || target <= 0)) return null;
+    if (percentage !== null && (typeof percentage !== "number" || !Number.isFinite(percentage) || percentage < 0 || percentage > 100)) return null;
+    if ((target === null) !== (percentage === null)) return null;
+    return { saved, target, percentage };
+  }
   function recentRecords(records, month) {
     if (!validMonth(month)) throw new TypeError("기준 월을 확인해 주세요.");
     const index = value => Number(value.slice(0, 4)) * 12 + Number(value.slice(5)) - 1;
@@ -75,6 +85,10 @@
     return {
       async loadWeekly(options) { return normalizeCheckins(await request({ url: "/api/checkins", method: "GET" }, options)); },
       async loadSavings(options) { return normalizeSavings(await request({ url: "/api/savings", method: "GET" }, options)); },
+      async loadSavingsWithProgress(options) {
+        const payload = await request({ url: "/api/savings", method: "GET" }, options);
+        return { records: normalizeSavings(payload), progress: normalizeProgress(payload) };
+      },
       async saveWeekly(week, paid, options) {
         const payload = await request(weeklyRequest(week, paid), options);
         if (!isObject(payload) || payload.ok !== true || payload.week !== week || payload.paid !== paid) throw new Error("저장 결과를 확인하지 못했어요. 기록을 다시 불러와 확인해 주세요.");
@@ -87,7 +101,7 @@
       },
     };
   }
-  const contract = { weeklyRequest, savingsRequest, validWeek, validMonth, parseMan, normalizeCheckins, normalizeSavings, recentRecords, createClient, MAX_AMOUNT };
+  const contract = { weeklyRequest, savingsRequest, validWeek, validMonth, parseMan, normalizeCheckins, normalizeSavings, normalizeProgress, recentRecords, createClient, MAX_AMOUNT };
   if (typeof module !== "undefined" && module.exports) module.exports = contract;
   else globalThis.SadariCheckinContract = contract;
 })();

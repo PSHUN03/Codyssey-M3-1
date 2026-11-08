@@ -69,7 +69,7 @@ def test_default_home_progress_use_live_periods_without_sample_records(client):
     assert config == config_from(progress) and config['mode'] == 'api'
     assert 'records' not in config and 'goal' not in config
     assert '/static/js/fe01-live.js' in home and '/static/js/fe01-live.js' in progress
-    assert '진행률 연결 준비 중' in progress and 'data-fe01-total>—' in progress
+    assert '진행률을 불러오고 있어요' in progress and 'data-fe01-total>—' in progress
     assert '샘플 목표' not in progress
     assert 'href="/home#fe01-month-title"' in progress
     assert 'data-fe01-reload="weekly"' in home
