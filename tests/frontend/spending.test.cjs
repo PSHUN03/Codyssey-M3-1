@@ -1,0 +1,13 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {validateFile,summarize,MAX_BYTES}=require('../../app/static/js/spending.js');
+const categories=['주거','식비','쇼핑','기타'];
+const rows=[{id:1,amount:500000,category:'주거',fixed:true},{id:2,amount:23000,category:'식비',fixed:false},{id:3,amount:125000,category:'쇼핑',fixed:false}];
+test('accepts supported extensions without MIME dependence',()=>{for(const name of ['bank.xlsx','bank.CSV'])assert.equal(validateFile({name,size:MAX_BYTES}), '');});
+test('rejects unsupported types and disguised extensions',()=>{for(const name of ['bank.xls','bank.pdf','bank.csv.exe'])assert.match(validateFile({name,size:5}),/엑셀/);});
+test('rejects empty and over-limit files',()=>{assert.match(validateFile({name:'bank.csv',size:0}),/빈 파일/);assert.match(validateFile({name:'bank.xlsx',size:MAX_BYTES+1}),/2MB/);});
+test('canceling the file picker is harmless',()=>assert.equal(validateFile(null),''));
+test('summary sorts categories and top transactions and splits fixed/variable',()=>{const a=summarize(rows,{},categories);assert.equal(a.total,648000);assert.equal(a.fixed,500000);assert.equal(a.variable,148000);assert.deepEqual(a.top.map(r=>r.id),[1,3,2]);assert.deepEqual(a.groups.map(r=>r.category),['주거','쇼핑','식비']);});
+test('reclassification moves totals but preserves amounts and fixed status',()=>{const a=summarize(rows,{1:'기타',2:'쇼핑'},categories);assert.equal(a.groups.find(g=>g.category==='기타').amount,500000);assert.equal(a.groups.find(g=>g.category==='쇼핑').amount,148000);assert.equal(a.total,648000);assert.equal(a.fixed,500000);assert.equal(a.top[0].category,'기타');});
+test('ignores unknown category/transaction and does not mutate sample data',()=>{const before=JSON.stringify(rows);const a=summarize(rows,{2:'bad',99:'기타'},categories);assert.equal(a.rows[1].category,'식비');assert.equal(JSON.stringify(rows),before);});
+test('empty summary is consistent',()=>{const a=summarize([],{},categories);assert.equal(a.total,0);assert.equal(a.fixed,0);assert.equal(a.variable,0);assert.deepEqual(a.groups,[]);assert.deepEqual(a.top,[]);});

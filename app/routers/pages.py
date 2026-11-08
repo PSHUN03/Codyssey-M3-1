@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -15,6 +17,7 @@ from app.services.agent.memory import KINDS, RETENTION_DAYS, purge_expired
 from app.services.finance.segment import SEGMENT_RULE_VERSION, SEGMENTS
 from app.services.onboarding.flow import REGIONS
 from app.services.policies import eligibility, repository
+from app.services.spending_preview import sample_spending
 from app.web import render
 
 router = APIRouter()
@@ -61,6 +64,13 @@ def plan_page(request: Request, user: User = Depends(require_onboarded)):
     return render(request, "plan.html", user=user, plan=plan, facts=planner.profile_facts(user.profile),
                   segment=planner.plan_segment(plan, user.profile), segments=SEGMENTS,
                   segment_rule_version=SEGMENT_RULE_VERSION)
+
+
+@router.get("/spending")
+def spending_page(request: Request, example: Literal["result", "empty", "error"] | None = None,
+                  user: User = Depends(require_onboarded)):
+    config = sample_spending(example) if example else {"mode": "preview", "example": "idle", "rows": []}
+    return render(request, "spending.html", user=user, sample=config)
 
 
 @router.get("/learn")
