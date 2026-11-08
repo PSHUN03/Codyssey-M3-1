@@ -1,18 +1,19 @@
-"""DATA-06 거래내역 미리보기. 원본 및 변환 결과를 저장하지 않는다."""
+"""거래내역 미리보기(DATA-06)와 저장·요약(BE-01). 원본 파일은 저장하지 않는다."""
 import json
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.db import get_db
 from app.deps import require_onboarded
 from app.models import User
-from app.services import transactions
+from app.services import spending, transactions
 
 router = APIRouter(prefix="/api")
 
-@router.post("/transactions/preview")
-async def preview(file: UploadFile = File(...), mapping: str | None = Form(None),
-                  header_row: int | None = Form(None), user: User = Depends(require_onboarded)):
+
+async def _parse(file: UploadFile, mapping: str | None, header_row: int | None) -> dict:
     content = await file.read(transactions.MAX_BYTES + 1)
     try:
         columns = json.loads(mapping) if mapping else None
@@ -27,3 +28,27 @@ async def preview(file: UploadFile = File(...), mapping: str | None = Form(None)
         await file.close()
 
 
+@router.post("/transactions/preview")
+async def preview(file: UploadFile = File(...), mapping: str | None = Form(None),
+                  header_row: int | None = Form(None), user: User = Depends(require_onboarded)):
+    return await _parse(file, mapping, header_row)
+
+
+@router.post("/transactions/upload")
+async def upload(file: UploadFile = File(...), mapping: str | None = Form(None), header_row: int | None = Form(None),
+                 user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
+    """미리보기와 같은 변환을 거쳐 거래를 저장한다. 컬럼을 고르지 못한 파일은 저장하지 않고 미리보기를 돌려준다."""
+    parsed = await _parse(file, mapping, header_row)
+    if parsed["needs_mapping"]:
+        return {**parsed, "saved": 0, "skipped": 0}
+    result = spending.save_transactions(db, user, parsed["transactions"])
+    return {"needs_mapping": False, **result, "errors": parsed["errors"]}
+
+
+@router.get("/transactions/summary")
+def summary(month: str | None = Query(None, description="YYYY-MM, 비우면 가장 최근 달"),
+            user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
+    try:
+        return spending.summary(db, user, month)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
