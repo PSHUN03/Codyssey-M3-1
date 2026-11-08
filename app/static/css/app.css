@@ -959,10 +959,14 @@ body.no-nav .toast { bottom: 24px; }
   .plan-header-actions { grid-template-columns: 1fr; }
 }
 .plan-diagnosis { text-align: center; }
-.plan-diagnosis-body { width: fit-content; max-width: 100%; margin-inline: auto; text-align: left; }
+.plan-diagnosis-body, .plan-diagnosis > .segment-rules { width: 100%; max-width: 44rem; margin-inline: auto; text-align: left; }
 .plan-diagnosis .segment-name { justify-content: flex-start; }
 .plan-diagnosis .segment-links { justify-content: center; }
-.plan-diagnosis-criteria { max-width: 44rem; margin-inline: auto; text-align: left; }
+.plan-diagnosis > .segment-rules summary { position: relative; list-style: none; }
+.plan-diagnosis > .segment-rules summary::-webkit-details-marker { display: none; }
+.plan-diagnosis > .segment-rules summary::before { content: "▸"; position: absolute; right: calc(100% + 6px); }
+.plan-diagnosis > .segment-rules[open] summary::before { content: "▾"; }
+.plan-diagnosis-criteria { text-align: left; }
 .plan-dashboard { align-items: start; }
 .plan-dashboard > .card { border-radius: 28px; }
 .plan-savings { padding: clamp(24px, 3vw, 36px); }
