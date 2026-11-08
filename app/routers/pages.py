@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from app.deps import current_user, require_member, require_onboarded
 from app.models import User
 from app.routers.auth import next_step
-from app.services import account, planner
+from app.services import account, lessons, planner
 from app.services.agent.memory import KINDS
 from app.services.finance.segment import SEGMENT_RULE_VERSION, SEGMENTS
 from app.services.onboarding.flow import REGIONS
@@ -59,6 +59,11 @@ def plan_page(request: Request, user: User = Depends(require_onboarded)):
     return render(request, "plan.html", user=user, plan=plan, facts=planner.profile_facts(user.profile),
                   segment=planner.plan_segment(plan, user.profile), segments=SEGMENTS,
                   segment_rule_version=SEGMENT_RULE_VERSION)
+
+
+@router.get("/learn")
+def learn_page(request: Request, user: User = Depends(require_onboarded)):
+    return render(request, "learn.html", user=user, data=lessons.load())
 
 
 @router.get("/benefits")
