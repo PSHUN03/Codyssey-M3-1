@@ -142,6 +142,7 @@ class Memory(Base):
     kind: Mapped[str] = mapped_column(String(20))  # preference | commitment | fact
     content: Mapped[str] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # 코치 맥락에 마지막으로 쓰인 시각
 
 
 class LoginFailure(Base):
@@ -165,6 +166,24 @@ class Feedback(Base):
     rating: Mapped[int] = mapped_column(Integer)  # 1 | -1
     comment: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class LlmUsage(Base):
+    """Claude 호출 한 번의 사용량 (AI-05, NFR-08). 사용자 식별 정보와 대화 내용은 남기지 않는다."""
+
+    __tablename__ = "llm_usage"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))  # coach / structured / text
+    model: Mapped[str] = mapped_column(String(80))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_read_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_write_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    tools: Mapped[list] = mapped_column(JSON, default=list)
+    stop_reason: Mapped[str | None] = mapped_column(String(30))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
 
 
 class WeeklyReport(Base):

@@ -4,19 +4,21 @@
 - POST /internal/policies/ingest   정책 데이터 수집·갱신 (FR-18)
 - POST /internal/reports/weekly    주간 체크인 리포트 생성 (FR-15)
 - POST /internal/demo/cleanup      하루 지난 예시 계정 삭제 (BE-03)
+- GET  /internal/usage/summary     Claude 호출 사용량 요약 (AI-05)
 """
 
 from __future__ import annotations
 
 import hmac
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_db
 from app.services import account, weekly_reports
+from app.services.agent import usage
 from app.services.policies import ingest, youthcenter
 
 router = APIRouter(prefix="/internal")
@@ -38,6 +40,12 @@ def ping():
 def cleanup_demo(db: Session = Depends(get_db)):
     """만든 지 하루가 지난 예시 계정을 지운다 (BE-03). n8n이 매일 호출한다."""
     return {"deleted": account.cleanup_demo_users(db)}
+
+
+@router.get("/usage/summary", dependencies=[Depends(require_internal_key)])
+def usage_summary(days: int = Query(7, ge=1, le=90), db: Session = Depends(get_db)):
+    """최근 days일 Claude 호출 수와 토큰 합계 (AI-05). 주간 비용 요약을 회의록에 옮길 때 쓴다."""
+    return usage.summary(db, days)
 
 
 @router.post("/reports/weekly", dependencies=[Depends(require_internal_key)])

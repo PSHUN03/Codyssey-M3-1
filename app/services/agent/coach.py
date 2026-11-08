@@ -15,13 +15,14 @@ import json
 import logging
 import math
 import re
+import time
 from collections.abc import Iterator
 from typing import Protocol
 
 import anthropic
 
 from app.config import get_settings
-from app.services.agent import llm
+from app.services.agent import llm, usage
 from app.services.agent.guardrails import (
     INVESTMENT_GUARD_REPLY,
     contains_investment_advice,
@@ -86,6 +87,7 @@ class AnthropicCoach:
         need_separator = False
         for _ in range(self.MAX_TURNS):
             wrote_text = False
+            started = time.perf_counter()
             try:
                 with self._open_stream(model, params) as stream:
                     accumulated_text = ""
@@ -111,6 +113,11 @@ class AnthropicCoach:
 
                     response = stream.get_final_message()
                 json_retries = 0
+                usage.record(
+                    "coach", model, response.usage, (time.perf_counter() - started) * 1000,
+                    tools=[b.name for b in response.content if b.type == "tool_use"],
+                    stop_reason=response.stop_reason,
+                )
             except ValueError:
                 # 도구 입력 JSON을 전혀 해석할 수 없는 경우: 같은 턴을 제한적으로 다시 요청한다
                 json_retries += 1

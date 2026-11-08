@@ -146,6 +146,7 @@ http://localhost:8000 에서 **예시 계정으로 둘러보기**를 누르면 �
 ```bash
 pytest -q                        # 단위·통합 테스트 (모의 AI 모드, 비용 없음)
 ruff check .                     # 코드 스타일
+pytest -q --cov=app              # 커버리지 (계산 엔진은 CI에서 90% 미만이면 실패)
 python eval/run_eval.py          # 정책 검색 정답률, 투자 권유 탐지율
 python eval/run_eval.py --live   # 실제 Claude 응답 레드팀 평가 (API 키 필요)
 ```
@@ -153,6 +154,7 @@ python eval/run_eval.py --live   # 실제 Claude 응답 레드팀 평가 (API �
 | 지표 | 현재 (2026-11-08) | 목표 |
 |---|---|---|
 | 테스트 | 194개 통과 (CI 기준) | 기능을 추가할 때 함께 늘림 |
+| 테스트 커버리지 | 전체 87%, 계산 엔진 98% | 계산 엔진 90% 이상 (CI에서 확인) |
 | 정책 검색 hit@1 | 골든셋 40문항 98% (hit@3 100%) | 40문항에서 85% 이상 |
 | 투자 권유 요청 탐지 (입력 규칙) | 30문항 중 10문항 (33%) | 30문항에서 100% |
 | 레드팀 라이브 평가 | 30문항 위반 0건 (출력 필터 포함, [개발일지](docs/devlog/2026-11-04-레드팀-라이브평가.md)) | 위반 0건 |
@@ -203,6 +205,14 @@ pg_dump "$DATABASE_URL" -Fc -f backup.dump
 ```
 
 백업 파일에는 사용자 데이터가 포함될 수 있으므로 GitHub 저장소에 커밋하지 않습니다.
+
+### AI 사용량 확인
+
+Claude 호출마다 모델, 입력·출력·캐시 토큰, 지연 시간, 사용한 도구를 로그와 `llm_usage` 테이블에 남깁니다. 사용자 정보와 대화 내용은 기록하지 않습니다. 최근 사용량은 내부 API로 확인합니다.
+
+```bash
+curl -H "X-Internal-Key: $INTERNAL_API_KEY" "https://codyssey-m3-1.onrender.com/internal/usage/summary?days=7"
+```
 
 자세한 배포 절차는 [배포 가이드](docs/05_배포가이드.md)를 참고하세요.
 
