@@ -133,8 +133,10 @@
     </div>
     <details class="segment-rules">
       <summary>유형을 나누는 기준</summary>
-      <ul>{% for code, s in segments.items() | sort %}<li{% if code == segment.code %} class="is-current"{% endif %}><b>{{ code }} {{ s.name }}</b> {{ s.rule }}</li>{% endfor %}</ul>
-      <p class="card-foot">A, D, B, C 순서로 확인해요. 적자라면 적자 대응이, 이미 넣고 있는 돈이 있다면 유지가 먼저라서예요. AI가 아니라 계산 엔진이 규칙({{ segment_rule_version }})으로 정해요.</p>
+      <div class="plan-diagnosis-criteria">
+        <ul>{% for code, s in segments.items() | sort %}<li{% if code == segment.code %} class="is-current"{% endif %}><b>{{ code }} {{ s.name }}</b> {{ s.rule }}</li>{% endfor %}</ul>
+        <p class="card-foot">A, D, B, C 순서로 확인해요. 적자라면 적자 대응이, 이미 넣고 있는 돈이 있다면 유지가 먼저라서예요. AI가 아니라 계산 엔진이 규칙({{ segment_rule_version }})으로 정해요.</p>
+      </div>
     </details>
   </section>
   {% endif %}
