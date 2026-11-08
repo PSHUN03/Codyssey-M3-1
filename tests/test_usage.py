@@ -87,3 +87,23 @@ def test_anthropic_coach_records_each_turn(client, monkeypatch):
     with new_session() as db:
         row = db.scalars(select(LlmUsage)).one()
         assert (row.kind, row.input_tokens, row.output_tokens, row.stop_reason) == ("coach", 50, 10, "end_turn")
+
+
+def test_coach_falls_back_to_engine_when_ai_server_unavailable(client, monkeypatch):
+    import anthropic
+    import httpx
+
+    def unavailable(model, params):
+        raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://example.invalid"))
+
+    monkeypatch.setattr(coach.AnthropicCoach, "_open_stream", staticmethod(unavailable))
+    monkeypatch.setattr(coach, "recent_memories", lambda user: [])
+    ctx = SimpleNamespace(user=SimpleNamespace(nickname="테스터", profile=None))
+
+    events = list(coach.AnthropicCoach().stream(ctx, [], "안녕"))
+
+    # AI 답변이 아니라는 안내가 먼저 나오고, 계산 엔진 기본 안내가 이어진다
+    assert events[0] == {"type": "notice", "text": coach.FALLBACK_NOTICE}
+    assert events[1] == {"type": "delta", "text": coach.FALLBACK_PREFIX}
+    assert "월급 배분" in "".join(e["text"] for e in events[2:] if e["type"] == "delta")
+    assert not any(e["type"] == "error" for e in events)
