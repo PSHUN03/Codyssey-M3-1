@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from datetime import date as date_type
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -31,6 +32,7 @@ class User(Base):
     chat_sessions: Mapped[list[ChatSession]] = relationship(cascade="all, delete-orphan", order_by="ChatSession.id")
     memories: Mapped[list[Memory]] = relationship(cascade="all, delete-orphan", order_by="Memory.id")
     weekly_reports: Mapped[list[WeeklyReport]] = relationship(cascade="all, delete-orphan")
+    transactions: Mapped[list[Transaction]] = relationship(cascade="all, delete-orphan", order_by="Transaction.id")
 
 
 class Consent(Base):
@@ -196,4 +198,20 @@ class WeeklyReport(Base):
     body: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(20))
     claim_token: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Transaction(Base):
+    """거래내역 (BE-01, FR-13·14). 원본 파일은 저장하지 않고, 가린 가맹점명과 금액만 남긴다. 지출은 음수다."""
+
+    __tablename__ = "transactions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    date: Mapped[date_type] = mapped_column(Date, index=True)
+    amount: Mapped[int] = mapped_column(Integer)
+    merchant: Mapped[str] = mapped_column(String(200))
+    category: Mapped[str] = mapped_column(String(20))
+    is_fixed: Mapped[bool] = mapped_column(Boolean, default=False)
+    source: Mapped[str] = mapped_column(String(20), default="upload")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
