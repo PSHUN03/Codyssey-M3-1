@@ -44,6 +44,24 @@ Webhook (POST /webhook/sadari-feedback)
 
 - 사다리 서버는 '아쉬워요'(rating -1) 피드백일 때만 이 웹훅을 호출한다 (`FEEDBACK_WEBHOOK_URL`).
 - 이메일·닉네임 같은 개인정보는 보내지 않는다.
+- 이슈가 공개 저장소에 올라가므로 서버가 질문·답변·의견 속 금액과 전화·계좌·카드번호를 가린 뒤 보낸다 (`app/services/feedback_hook.py`).
+
+워크플로 파일: [feedback_to_issue.json](feedback_to_issue.json). 가져온 뒤 할 일:
+
+1. **Webhook** 노드: Authentication의 Header Auth 자격 증명을 새로 만든다. 이름 `X-Internal-Key`, 값은 서버의 `INTERNAL_API_KEY`와 같게
+2. **GitHub 이슈 만들기** 노드: GitHub 자격 증명을 연결한다. 이 저장소의 Issues 쓰기 권한만 있는 Fine-grained 토큰을 쓴다
+3. **디스코드 알림** 노드: URL을 팀 디스코드 채널의 웹훅 주소로 바꾼다 (이 주소도 비밀값이라 JSON을 다시 내보낼 때 지운다)
+4. 워크플로를 Active로 켜고, Production URL을 Render 환경변수 `FEEDBACK_WEBHOOK_URL`에 넣는다
+
+## W4. 예시 계정 정리 (BE-03)
+
+```
+Schedule Trigger (매일 04:30 KST)
+  → HTTP Request: POST /internal/demo/cleanup  (X-Internal-Key)
+```
+
+- 만든 지 하루가 지난 예시 계정('지우')을 대화·기억과 함께 지운다. 응답은 `{"deleted": N}`.
+- 워크플로 파일: [demo_cleanup.json](demo_cleanup.json). 가져온 뒤 HTTP 노드에 W1과 같은 Header Auth 자격 증명을 연결하고 Active로 켠다.
 
 ## 호스팅 선택지 (DATA-04에서 결정 후 ADR 작성)
 

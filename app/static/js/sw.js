@@ -1,7 +1,7 @@
 /* 서비스 워커 — 정적 파일은 캐시로 즉시 응답하면서 백그라운드에서 갱신(stale-while-revalidate),
    화면은 네트워크 우선(오프라인이면 안내). API는 캐시하지 않는다.
    CSS·JS 주소에는 배포마다 바뀌는 ?v= 버전이 붙어 있어 수정 사항이 바로 반영된다. */
-const CACHE = "sadari-v3";
+const CACHE = "sadari-v4-purple-arrow";
 const ASSETS = ["/static/css/app.css", "/static/js/app.js", "/static/icons/icon-192.png", "/static/icons/favicon.svg"];
 const OFFLINE_HTML = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>오프라인</title><body style="font-family:sans-serif;padding:40px;text-align:center;background:#e8ebe6;color:#0e0f0c">

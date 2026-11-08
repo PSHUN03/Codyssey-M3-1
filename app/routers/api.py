@@ -5,11 +5,12 @@ from __future__ import annotations
 import re
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db import get_db
 from app.deps import require_member, require_onboarded
 from app.models import (
@@ -22,7 +23,7 @@ from app.models import (
     User,
     WeeklySavingsCheck,
 )
-from app.services import account, planner
+from app.services import account, feedback_hook, planner
 from app.services.agent.tools import ToolContext, run_tool
 
 router = APIRouter(prefix="/api")
@@ -129,48 +130,49 @@ class MonthlySavingsIn(BaseModel):
     month: str
     amount: int = Field(ge=0, le=10_000_000)
 
+CHECKIN_WEEKS = 8  # 이슈 BE-04 완료 기준: 최근 8주
+SAVINGS_MONTHS = 12  # 최근 12개월
+
+
+def _savings_progress(db: Session, user: User) -> dict:
+    """기존 보유 저축 + 월별 기록 합계를 최근 목표 금액과 비교한다."""
+    profile = db.get(Profile, user.id)
+    goal = db.scalar(select(Goal).where(Goal.user_id == user.id).order_by(Goal.id.desc()))
+    total = (profile.savings or 0) if profile else 0
+    total += db.scalar(
+        select(func.coalesce(func.sum(MonthlySavingsRecord.amount), 0)).where(MonthlySavingsRecord.user_id == user.id)
+    )
+    percentage = None
+    if goal and goal.target_amount > 0:
+        percentage = min(100, round(total / goal.target_amount * 100, 1))
+    return {"saved_amount": total, "target_amount": goal.target_amount if goal else None, "percentage": percentage}
+
+
 @router.get("/checkins")
-def get_checkins(
-    user: User = Depends(require_onboarded),
-    db: Session = Depends(get_db),
-):
+def get_checkins(user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
     records = db.scalars(
         select(WeeklySavingsCheck)
         .where(WeeklySavingsCheck.user_id == user.id)
         .order_by(WeeklySavingsCheck.week.desc())
+        .limit(CHECKIN_WEEKS)
     ).all()
-
-    return {
-        "checkins": [
-            {
-                "week": record.week,
-                "deposited": record.deposited,
-            }
-            for record in records
-        ]
-    }
+    return {"checkins": [{"week": r.week, "paid": r.deposited} for r in records]}
 
 
 @router.get("/savings")
-def get_savings(
-    user: User = Depends(require_onboarded),
-    db: Session = Depends(get_db),
-):
+def get_savings(user: User = Depends(require_onboarded), db: Session = Depends(get_db)):
     records = db.scalars(
         select(MonthlySavingsRecord)
         .where(MonthlySavingsRecord.user_id == user.id)
         .order_by(MonthlySavingsRecord.month.desc())
+        .limit(SAVINGS_MONTHS)
     ).all()
-
     return {
-        "savings": [
-            {
-                "month": record.month,
-                "amount": record.amount,
-            }
-            for record in records
-        ]
+        "savings": [{"month": r.month, "amount": r.amount} for r in records],
+        "progress": _savings_progress(db, user),
     }
+
+
 @router.post("/savings/monthly")
 def save_monthly_savings(
     payload: MonthlySavingsIn,
@@ -199,32 +201,11 @@ def save_monthly_savings(
 
     db.commit()
 
-    profile = db.get(Profile, user.id)
-    goal = db.scalar(
-        select(Goal)
-        .where(Goal.user_id == user.id)
-        .order_by(Goal.id.desc())
-    )
-
-    total = (profile.savings or 0) if profile else 0
-    total += db.scalar(
-        select(func.coalesce(func.sum(MonthlySavingsRecord.amount), 0))
-        .where(MonthlySavingsRecord.user_id == user.id)
-    )
-
-    progress = None
-    if goal and goal.target_amount > 0:
-        progress = min(100, round(total / goal.target_amount * 100, 1))
-
     return {
         "ok": True,
         "month": record.month,
         "amount": record.amount,
-        "progress": {
-            "saved_amount": total,
-            "target_amount": goal.target_amount if goal else None,
-            "percentage": progress,
-        },
+        "progress": _savings_progress(db, user),
     }
 
 
@@ -245,13 +226,19 @@ class FeedbackIn(BaseModel):
 
 
 @router.post("/feedback")
-def feedback(payload: FeedbackIn, user: User = Depends(require_member), db: Session = Depends(get_db)):
+def feedback(payload: FeedbackIn, background: BackgroundTasks, user: User = Depends(require_member),
+             db: Session = Depends(get_db)):
     message = db.get(ChatMessage, payload.message_id)
     if message is None or message.user_id != user.id or message.role != "assistant":
         raise HTTPException(status_code=404)
-    db.add(Feedback(user_id=user.id, message_id=message.id, rating=payload.rating, comment=payload.comment))
+    row = Feedback(user_id=user.id, message_id=message.id, rating=payload.rating, comment=payload.comment)
+    db.add(row)
     db.commit()
-    # TODO(FR-17): n8n 웹훅으로 전달해 GitHub Issue를 자동 생성한다 — docs/tasks/01_PM.md 참고
+    settings = get_settings()
+    if payload.rating == -1 and settings.feedback_webhook_url:
+        # 아쉬워요는 n8n을 거쳐 GitHub Issue가 된다 (FR-17). 응답을 기다리게 하지 않도록 뒤에서 보낸다
+        background.add_task(feedback_hook.send, settings.feedback_webhook_url,
+                            feedback_hook.build_payload(db, row, message), settings.internal_api_key)
     return {"ok": True}
 
 

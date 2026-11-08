@@ -7,12 +7,12 @@
   <title>{% block head_title %}{% block title %}{% endblock %} | 사다리{% endblock %}</title>
   <meta name="description" content="첫 월급을 어떻게 나눌지, 받을 수 있는 청년 혜택은 무엇인지 내 숫자로 계산해 주는 재무 코치">
   <meta name="theme-color" content="#fbfaff">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="icon" href="/static/icons/favicon.svg?v={{ asset_version }}" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/static/icons/icon-192.png?v={{ asset_version }}">
+  <link rel="manifest" href="/manifest.webmanifest?v=purple-arrow-v1">
+  <link rel="icon" href="/static/icons/favicon.svg?v=purple-arrow-v1" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon-purple-v1.png">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-fe03-coach-follow-v16">
+  <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}-ui61-scrollbar-v8">
 </head>
 {% set nav_items = [
   ("/home", "홈", "home"),
@@ -43,9 +43,11 @@
       </nav>
       {% endif %}
       <div class="header-end">
+        {% block header_before_demo %}{% endblock %}
         {% if user and user.is_demo %}<span class="demo-tag">예시 계정</span>{% endif %}
         {% block header_end %}{% endblock %}
       </div>
+      <button class="btn btn-secondary btn-sm" type="button" id="pwa-install-button" hidden>앱 설치</button>
     </div>
   </header>
 
@@ -98,7 +100,32 @@
   {% endif %}
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="modal pwa-install-dialog" id="pwa-install-dialog" aria-labelledby="pwa-install-title" aria-describedby="pwa-install-description">
+    <form method="dialog" class="modal-body pwa-install-body">
+      <div class="pwa-install-brand-row">
+        <span class="pwa-install-brand">{{ ui.logo_mark(30) }}<span>사다리</span></span>
+        <button class="icon-btn" type="submit" value="cancel" aria-label="설치 안내 닫기">{{ ui.icon("x", 20) }}</button>
+      </div>
+      <div class="pwa-install-heading">
+        <h2 id="pwa-install-title">홈 화면에 추가해요</h2>
+        <p id="pwa-install-description">Safari에서 간단히 추가해요.</p>
+      </div>
+      <ol class="pwa-install-steps" data-pwa-guide="ios">
+        <li><span class="pwa-install-step-number" aria-hidden="true">1</span><div><strong>공유 메뉴 열기</strong><p>Safari에서 ‘공유’를 눌러요.</p></div></li>
+        <li><span class="pwa-install-step-number" aria-hidden="true">2</span><div><strong>홈 화면에 추가</strong><p>목록에서 선택해 주세요.</p></div></li>
+        <li><span class="pwa-install-step-number" aria-hidden="true">3</span><div><strong>‘추가’ 누르기</strong><p>홈 화면에 아이콘이 생겨요.</p></div></li>
+      </ol>
+      <p class="pwa-install-tip" data-pwa-guide="ios">사다리 아이콘으로 열면<br>앱처럼 편하게 이용할 수 있어요.</p>
+      <ol class="pwa-install-steps" data-pwa-guide="android" hidden>
+        <li><span class="pwa-install-step-number" aria-hidden="true">1</span><div><strong>Chrome으로 열기</strong><p>카카오톡·네이버 안이라면 주소를 복사해 Chrome 앱에서 열어 주세요.</p></div></li>
+        <li><span class="pwa-install-step-number" aria-hidden="true">2</span><div><strong>더보기 메뉴 열기</strong><p>Chrome 주소창 옆의 ⋮ 메뉴를 눌러요.</p></div></li>
+        <li><span class="pwa-install-step-number" aria-hidden="true">3</span><div><strong>설치 메뉴 선택하기</strong><p>‘설치 및 바로가기 만들기’ → ‘설치’를 누르고 화면 안내를 따라 주세요.</p></div></li>
+      </ol>
+      <p class="pwa-install-tip" data-pwa-guide="android" hidden>버전에 따라 ‘앱 설치’ 또는 ‘홈 화면에 추가’로 보일 수 있어요. 메뉴가 보이지 않으면 Chrome 일반 탭에서 다시 열어 주세요.</p>
+      <button class="btn btn-primary btn-block" type="submit">확인했어요</button>
+    </form>
+  </dialog>
   {% block dialogs %}{% endblock %}
-  <script src="/static/js/app.js?v={{ asset_version }}-fe03-coach-follow-v16" defer></script>
+  <script src="/static/js/app.js?v={{ asset_version }}-ui61-new-chat-v7" defer></script>
 </body>
 </html>

@@ -3,15 +3,26 @@
 from __future__ import annotations
 
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 
 DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "policies.json"
 
 
+def external_file() -> Path:
+    return Path(os.getenv("POLICY_EXTERNAL_FILE") or DATA_FILE.parent / "cache" / "external_policies.json")
+
+
 @lru_cache
 def _load() -> dict:
-    return json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    path = external_file()
+    if path.exists():
+        external = json.loads(path.read_text(encoding="utf-8"))
+        existing = {p["id"] for p in data["policies"]}
+        data["policies"].extend(p for p in external["policies"] if p["id"] not in existing)
+    return data
 
 
 def meta() -> dict:

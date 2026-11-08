@@ -10,3 +10,31 @@
 {"id": "q10", "question": "연말정산 때 돈 돌려받는 방법", "expected_policy": "pension-tax-credit", "must_include": ["세액공제"]}
 {"id": "q11", "question": "IRP 넣으면 얼마나 돌려받아?", "expected_policy": "pension-tax-credit", "must_include": ["16.5%"]}
 {"id": "q12", "question": "저소득 청년이 저축하면 정부가 30만 원씩 더 주는 거", "expected_policy": "youth-tomorrow-savings", "must_include": ["30만"]}
+{"id": "q13", "question": "미래적금 한 달에 최대 얼마까지 넣을 수 있어?", "expected_policy": "youth-future-savings", "must_include": ["50만"]}
+{"id": "q14", "question": "연봉 3천인데 중소기업 다니면 미래적금 우대형 돼?", "expected_policy": "youth-future-savings", "must_include": ["3,600만", "중소기업"]}
+{"id": "q15", "question": "미래적금 중간에 깨면 어떻게 돼?", "expected_policy": "youth-future-savings", "must_include": ["중도해지", "기여금"]}
+{"id": "q16", "question": "미래적금 만기가 몇 년이야?", "expected_policy": "youth-future-savings", "must_include": ["3년"]}
+{"id": "q17", "question": "군대 다녀왔는데 35살이면 미래적금 못 들어?", "expected_policy": "youth-future-savings", "must_include": ["병역", "6년"]}
+{"id": "q18", "question": "연봉 7천이면 미래적금 혜택 뭐가 남아?", "expected_policy": "youth-future-savings", "must_include": ["비과세", "7,500만"]}
+{"id": "q19", "question": "미래적금은 어디서 가입해?", "expected_policy": "youth-future-savings", "must_include": ["은행"]}
+{"id": "q20", "question": "도약계좌 이미 들었는데 해지할까 고민돼", "expected_policy": "youth-leap-account", "must_include": ["3년", "60%"]}
+{"id": "q21", "question": "도약계좌 만기 몇 년짜리였지?", "expected_policy": "youth-leap-account", "must_include": ["5년"]}
+{"id": "q22", "question": "도약계좌 언제 신규 가입 끝났어?", "expected_policy": "youth-leap-account", "must_include": ["2025년 12월 31일"]}
+{"id": "q23", "question": "세대주 아니어도 주택드림 청약통장 만들 수 있어?", "expected_policy": "housing-dream-account", "must_include": ["세대주"]}
+{"id": "q24", "question": "청약 당첨되면 대출도 연결돼?", "expected_policy": "housing-dream-account", "must_include": ["80%", "2.2%"]}
+{"id": "q25", "question": "연봉 5천 넘으면 주택드림 통장 가입 안 돼?", "expected_policy": "housing-dream-account", "must_include": ["5,000만"]}
+{"id": "q26", "question": "옛날 청년우대형 청약통장 갖고 있는데 바꿀 수 있어?", "expected_policy": "housing-dream-account", "must_include": ["전환"]}
+{"id": "q27", "question": "청약통장 지금 아무 때나 가입돼?", "expected_policy": "housing-dream-account", "must_include": ["상시"]}
+{"id": "q28", "question": "월세 지원 최대 몇 개월 받을 수 있어?", "expected_policy": "youth-rent-support", "must_include": ["24개월"]}
+{"id": "q29", "question": "부모님이랑 같이 살아도 월세 지원 돼?", "expected_policy": "youth-rent-support", "must_include": ["부모와"]}
+{"id": "q30", "question": "월세 지원 신청할 때 어떤 서류 필요해?", "expected_policy": "youth-rent-support", "must_include": ["임대차계약서"]}
+{"id": "q31", "question": "월세 지원 관리비도 포함돼?", "expected_policy": "youth-rent-support", "must_include": ["관리비"]}
+{"id": "q32", "question": "소득세 감면 몇 년 동안 받아?", "expected_policy": "sme-youth-tax-cut", "must_include": ["5년"]}
+{"id": "q33", "question": "입사할 때 감면 신청 안 했는데 지금이라도 돌려받을 수 있어?", "expected_policy": "sme-youth-tax-cut", "must_include": ["경정청구"]}
+{"id": "q34", "question": "소득세 감면 한도 있어?", "expected_policy": "sme-youth-tax-cut", "must_include": ["200만"]}
+{"id": "q35", "question": "우리 회사가 감면 대상인지 어떻게 알아?", "expected_policy": "sme-youth-tax-cut", "must_include": ["업종"]}
+{"id": "q36", "question": "월 10만 원 저축하면 3년 뒤에 얼마 받아?", "expected_policy": "youth-tomorrow-savings", "must_include": ["1,440만"]}
+{"id": "q37", "question": "내일저축계좌 몇 살까지 가입돼?", "expected_policy": "youth-tomorrow-savings", "must_include": ["39세"]}
+{"id": "q38", "question": "기초생활수급자 청년도 들 수 있는 저축 상품", "expected_policy": "youth-tomorrow-savings", "must_include": ["기초생활수급"]}
+{"id": "q39", "question": "연금저축이랑 IRP 합쳐서 얼마까지 공제돼?", "expected_policy": "pension-tax-credit", "must_include": ["900만"]}
+{"id": "q40", "question": "IRP 넣은 돈 중간에 빼면 손해야?", "expected_policy": "pension-tax-credit", "must_include": ["기타소득세"]}

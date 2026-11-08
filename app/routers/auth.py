@@ -61,10 +61,17 @@ def login_page(request: Request, user: User | None = Depends(current_user)):
 
 @router.post("/login")
 def login(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    # 계정이 있는지와 상관없이 같은 기준으로 잠가, 잠금 여부로 가입 여부를 알 수 없게 한다
+    if account.login_locked(db, email):
+        return render(request, "auth.html", status_code=429, mode="login",
+                      error=account.LOCKED_MESSAGE, form={"email": email})
     user = account.authenticate(db, email, password)
     if user is None:
-        return render(request, "auth.html", status_code=400, mode="login",
-                      error="이메일 또는 비밀번호가 맞지 않아요.", form={"email": email})
+        locked = account.record_login_failure(db, email)
+        return render(request, "auth.html", status_code=429 if locked else 400, mode="login",
+                      error=account.LOCKED_MESSAGE if locked else "이메일 또는 비밀번호가 맞지 않아요.",
+                      form={"email": email})
+    account.clear_login_failures(db, email)
     _login(request, user)
     return RedirectResponse(next_step(user), status_code=303)
 
