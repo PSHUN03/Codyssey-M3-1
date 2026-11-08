@@ -1,4 +1,4 @@
-/* DATA-06 file preview only. Never writes transactions or calls BE-01 endpoints. */
+/* DATA-06 file preview. Transactions are written only when the user presses ‘거래 저장하기’ (BE-01 /api/transactions/save). */
 (() => {
   "use strict";
   const contract = typeof module !== "undefined" && module.exports
@@ -17,7 +17,7 @@
   const previewFile = contract.createPreviewClient((url, init) => fetch(url, init));
   const find = selector => root.querySelector(selector), all = selector => [...root.querySelectorAll(selector)];
   const format = value => new Intl.NumberFormat("ko-KR").format(value), won = value => format(value) + "원";
-  const state = { stage: "idle", file: null, preview: null, changes: {}, page: 0, error: "", errorStatus: null, lastOptions: {} };
+  const state = { stage: "idle", file: null, preview: null, changes: {}, page: 0, error: "", errorStatus: null, lastOptions: {}, saved: false };
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)"), rowPool = [];
   let generation = 0, controller = null, mappingController = null, resetting = false;
   let chartKey = "", chartSeen = false, observer = null;
@@ -97,7 +97,7 @@
   function renderResults() {
     const data = summary();
     find("[data-total]").textContent = format(data.total);
-    find("[data-fixed]").textContent = "—"; find("[data-variable]").textContent = "—";
+    if (!state.saved) { find("[data-fixed]").textContent = "—"; find("[data-variable]").textContent = "—"; }
     find("[data-total-note]").textContent = `출금 ${format(state.preview.expenses.length)}건 · 입금은 지출에서 제외했어요.`;
     const top = find("[data-top-list]"); top.replaceChildren();
     if (!data.top.length) top.append(node("p", "s-panel-sub", "표시할 지출이 없어요."));
@@ -128,7 +128,12 @@
   }
   function stop() { generation++; controller?.abort(); controller = null; }
   function resultReady() {
-    state.changes = {}; state.page = 0; resetChart(); state.stage = "result"; render();
+    state.changes = {}; state.page = 0; state.saved = false; resetChart(); state.stage = "result"; render();
+    const save = find("[data-save-transactions]"); if (save) { save.disabled = false; save.textContent = "거래 저장하기"; }
+    find("[data-fixed]").nextElementSibling.hidden = true;
+    find("[data-variable]").nextElementSibling.hidden = true;
+    find("[data-fixed-note]").textContent = "거래를 저장하면 월별 요약으로 계산해요.";
+    find("[data-variable-note]").textContent = "미리보기에서는 임의로 나누지 않아요.";
     find("[data-change-status]").textContent = "분류 변경과 거래내역은 아직 저장되지 않아요.";
   }
   function showMapping(preview) {
@@ -192,7 +197,7 @@
     const original = state.preview.expenses.find(row => String(row.previewIndex) === select.dataset.transaction);
     if (!original) return;
     if (select.value === original.category) delete state.changes[original.previewIndex]; else state.changes[original.previewIndex] = select.value;
-    renderResults(); find("[data-change-status]").textContent = original.merchant + " 분류를 ‘" + select.value + "’로 바꿨어요. 현재 미리보기에만 반영되며 저장되지 않아요.";
+    renderResults(); find("[data-change-status]").textContent = original.merchant + " 분류를 ‘" + select.value + "’로 바꿨어요. " + (state.saved ? "이미 저장한 거래의 분류는 바뀌지 않아요." : "‘거래 저장하기’를 누르면 바꾼 분류로 저장돼요.");
   }));
   if (typeof initProfileSelects === "function") initProfileSelects(root);
   find("[data-pick]").addEventListener("click", () => find("[data-file-input]").click());
@@ -206,6 +211,39 @@
     stop(); mappingController?.abort(); state.file = file; state.stage = "ready"; state.preview = null; state.lastOptions = {}; error.hidden = true; render();
     announce("파일 선택이 끝났어요. 미리보기를 눌러 내용을 확인해 주세요.");
   });
+  async function saveTransactions() {
+    const button = find("[data-save-transactions]");
+    if (!button || state.stage !== "result" || !state.preview?.transactions.length) return;
+    const rows = state.preview.transactions.map(row => ({ date: row.date, merchant: row.merchant, amount: row.amount,
+      category: row.amount < 0 ? (state.changes[row.previewIndex] || row.category) : "수입" }));
+    button.disabled = true; button.textContent = "저장하고 있어요";
+    const status = find("[data-change-status]");
+    try {
+      const response = await fetch("/api/transactions/save", { method: "POST", credentials: "same-origin", cache: "no-store",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ transactions: rows }) });
+      if (!response.ok) throw Object.assign(new Error({ 401: "로그인이 필요해요.", 403: "필수 동의를 확인해 주세요.", 409: "재무 진단을 먼저 마쳐 주세요.", 422: "저장할 수 없는 거래가 있어요. 파일 내용을 확인해 주세요." }[response.status] || "저장하지 못했어요. 잠시 후 다시 시도해 주세요."), { status: response.status });
+      const result = await response.json();
+      const month = result.months?.[result.months.length - 1];
+      state.saved = true; button.textContent = "저장했어요";
+      status.textContent = `거래 ${format(result.saved)}건을 저장했어요.` + (result.skipped ? ` 이미 저장된 ${format(result.skipped)}건은 건너뛰었어요.` : "");
+      announce(status.textContent);
+      if (!month) return;
+      const summaryResponse = await fetch(`/api/transactions/summary?month=${encodeURIComponent(month)}`, { credentials: "same-origin", cache: "no-store" });
+      if (!summaryResponse.ok) return;
+      const data = await summaryResponse.json();
+      if (!data.has_data) return;
+      const label = `${month.slice(0, 4)}년 ${Number(month.slice(5))}월`;
+      find("[data-fixed]").textContent = format(data.fixed_estimate); find("[data-fixed]").nextElementSibling.hidden = false;
+      find("[data-variable]").textContent = format(data.variable_spent); find("[data-variable]").nextElementSibling.hidden = false;
+      find("[data-fixed-note]").textContent = `${label} 저장 기준 · 주거·통신·반복 결제` + (data.subscriptions.length ? ` (구독 후보 ${format(data.subscriptions.length)}건)` : "");
+      find("[data-variable-note]").textContent = data.saving_capacity === null ? `${label} 저장 기준` : `${label} 저장 기준 · 남는 돈 ${won(data.saving_capacity)}`;
+    } catch (error) {
+      button.disabled = false; button.textContent = "다시 저장하기";
+      status.textContent = error instanceof TypeError ? "인터넷 연결을 확인한 뒤 다시 시도해 주세요." : error.message;
+      announce(status.textContent);
+    }
+  }
+  find("[data-save-transactions]")?.addEventListener("click", saveTransactions);
   find("[data-analyze]").addEventListener("click", () => analyze());
   find("[data-retry]").addEventListener("click", () => analyze(state.lastOptions));
   find("[data-confirm-partial]").addEventListener("click", () => { if (!state.preview?.transactions.length) return; resultReady(); announce("오류 행을 제외한 정상 거래만 표시했어요. 아직 저장되지 않았어요."); });
