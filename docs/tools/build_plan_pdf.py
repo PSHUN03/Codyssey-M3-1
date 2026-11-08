@@ -122,6 +122,8 @@ def parse(md: str) -> tuple[dict[str, str], list[tuple[str, list[str]]]]:
 
     sections: list[tuple[str, list[str]]] = []
     for line in lines:
+        # GitHub에서 취소선이 되지 않도록 범위 표기의 ~를 \~로 적어 두었으므로 원래 글자로 되돌린다
+        line = line.replace("\\~", "~")
         if line.startswith("## "):
             sections.append((line[3:].strip(), []))
         elif sections:  # 첫 ## 이전(제목, 안내문)은 PDF에 넣지 않는다

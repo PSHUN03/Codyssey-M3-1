@@ -1,7 +1,12 @@
 """가입 → 동의 → 진단 → 플랜·혜택 → AI 코치 → 피드백·메모리 → 탈퇴 전체 흐름 (모의 AI 모드)."""
 
 import json
+import re
+from datetime import date
+from types import SimpleNamespace
 
+from app.services.account import DEMO_PROFILE
+from app.services.policies import eligibility, repository
 from tests.conftest import agree, onboard, signup
 
 
@@ -93,11 +98,26 @@ def test_full_user_journey(client):
     assert res.status_code == 400
 
 
-def test_demo_mode(client):
+def test_demo_mode(client, monkeypatch):
+    # 모집 종료 정책은 전체 목록에 남되 홈의 신청 가능 후보에는 나오지 않는다.
+    today = date(2026, 11, 3)
+    monkeypatch.setattr(eligibility, "today_kst", lambda: today)
     res = client.post("/demo", follow_redirects=False)
     assert res.headers["location"] == "/home"
     home = client.get("/home").text
-    assert "지우(데모)" in home and "청년미래적금" in home
+    assert "지우(데모)" in home
+    visible_ids = re.findall(r'href="/benefits/([^"/?]+)"', home)
+    assert len(visible_ids) == 3
+    profile = SimpleNamespace(**DEMO_PROFILE)
+    for policy_id in visible_ids:
+        policy = repository.get_policy(policy_id)
+        assert policy is not None
+        assert eligibility.evaluate(policy, profile, today=today).status in {"eligible", "check"}
+    assert "youth-future-savings" not in visible_ids
+    benefits = client.get("/benefits")
+    assert benefits.status_code == 200 and "청년미래적금" in benefits.text
+    detail = client.get("/benefits/youth-future-savings")
+    assert detail.status_code == 200 and "지금은 신청 불가" in detail.text
     events = chat(client, "청년미래적금에 월 30만 원 넣으면 얼마 받아?")
     assert "만기" in answer_text(events)
 

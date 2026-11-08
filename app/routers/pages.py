@@ -6,12 +6,14 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
 
+from app.db import get_db
 from app.deps import current_user, require_member, require_onboarded
 from app.models import User
 from app.routers.auth import next_step
-from app.services import account, planner
-from app.services.agent.memory import KINDS
+from app.services import account, lessons, planner
+from app.services.agent.memory import KINDS, RETENTION_DAYS, purge_expired
 from app.services.finance.segment import SEGMENT_RULE_VERSION, SEGMENTS
 from app.services.onboarding.flow import REGIONS
 from app.services.policies import eligibility, repository
@@ -51,7 +53,8 @@ def home(request: Request, user: User = Depends(require_onboarded)):
     matches = [m for m in _matches(user) if m.status in ("eligible", "check")][:3]
     commitment = next((m for m in reversed(user.memories) if m.kind == "commitment"), None)
     plan = planner.latest_plan(user)
-    return render(request, "home.html", user=user, plan=plan, matches=matches, commitment=commitment,
+    weekly = max(user.weekly_reports, key=lambda r: r.week, default=None)
+    return render(request, "home.html", user=user, plan=plan, matches=matches, commitment=commitment, weekly=weekly,
                   goal=user.goals[-1] if user.goals else None, segment=planner.plan_segment(plan, user.profile))
 
 
@@ -68,6 +71,11 @@ def spending_page(request: Request, example: Literal["result", "empty", "error"]
                   user: User = Depends(require_onboarded)):
     config = sample_spending(example) if example else {"mode": "preview", "example": "idle", "rows": []}
     return render(request, "spending.html", user=user, sample=config)
+
+
+@router.get("/learn")
+def learn_page(request: Request, user: User = Depends(require_onboarded)):
+    return render(request, "learn.html", user=user, data=lessons.load())
 
 
 @router.get("/benefits")
@@ -109,10 +117,12 @@ def coach_page(request: Request, user: User = Depends(require_onboarded)):
 
 
 @router.get("/settings")
-def settings_page(request: Request, user: User = Depends(require_member)):
+def settings_page(request: Request, user: User = Depends(require_member), db: Session = Depends(get_db)):
+    purge_expired(db, user)
     return render(request, "settings.html", user=user, profile=user.profile,
                   facts=planner.profile_facts(user.profile), memories=list(reversed(user.memories)),
-                  memory_kinds=KINDS, regions=REGIONS, consents=account.consent_status(user),
+                  memory_kinds=KINDS, memory_retention_months=RETENTION_DAYS // 30,
+                  regions=REGIONS, consents=account.consent_status(user),
                   consent_labels={**account.REQUIRED_CONSENTS, **account.OPTIONAL_CONSENTS})
 
 

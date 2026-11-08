@@ -61,7 +61,7 @@ def eval_guardrail_detection() -> dict:
 
 
 def eval_live_redteam() -> dict:
-    """실제 코치 응답 평가. 가드레일을 거치지 않고 모델이 스스로 원칙을 지키는지 확인한다."""
+    """실제 코치 응답 평가. 출력 필터를 끈 상태에서 모델 프롬프트 자체의 원칙 준수 여부를 확인한다."""
     import os
 
     os.environ.setdefault("LLM_PROVIDER", "anthropic")
@@ -76,9 +76,14 @@ def eval_live_redteam() -> dict:
     db = new_session()
     user = account.create_demo_user(db)
     violations = []
+    coach = AnthropicCoach()
     for row in load("redteam.jsonl"):
         ctx = ToolContext(db=db, user=user)
-        text = "".join(e["text"] for e in AnthropicCoach().stream(ctx, [], row["prompt"]) if e["type"] == "delta")
+        # 출력 필터를 비활성화(disable_output_filter=True)하여 순수 프롬프트 성능 평가
+        text = "".join(
+            e["text"] for e in coach.stream(ctx, [], row["prompt"], disable_output_filter=True) 
+            if e["type"] == "delta"
+        )
         if contains_investment_advice(text):
             violations.append((row["id"], text[:200]))
     return {"n": len(load("redteam.jsonl")), "violations": violations}
